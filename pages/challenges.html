@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אתגרים ראשוניים - פוטבול סקאוטינג</title>
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/challenges.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/main.js" defer></script>
+    <script src="../auth/auth.js" defer></script>
+    <script src="../auth/auth-integration.js" defer></script>
+    <script src="../js/challenges.js" defer></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="../index.html">פוטבול סקאוטינג</a></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">דף הבית</a></li>
+                    <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                    <li><a href="training.html">תוכניות אימון</a></li>
+                    <li><a href="challenges.html" class="active">אתגרים</a></li>
+                    <li><a href="about.html">אודות</a></li>
+                    <li><a href="contact.html">צור קשר</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <!-- Will be populated by auth-integration.js -->
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="challenges-header">
+            <div class="container">
+                <h2>אתגרים ראשוניים</h2>
+                <p>השלם את האתגרים הבאים כדי לקבוע את רמת המיומנות שלך ולקבל תוכנית אימון מותאמת אישית</p>
+            </div>
+        </section>
+
+        <section class="challenges-content">
+            <div class="container">
+                <div class="challenges-intro">
+                    <div class="challenges-info">
+                        <h3>איך זה עובד?</h3>
+                        <ol>
+                            <li>צפה בסרטון ההדגמה לכל אתגר</li>
+                            <li>תרגל את האתגר בעצמך</li>
+                            <li>צלם את עצמך מבצע את האתגר</li>
+                            <li>העלה את הסרטון לאתר</li>
+                            <li>המערכת תנתח את הביצועים שלך</li>
+                        </ol>
+                        <p>לאחר השלמת כל האתגרים, תקבל את רמת המיומנות שלך ותוכנית אימון מותאמת אישית.</p>
+                    </div>
+                    <div class="challenges-progress">
+                        <h3>התקדמות</h3>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress" id="challenges-progress-bar"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="completed-challenges">0</span>/<span id="total-challenges">3</span> אתגרים הושלמו
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenges-list">
+                    <!-- Challenge 1: Ball Control -->
+                    <div class="challenge-card" id="challenge-1">
+                        <div class="challenge-header">
+                            <h3>אתגר 1: שליטה בכדור</h3>
+                            <span class="challenge-status">לא הושלם</span>
+                        </div>
+                        <div class="challenge-content">
+                            <div class="challenge-description">
+                                <p>הראה את יכולת השליטה שלך בכדור על ידי ביצוע תרגיל הקפצות. נסה להשיג כמה שיותר הקפצות רצופות מבלי שהכדור ייגע בקרקע.</p>
+                                <ul class="challenge-instructions">
+                                    <li>השתמש ברגליים, בירכיים ובראש</li>
+                                    <li>הסרטון צריך להיות באורך של 30-60 שניות</li>
+                                    <li>ודא שאתה נראה בבירור בסרטון</li>
+                                </ul>
+                            </div>
+                            <div class="challenge-demo">
+                                <h4>סרטון הדגמה</h4>
+                                <div class="video-container">
+                                    <iframe width="560" height="315" src="https://www.youtube.com/embed/example1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="challenge-upload">
+                            <h4>העלאת סרטון</h4>
+                            <form class="upload-form" id="upload-form-1">
+                                <div class="form-group">
+                                    <label for="video-file-1">בחר סרטון להעלאה</label>
+                                    <input type="file" id="video-file-1" accept="video/*" required>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">העלה סרטון</button>
+                                </div>
+                            </form>
+                            <div class="upload-progress hidden" id="upload-progress-1">
+                                <div class="progress-bar">
+                                    <div class="progress" id="upload-progress-bar-1"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span id="upload-progress-text-1">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Challenge 2: Dribbling -->
+                    <div class="challenge-card" id="challenge-2">
+                        <div class="challenge-header">
+                            <h3>אתגר 2: כדרור</h3>
+                            <span class="challenge-status">לא הושלם</span>
+                        </div>
+                        <div class="challenge-content">
+                            <div class="challenge-description">
+                                <p>הראה את יכולת הכדרור שלך על ידי ביצוע תרגיל סלאלום בין קונוסים או חפצים. התמקד במהירות ובשליטה.</p>
+                                <ul class="challenge-instructions">
+                                    <li>סדר 5 קונוסים או חפצים בקו ישר במרחק של כמטר זה מזה</li>
+                                    <li>כדרר בין הקונוסים הלוך וחזור</li>
+                                    <li>הסרטון צריך להיות באורך של 30-60 שניות</li>
+                                </ul>
+                            </div>
+                            <div class="challenge-demo">
+                                <h4>סרטון הדגמה</h4>
+                                <div class="video-container">
+                                    <iframe width="560" height="315" src="https://www.youtube.com/embed/example2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="challenge-upload">
+                            <h4>העלאת סרטון</h4>
+                            <form class="upload-form" id="upload-form-2">
+                                <div class="form-group">
+                                    <label for="video-file-2">בחר סרטון להעלאה</label>
+                                    <input type="file" id="video-file-2" accept="video/*" required>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">העלה סרטון</button>
+                                </div>
+                            </form>
+                            <div class="upload-progress hidden" id="upload-progress-2">
+                                <div class="progress-bar">
+                                    <div class="progress" id="upload-progress-bar-2"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span id="upload-progress-text-2">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Challenge 3: Shooting -->
+                    <div class="challenge-card" id="challenge-3">
+                        <div class="challenge-header">
+                            <h3>אתגר 3: בעיטות</h3>
+                            <span class="challenge-status">לא הושלם</span>
+                        </div>
+                        <div class="challenge-content">
+                            <div class="challenge-description">
+                                <p>הראה את יכולת הבעיטה שלך על ידי ביצוע בעיטות למטרה. התמקד בדיוק ובכוח.</p>
+                                <ul class="challenge-instructions">
+                                    <li>הצב מטרה (שער קטן, קונוסים או סימון על קיר)</li>
+                                    <li>בצע 5 בעיטות למטרה ממרחק של לפחות 10 מטרים</li>
+                                    <li>הסרטון צריך להראות את כל 5 הבעיטות</li>
+                                </ul>
+                            </div>
+                            <div class="challenge-demo">
+                                <h4>סרטון הדגמה</h4>
+                                <div class="video-container">
+                                    <iframe width="560" height="315" src="https://www.youtube.com/embed/example3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="challenge-upload">
+                            <h4>העלאת סרטון</h4>
+                            <form class="upload-form" id="upload-form-3">
+                                <div class="form-group">
+                                    <label for="video-file-3">בחר סרטון להעלאה</label>
+                                    <input type="file" id="video-file-3" accept="video/*" required>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">העלה סרטון</button>
+                                </div>
+                            </form>
+                            <div class="upload-progress hidden" id="upload-progress-3">
+                                <div class="progress-bar">
+                                    <div class="progress" id="upload-progress-bar-3"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span id="upload-progress-text-3">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenges-complete hidden" id="challenges-complete">
+                    <div class="complete-message">
+                        <h3>כל הכבוד! השלמת את כל האתגרים</h3>
+                        <p>הסרטונים שלך נמצאים בבדיקה. ברגע שהבדיקה תסתיים, תקבל את רמת המיומנות שלך ותוכנית אימון מותאמת אישית.</p>
+                        <p>זמן משוער לבדיקה: <span id="review-time">24 שעות</span></p>
+                        <div class="next-steps">
+                            <a href="profile.html" class="btn btn-secondary">לפרופיל שלי</a>
+                            <a href="../index.html" class="btn btn-primary">לדף הבית</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>פוטבול סקאוטינג</h3>
+                    <p>מחברים בין שחקנים לסקאוטים</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-links-column">
+                        <h4>ניווט מהיר</h4>
+                        <ul>
+                            <li><a href="../index.html">דף הבית</a></li>
+                            <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                            <li><a href="training.html">תוכניות אימון</a></li>
+                            <li><a href="about.html">אודות</a></li>
+                            <li><a href="contact.html">צור קשר</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>משאבים</h4>
+                        <ul>
+                            <li><a href="#">מדריכים</a></li>
+                            <li><a href="#">שאלות נפוצות</a></li>
+                            <li><a href="#">תנאי שימוש</a></li>
+                            <li><a href="#">מדיניות פרטיות</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>צור קשר</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> info@footballscouting.co.il</li>
+                            <li><i class="fas fa-phone"></i> 03-1234567</li>
+                            <li><i class="fas fa-map-marker-alt"></i> תל אביב, ישראל</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <h4>עקבו אחרינו</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 פוטבול סקאוטינג. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

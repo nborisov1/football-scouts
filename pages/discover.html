@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גלה שחקנים - פוטבול סקאוטינג</title>
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/discover.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/main.js" defer></script>
+    <script src="../auth/auth.js" defer></script>
+    <script src="../auth/auth-integration.js" defer></script>
+    <script src="../js/discover.js" defer></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="../index.html">פוטבול סקאוטינג</a></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">דף הבית</a></li>
+                    <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                    <li><a href="discover.html" class="active">גלה שחקנים</a></li>
+                    <li><a href="watchlist.html">רשימת מעקב</a></li>
+                    <li><a href="about.html">אודות</a></li>
+                    <li><a href="contact.html">צור קשר</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <!-- Will be populated by auth-integration.js -->
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="discover-header">
+            <div class="container">
+                <h2>גלה שחקנים</h2>
+                <p>מצא את השחקנים המתאימים ביותר לקבוצה שלך</p>
+            </div>
+        </section>
+
+        <section class="discover-content">
+            <div class="container">
+                <div class="discover-grid">
+                    <!-- Search and Filters -->
+                    <div class="discover-sidebar">
+                        <div class="search-box">
+                            <h3>חיפוש</h3>
+                            <div class="search-input">
+                                <input type="text" id="search-input" placeholder="חפש שחקנים...">
+                                <button id="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="filters">
+                            <h3>סינון</h3>
+                            <form id="filters-form">
+                                <div class="form-group">
+                                    <label for="age-filter">גיל</label>
+                                    <select id="age-filter">
+                                        <option value="">הכל</option>
+                                        <option value="8-12">8-12</option>
+                                        <option value="13-16">13-16</option>
+                                        <option value="17-19">17-19</option>
+                                        <option value="20+">20+</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="position-filter">עמדה</label>
+                                    <select id="position-filter">
+                                        <option value="">הכל</option>
+                                        <option value="goalkeeper">שוער</option>
+                                        <option value="defender">מגן</option>
+                                        <option value="midfielder">קשר</option>
+                                        <option value="forward">חלוץ</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="level-filter">רמה</label>
+                                    <select id="level-filter">
+                                        <option value="">הכל</option>
+                                        <option value="beginner">מתחיל</option>
+                                        <option value="intermediate">בינוני</option>
+                                        <option value="advanced">מתקדם</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="foot-filter">רגל דומיננטית</label>
+                                    <select id="foot-filter">
+                                        <option value="">הכל</option>
+                                        <option value="right">ימין</option>
+                                        <option value="left">שמאל</option>
+                                        <option value="both">שתיהן</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>סטטיסטיקות</label>
+                                    <div class="range-slider">
+                                        <label for="consistency-filter">עקביות</label>
+                                        <input type="range" id="consistency-filter" min="0" max="100" value="0">
+                                        <div class="range-value" id="consistency-value">0+</div>
+                                    </div>
+                                    <div class="range-slider">
+                                        <label for="improvement-filter">שיפור</label>
+                                        <input type="range" id="improvement-filter" min="0" max="100" value="0">
+                                        <div class="range-value" id="improvement-value">0%+</div>
+                                    </div>
+                                    <div class="range-slider">
+                                        <label for="ranking-filter">דירוג</label>
+                                        <input type="range" id="ranking-filter" min="0" max="100" value="0">
+                                        <div class="range-value" id="ranking-value">0+</div>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">סנן</button>
+                                    <button type="reset" class="btn">נקה</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Players Grid -->
+                    <div class="players-container">
+                        <div class="players-header">
+                            <div class="results-count">
+                                <span id="results-count">0</span> שחקנים נמצאו
+                            </div>
+                            <div class="sort-options">
+                                <label for="sort-by">מיין לפי:</label>
+                                <select id="sort-by">
+                                    <option value="ranking">דירוג</option>
+                                    <option value="consistency">עקביות</option>
+                                    <option value="improvement">שיפור</option>
+                                    <option value="age">גיל</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="players-grid" id="players-grid">
+                            <!-- Will be populated by JavaScript -->
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>טוען שחקנים...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="pagination">
+                            <button class="pagination-btn" id="prev-page" disabled><i class="fas fa-chevron-right"></i></button>
+                            <div class="page-info">
+                                עמוד <span id="current-page">1</span> מתוך <span id="total-pages">1</span>
+                            </div>
+                            <button class="pagination-btn" id="next-page" disabled><i class="fas fa-chevron-left"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>פוטבול סקאוטינג</h3>
+                    <p>מחברים בין שחקנים לסקאוטים</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-links-column">
+                        <h4>ניווט מהיר</h4>
+                        <ul>
+                            <li><a href="../index.html">דף הבית</a></li>
+                            <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                            <li><a href="discover.html">גלה שחקנים</a></li>
+                            <li><a href="about.html">אודות</a></li>
+                            <li><a href="contact.html">צור קשר</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>משאבים</h4>
+                        <ul>
+                            <li><a href="#">מדריכים</a></li>
+                            <li><a href="#">שאלות נפוצות</a></li>
+                            <li><a href="#">תנאי שימוש</a></li>
+                            <li><a href="#">מדיניות פרטיות</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>צור קשר</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> info@footballscouting.co.il</li>
+                            <li><i class="fas fa-phone"></i> 03-1234567</li>
+                            <li><i class="fas fa-map-marker-alt"></i> תל אביב, ישראל</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <h4>עקבו אחרינו</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 פוטבול סקאוטינג. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Player Profile Modal -->
+    <div class="modal" id="player-profile-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="player-profile-content">
+                <!-- Will be populated by JavaScript -->
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Player Modal -->
+    <div class="modal" id="contact-player-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>צור קשר עם <span id="contact-player-name"></span></h2>
+            <form id="contact-form">
+                <div class="form-group">
+                    <label for="contact-subject">נושא</label>
+                    <input type="text" id="contact-subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-message">הודעה</label>
+                    <textarea id="contact-message" rows="5" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">שלח</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

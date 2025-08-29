@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>טבלאות מובילים - פוטבול סקאוטינג</title>
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/leaderboards.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/main.js" defer></script>
+    <script src="../auth/auth.js" defer></script>
+    <script src="../auth/auth-integration.js" defer></script>
+    <script src="../js/leaderboards.js" defer></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="../index.html">פוטבול סקאוטינג</a></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">דף הבית</a></li>
+                    <li><a href="leaderboards.html" class="active">טבלאות מובילים</a></li>
+                    <li><a href="training.html">תוכניות אימון</a></li>
+                    <li><a href="challenges.html">אתגרים</a></li>
+                    <li><a href="about.html">אודות</a></li>
+                    <li><a href="contact.html">צור קשר</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <!-- Will be populated by auth-integration.js -->
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="leaderboards-header">
+            <div class="container">
+                <h2>טבלאות מובילים</h2>
+                <p>גלה את השחקנים המובילים בקטגוריות שונות</p>
+            </div>
+        </section>
+
+        <section class="leaderboards-content">
+            <div class="container">
+                <div class="leaderboards-tabs">
+                    <button class="tab-btn active" data-tab="consistent">הכי עקביים</button>
+                    <button class="tab-btn" data-tab="improved">השיפור הגדול ביותר</button>
+                    <button class="tab-btn" data-tab="ranked">דירוג הגבוה ביותר</button>
+                </div>
+
+                <div class="leaderboards-container">
+                    <!-- Consistent Players Leaderboard -->
+                    <div class="leaderboard active" id="consistent-leaderboard">
+                        <div class="leaderboard-header">
+                            <h3>שחקנים הכי עקביים</h3>
+                            <p>שחקנים אלה מתאמנים באופן קבוע ומשלימים את האתגרים שלהם בזמן</p>
+                        </div>
+                        <div class="leaderboard-table-container">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>דירוג</th>
+                                        <th>שחקן</th>
+                                        <th>גיל</th>
+                                        <th>עמדה</th>
+                                        <th>רמה</th>
+                                        <th>ימים רצופים</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="consistent-players">
+                                    <!-- Will be populated by JavaScript -->
+                                    <tr class="loading-row">
+                                        <td colspan="7">טוען נתונים...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Most Improved Players Leaderboard -->
+                    <div class="leaderboard" id="improved-leaderboard">
+                        <div class="leaderboard-header">
+                            <h3>שחקנים עם השיפור הגדול ביותר</h3>
+                            <p>שחקנים אלה הראו את השיפור הגדול ביותר בביצועים שלהם לאורך זמן</p>
+                        </div>
+                        <div class="leaderboard-table-container">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>דירוג</th>
+                                        <th>שחקן</th>
+                                        <th>גיל</th>
+                                        <th>עמדה</th>
+                                        <th>רמה</th>
+                                        <th>אחוז שיפור</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="improved-players">
+                                    <!-- Will be populated by JavaScript -->
+                                    <tr class="loading-row">
+                                        <td colspan="7">טוען נתונים...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Highest Ranked Players Leaderboard -->
+                    <div class="leaderboard" id="ranked-leaderboard">
+                        <div class="leaderboard-header">
+                            <h3>שחקנים עם הדירוג הגבוה ביותר</h3>
+                            <p>שחקנים אלה צברו את הדירוג הגבוה ביותר במערכת</p>
+                        </div>
+                        <div class="leaderboard-table-container">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>דירוג</th>
+                                        <th>שחקן</th>
+                                        <th>גיל</th>
+                                        <th>עמדה</th>
+                                        <th>רמה</th>
+                                        <th>נקודות</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ranked-players">
+                                    <!-- Will be populated by JavaScript -->
+                                    <tr class="loading-row">
+                                        <td colspan="7">טוען נתונים...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboards-filters">
+                    <h3>סינון</h3>
+                    <form id="filters-form">
+                        <div class="filters-grid">
+                            <div class="form-group">
+                                <label for="age-filter">גיל</label>
+                                <select id="age-filter">
+                                    <option value="">הכל</option>
+                                    <option value="8-12">8-12</option>
+                                    <option value="13-16">13-16</option>
+                                    <option value="17-19">17-19</option>
+                                    <option value="20+">20+</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="position-filter">עמדה</label>
+                                <select id="position-filter">
+                                    <option value="">הכל</option>
+                                    <option value="goalkeeper">שוער</option>
+                                    <option value="defender">מגן</option>
+                                    <option value="midfielder">קשר</option>
+                                    <option value="forward">חלוץ</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="level-filter">רמה</label>
+                                <select id="level-filter">
+                                    <option value="">הכל</option>
+                                    <option value="beginner">מתחיל</option>
+                                    <option value="intermediate">בינוני</option>
+                                    <option value="advanced">מתקדם</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">סנן</button>
+                                <button type="reset" class="btn">נקה</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>פוטבול סקאוטינג</h3>
+                    <p>מחברים בין שחקנים לסקאוטים</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-links-column">
+                        <h4>ניווט מהיר</h4>
+                        <ul>
+                            <li><a href="../index.html">דף הבית</a></li>
+                            <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                            <li><a href="training.html">תוכניות אימון</a></li>
+                            <li><a href="about.html">אודות</a></li>
+                            <li><a href="contact.html">צור קשר</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>משאבים</h4>
+                        <ul>
+                            <li><a href="#">מדריכים</a></li>
+                            <li><a href="#">שאלות נפוצות</a></li>
+                            <li><a href="#">תנאי שימוש</a></li>
+                            <li><a href="#">מדיניות פרטיות</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>צור קשר</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> info@footballscouting.co.il</li>
+                            <li><i class="fas fa-phone"></i> 03-1234567</li>
+                            <li><i class="fas fa-map-marker-alt"></i> תל אביב, ישראל</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <h4>עקבו אחרינו</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 פוטבול סקאוטינג. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Player Profile Modal -->
+    <div class="modal" id="player-profile-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="player-profile-content">
+                <!-- Will be populated by JavaScript -->
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

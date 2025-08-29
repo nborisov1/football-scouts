@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תוכנית אימון - פוטבול סקאוטינג</title>
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/training.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/main.js" defer></script>
+    <script src="../auth/auth.js" defer></script>
+    <script src="../auth/auth-integration.js" defer></script>
+    <script src="../js/training.js" defer></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="../index.html">פוטבול סקאוטינג</a></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">דף הבית</a></li>
+                    <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                    <li><a href="training.html" class="active">תוכניות אימון</a></li>
+                    <li><a href="challenges.html">אתגרים</a></li>
+                    <li><a href="about.html">אודות</a></li>
+                    <li><a href="contact.html">צור קשר</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <!-- Will be populated by auth-integration.js -->
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="training-header">
+            <div class="container">
+                <h2>תוכנית האימון שלי</h2>
+                <p>תוכנית אימון מותאמת אישית לרמת המיומנות שלך</p>
+            </div>
+        </section>
+
+        <section class="training-content">
+            <div class="container">
+                <!-- Training Program Locked Message -->
+                <div id="training-locked" class="training-locked">
+                    <div class="locked-message">
+                        <i class="fas fa-lock"></i>
+                        <h3>תוכנית האימון שלך עדיין לא זמינה</h3>
+                        <p>כדי לקבל גישה לתוכנית האימון שלך, עליך להשלים את האתגרים הראשוניים.</p>
+                        <a href="challenges.html" class="btn btn-primary">לאתגרים הראשוניים</a>
+                    </div>
+                </div>
+
+                <!-- Training Program Content -->
+                <div id="training-program" class="training-program hidden">
+                    <div class="program-info">
+                        <div class="level-info">
+                            <h3>הרמה שלך: <span id="player-level">טוען...</span></h3>
+                            <p>תוכנית האימון שלך מותאמת לרמת המיומנות שלך ותעזור לך להתקדם ולשפר את היכולות שלך.</p>
+                        </div>
+                        <div class="progress-info">
+                            <h3>התקדמות</h3>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress" id="training-progress-bar"></div>
+                                </div>
+                                <div class="progress-text">
+                                    שלב <span id="current-stage">0</span> מתוך <span id="total-stages">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stages-container">
+                        <div class="stages-timeline">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
+                        <div class="current-stage">
+                            <div class="stage-header">
+                                <h3 id="stage-title">טוען שלב...</h3>
+                                <span class="stage-status" id="stage-status">לא הושלם</span>
+                            </div>
+                            <div class="stage-content">
+                                <div class="stage-description" id="stage-description">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                                <div class="stage-demo">
+                                    <h4>סרטון הדגמה</h4>
+                                    <div class="video-container" id="demo-video">
+                                        <!-- Will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stage-upload">
+                                <h4>העלאת סרטון</h4>
+                                <p>כדי להשלים את השלב, העלה סרטון שלך מבצע את התרגיל.</p>
+                                <form class="upload-form" id="stage-upload-form">
+                                    <div class="form-group">
+                                        <label for="video-file">בחר סרטון להעלאה</label>
+                                        <input type="file" id="video-file" accept="video/*" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary">העלה סרטון</button>
+                                    </div>
+                                </form>
+                                <div class="upload-progress hidden" id="upload-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress" id="upload-progress-bar"></div>
+                                    </div>
+                                    <div class="progress-text">
+                                        <span id="upload-progress-text">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="program-complete hidden" id="program-complete">
+                        <div class="complete-message">
+                            <h3>כל הכבוד! השלמת את תוכנית האימון</h3>
+                            <p>השלמת את כל שלבי תוכנית האימון שלך. הביצועים שלך נמדדו והדירוג שלך עודכן.</p>
+                            <div class="next-steps">
+                                <a href="profile.html" class="btn btn-secondary">לפרופיל שלי</a>
+                                <a href="leaderboards.html" class="btn btn-primary">לטבלאות המובילים</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>פוטבול סקאוטינג</h3>
+                    <p>מחברים בין שחקנים לסקאוטים</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-links-column">
+                        <h4>ניווט מהיר</h4>
+                        <ul>
+                            <li><a href="../index.html">דף הבית</a></li>
+                            <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                            <li><a href="training.html">תוכניות אימון</a></li>
+                            <li><a href="about.html">אודות</a></li>
+                            <li><a href="contact.html">צור קשר</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>משאבים</h4>
+                        <ul>
+                            <li><a href="#">מדריכים</a></li>
+                            <li><a href="#">שאלות נפוצות</a></li>
+                            <li><a href="#">תנאי שימוש</a></li>
+                            <li><a href="#">מדיניות פרטיות</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>צור קשר</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> info@footballscouting.co.il</li>
+                            <li><i class="fas fa-phone"></i> 03-1234567</li>
+                            <li><i class="fas fa-map-marker-alt"></i> תל אביב, ישראל</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <h4>עקבו אחרינו</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 פוטבול סקאוטינג. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

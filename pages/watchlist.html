@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רשימת מעקב - פוטבול סקאוטינג</title>
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/watchlist.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/main.js" defer></script>
+    <script src="../auth/auth.js" defer></script>
+    <script src="../auth/auth-integration.js" defer></script>
+    <script src="../js/watchlist.js" defer></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="../index.html">פוטבול סקאוטינג</a></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">דף הבית</a></li>
+                    <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                    <li><a href="discover.html">גלה שחקנים</a></li>
+                    <li><a href="watchlist.html" class="active">רשימת מעקב</a></li>
+                    <li><a href="about.html">אודות</a></li>
+                    <li><a href="contact.html">צור קשר</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <!-- Will be populated by auth-integration.js -->
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="watchlist-header">
+            <div class="container">
+                <h2>רשימת המעקב שלי</h2>
+                <p>נהל את רשימת השחקנים שמעניינים אותך</p>
+            </div>
+        </section>
+
+        <section class="watchlist-content">
+            <div class="container">
+                <div class="watchlist-actions">
+                    <div class="watchlist-info">
+                        <span id="watchlist-count">0</span> שחקנים ברשימה
+                    </div>
+                    <div class="watchlist-controls">
+                        <button id="export-watchlist" class="btn btn-secondary">
+                            <i class="fas fa-file-export"></i> ייצא רשימה
+                        </button>
+                        <button id="clear-watchlist" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> נקה רשימה
+                        </button>
+                    </div>
+                </div>
+
+                <div class="watchlist-grid" id="watchlist-grid">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>טוען שחקנים...</p>
+                    </div>
+                </div>
+
+                <div class="empty-watchlist hidden" id="empty-watchlist">
+                    <div class="empty-message">
+                        <i class="fas fa-star"></i>
+                        <h3>רשימת המעקב שלך ריקה</h3>
+                        <p>הוסף שחקנים לרשימת המעקב שלך כדי לעקוב אחריהם</p>
+                        <a href="discover.html" class="btn btn-primary">גלה שחקנים</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>פוטבול סקאוטינג</h3>
+                    <p>מחברים בין שחקנים לסקאוטים</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-links-column">
+                        <h4>ניווט מהיר</h4>
+                        <ul>
+                            <li><a href="../index.html">דף הבית</a></li>
+                            <li><a href="leaderboards.html">טבלאות מובילים</a></li>
+                            <li><a href="discover.html">גלה שחקנים</a></li>
+                            <li><a href="about.html">אודות</a></li>
+                            <li><a href="contact.html">צור קשר</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>משאבים</h4>
+                        <ul>
+                            <li><a href="#">מדריכים</a></li>
+                            <li><a href="#">שאלות נפוצות</a></li>
+                            <li><a href="#">תנאי שימוש</a></li>
+                            <li><a href="#">מדיניות פרטיות</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>צור קשר</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> info@footballscouting.co.il</li>
+                            <li><i class="fas fa-phone"></i> 03-1234567</li>
+                            <li><i class="fas fa-map-marker-alt"></i> תל אביב, ישראל</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <h4>עקבו אחרינו</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 פוטבול סקאוטינג. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Player Profile Modal -->
+    <div class="modal" id="player-profile-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="player-profile-content">
+                <!-- Will be populated by JavaScript -->
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Player Modal -->
+    <div class="modal" id="contact-player-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>צור קשר עם <span id="contact-player-name"></span></h2>
+            <form id="contact-form">
+                <div class="form-group">
+                    <label for="contact-subject">נושא</label>
+                    <input type="text" id="contact-subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-message">הודעה</label>
+                    <textarea id="contact-message" rows="5" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">שלח</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Clear Watchlist Confirmation Modal -->
+    <div class="modal" id="clear-watchlist-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>נקה רשימת מעקב</h2>
+            <p>האם אתה בטוח שברצונך לנקות את רשימת המעקב שלך? פעולה זו תסיר את כל השחקנים מהרשימה.</p>
+            <div class="modal-actions">
+                <button id="confirm-clear-btn" class="btn btn-danger">כן, נקה את הרשימה</button>
+                <button id="cancel-clear-btn" class="btn">ביטול</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

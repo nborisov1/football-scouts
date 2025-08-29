@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פוטבול סקאוטינג - חיבור בין שחקנים לסקאוטים</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/main.js" defer></script>
+    <script src="auth/auth.js" defer></script>
+    <script src="auth/auth-integration.js" defer></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1>פוטבול סקאוטינג</h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#" class="active">דף הבית</a></li>
+                    <li><a href="pages/leaderboards.html">טבלאות מובילים</a></li>
+                    <li><a href="pages/training.html">תוכניות אימון</a></li>
+                    <li><a href="pages/about.html">אודות</a></li>
+                    <li><a href="pages/contact.html">צור קשר</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button id="login-btn" class="btn">התחברות</button>
+                <button id="register-btn" class="btn btn-primary">הרשמה</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h2>גלה את הפוטנציאל שלך בכדורגל</h2>
+                    <p>פלטפורמה המחברת בין שחקני כדורגל מוכשרים לסקאוטים מקצועיים</p>
+                    <div class="hero-buttons">
+                        <button id="player-register" class="btn btn-primary btn-large">הרשם כשחקן</button>
+                        <button id="scout-register" class="btn btn-secondary btn-large">הרשם כסקאוט</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="images/hero-image.jpg" alt="שחקן כדורגל">
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">איך זה עובד?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3>צור פרופיל</h3>
+                        <p>הרשם ויצור פרופיל אישי עם הפרטים והיכולות שלך</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3>השלם אתגרים</h3>
+                        <p>בצע סדרת אתגרים ראשוניים כדי לקבוע את רמת המיומנות שלך</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <h3>קבל תוכנית אימון</h3>
+                        <p>קבל תוכנית אימון מותאמת אישית בהתאם לרמה שלך</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h3>התקדם ובלוט</h3>
+                        <p>צבור נקודות, השתפר והופע בטבלאות המובילים שלנו</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="leaderboards-preview">
+            <div class="container">
+                <h2 class="section-title">טבלאות מובילים</h2>
+                <div class="leaderboards-tabs">
+                    <button class="tab-btn active" data-tab="consistent">הכי עקביים</button>
+                    <button class="tab-btn" data-tab="improved">השיפור הגדול ביותר</button>
+                    <button class="tab-btn" data-tab="ranked">דירוג הגבוה ביותר</button>
+                </div>
+                <div class="leaderboard-content active" id="consistent-leaderboard">
+                    <!-- Will be populated by JavaScript -->
+                    <p class="placeholder-text">טוען נתונים...</p>
+                </div>
+                <div class="leaderboard-content" id="improved-leaderboard">
+                    <!-- Will be populated by JavaScript -->
+                    <p class="placeholder-text">טוען נתונים...</p>
+                </div>
+                <div class="leaderboard-content" id="ranked-leaderboard">
+                    <!-- Will be populated by JavaScript -->
+                    <p class="placeholder-text">טוען נתונים...</p>
+                </div>
+                <div class="view-all">
+                    <a href="pages/leaderboards.html" class="btn btn-secondary">צפה בכל הטבלאות</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials">
+            <div class="container">
+                <h2 class="section-title">סיפורי הצלחה</h2>
+                <div class="testimonials-slider">
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"הפלטפורמה הזו עזרה לי להתפתח כשחקן ולהתחבר עם סקאוטים מקצועיים. היום אני משחק בקבוצת נוער מובילה."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="images/player1.jpg" alt="שחקן">
+                            <div class="author-info">
+                                <h4>יוסי כהן</h4>
+                                <p>שחקן, גיל 17</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"כסקאוט, מצאתי כאן כישרונות צעירים מדהימים שלא הייתי מגלה בדרך אחרת. הפלטפורמה חוסכת לי זמן רב."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="images/scout1.jpg" alt="סקאוט">
+                            <div class="author-info">
+                                <h4>דוד לוי</h4>
+                                <p>סקאוט, מכבי חיפה</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-controls">
+                    <button class="prev-btn"><i class="fas fa-chevron-right"></i></button>
+                    <button class="next-btn"><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2>מוכן להתחיל את המסע שלך?</h2>
+                    <p>הצטרף עכשיו וקח את הקריירה שלך לשלב הבא</p>
+                    <button id="cta-register" class="btn btn-primary btn-large">הרשם עכשיו</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>פוטבול סקאוטינג</h3>
+                    <p>מחברים בין שחקנים לסקאוטים</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-links-column">
+                        <h4>ניווט מהיר</h4>
+                        <ul>
+                            <li><a href="#">דף הבית</a></li>
+                            <li><a href="pages/leaderboards.html">טבלאות מובילים</a></li>
+                            <li><a href="pages/training.html">תוכניות אימון</a></li>
+                            <li><a href="pages/about.html">אודות</a></li>
+                            <li><a href="pages/contact.html">צור קשר</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>משאבים</h4>
+                        <ul>
+                            <li><a href="#">מדריכים</a></li>
+                            <li><a href="#">שאלות נפוצות</a></li>
+                            <li><a href="#">תנאי שימוש</a></li>
+                            <li><a href="#">מדיניות פרטיות</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-column">
+                        <h4>צור קשר</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> info@footballscouting.co.il</li>
+                            <li><i class="fas fa-phone"></i> 03-1234567</li>
+                            <li><i class="fas fa-map-marker-alt"></i> תל אביב, ישראל</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <h4>עקבו אחרינו</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 פוטבול סקאוטינג. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for Login -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>התחברות</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">אימייל</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">סיסמה</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">התחבר</button>
+                </div>
+                <div class="form-footer">
+                    <p>אין לך חשבון? <a href="#" id="switch-to-register">הרשם עכשיו</a></p>
+                    <p><a href="#" id="forgot-password">שכחת סיסמה?</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Registration -->
+    <div class="modal" id="register-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>הרשמה</h2>
+            <div class="register-tabs">
+                <button class="tab-btn active" data-tab="player-tab">שחקן</button>
+                <button class="tab-btn" data-tab="scout-tab">סקאוט</button>
+            </div>
+            <div class="register-content active" id="player-tab">
+                <form id="player-form">
+                    <div class="form-group">
+                        <label for="player-name">שם מלא</label>
+                        <input type="text" id="player-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="player-email">אימייל</label>
+                        <input type="email" id="player-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="player-password">סיסמה</label>
+                        <input type="password" id="player-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="player-age">גיל</label>
+                        <input type="number" id="player-age" min="8" max="40" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="player-position">עמדה</label>
+                        <select id="player-position" required>
+                            <option value="">בחר עמדה</option>
+                            <option value="goalkeeper">שוער</option>
+                            <option value="defender">מגן</option>
+                            <option value="midfielder">קשר</option>
+                            <option value="forward">חלוץ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>רגל דומיננטית</label>
+                        <div class="radio-group">
+                            <input type="radio" id="right-foot" name="dominant-foot" value="right" checked>
+                            <label for="right-foot">ימין</label>
+                            <input type="radio" id="left-foot" name="dominant-foot" value="left">
+                            <label for="left-foot">שמאל</label>
+                            <input type="radio" id="both-feet" name="dominant-foot" value="both">
+                            <label for="both-feet">שתיהן</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="player-level">רמה נוכחית</label>
+                        <select id="player-level" required>
+                            <option value="">בחר רמה</option>
+                            <option value="beginner">מתחיל</option>
+                            <option value="intermediate">בינוני</option>
+                            <option value="advanced">מתקדם</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">הרשם כשחקן</button>
+                    </div>
+                </form>
+            </div>
+            <div class="register-content" id="scout-tab">
+                <form id="scout-form">
+                    <div class="form-group">
+                        <label for="scout-name">שם מלא</label>
+                        <input type="text" id="scout-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="scout-email">אימייל</label>
+                        <input type="email" id="scout-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="scout-password">סיסמה</label>
+                        <input type="password" id="scout-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="scout-club">מועדון</label>
+                        <input type="text" id="scout-club" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="scout-position">תפקיד</label>
+                        <input type="text" id="scout-position" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">הרשם כסקאוט</button>
+                    </div>
+                </form>
+            </div>
+            <div class="form-footer">
+                <p>כבר יש לך חשבון? <a href="#" id="switch-to-login">התחבר</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

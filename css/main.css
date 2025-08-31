@@ -240,6 +240,61 @@ img {
   gap: var(--spacing-md);
 }
 
+/* ===== Authentication Loading Overlay ===== */
+.auth-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--white);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--transition-normal);
+}
+
+.auth-loading-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--medium-light);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-lg);
+}
+
+.auth-loading-text {
+  color: var(--medium-dark);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Hide page content initially until auth state is determined */
+body.auth-loading main,
+body.auth-loading .main-header,
+body.auth-loading .main-footer {
+  visibility: hidden;
+}
+
+body.auth-ready main,
+body.auth-ready .main-header,
+body.auth-ready .main-footer {
+  visibility: visible;
+}
+
 .mobile-menu-toggle {
   display: none;
   font-size: 1.5rem;

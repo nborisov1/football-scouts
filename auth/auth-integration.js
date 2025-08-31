@@ -5,15 +5,114 @@
 
 'use strict';
 
+// Import the authentication system
+import firebaseAuth from './firebase-auth.js';
+
+// Make auth available globally for compatibility
+window.firebaseAuth = firebaseAuth;
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize authentication
-  initAuth();
+  // Check if we have cached auth state from previous page load
+  const cachedAuthState = getCachedAuthState();
+  
+  if (cachedAuthState !== null) {
+    // We have cached auth state, use it immediately and hide loading
+    console.log('Using cached auth state:', cachedAuthState ? 'User logged in' : 'User logged out');
+    hideLoadingOverlay();
+    
+    // Still initialize Firebase auth to get real-time updates, but don't wait for it
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      initAuth();
+    } else {
+      setTimeout(() => {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+          initAuth();
+        }
+      }, 100);
+    }
+  } else {
+    // No cached auth state, wait for Firebase to determine it
+    const fallbackTimeout = setTimeout(() => {
+      console.warn('Firebase auth initialization timeout - hiding loading overlay as fallback');
+      hideLoadingOverlay();
+    }, 3000); // 3 second timeout
+    
+    // Wait for Firebase to be ready before initializing auth
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      clearTimeout(fallbackTimeout);
+      initAuth();
+    } else {
+      setTimeout(() => {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+          clearTimeout(fallbackTimeout);
+          initAuth();
+        }
+      }, 100);
+    }
+  }
+  
+  // Listen for auth state changes
+  document.addEventListener('authStateChanged', (e) => {
+    const user = e.detail.user;
+    console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+    
+    // Update UI when auth state changes
+    updateAuthUI();
+    
+    if (user) {
+      // User is logged in
+      if (window.showMessage) {
+        window.showMessage('התחברת בהצלחה', 'success');
+      }
+    }
+  });
 });
+
+/**
+ * Get cached authentication state from localStorage
+ * @returns {boolean|null} - true if logged in, false if logged out, null if unknown
+ */
+function getCachedAuthState() {
+  try {
+    const cached = localStorage.getItem('authState');
+    return cached !== null ? JSON.parse(cached) : null;
+  } catch (error) {
+    console.error('Error reading cached auth state:', error);
+    return null;
+  }
+}
+
+/**
+ * Cache authentication state in localStorage
+ * @param {boolean} isLoggedIn - Whether user is logged in
+ */
+function setCachedAuthState(isLoggedIn) {
+  try {
+    localStorage.setItem('authState', JSON.stringify(isLoggedIn));
+  } catch (error) {
+    console.error('Error caching auth state:', error);
+  }
+}
 
 /**
  * Initialize authentication functionality
  */
 function initAuth() {
+  // Set up Firebase auth state listener
+  firebase.auth().onAuthStateChanged((user) => {
+    const isLoggedIn = !!user;
+    console.log('Firebase auth state changed:', isLoggedIn ? 'User logged in' : 'User logged out');
+    
+    // Cache the auth state for future page loads
+    setCachedAuthState(isLoggedIn);
+    
+    // Update UI immediately when auth state changes
+    updateAuthUI();
+    
+    // Hide loading overlay and show page content (only if not already hidden)
+    hideLoadingOverlay();
+  });
+  
   // Check if user is logged in and update UI
   updateAuthUI();
   
@@ -29,37 +128,79 @@ function initAuth() {
 }
 
 /**
+ * Hide the loading overlay and show page content
+ */
+function hideLoadingOverlay() {
+  const overlay = document.getElementById('auth-loading-overlay');
+  const body = document.body;
+  
+  // Only hide if not already hidden
+  if (overlay && body && body.classList.contains('auth-loading')) {
+    // Add fade-out class to overlay
+    overlay.classList.add('fade-out');
+    
+    // Remove auth-loading class and add auth-ready class to body
+    body.classList.remove('auth-loading');
+    body.classList.add('auth-ready');
+    
+    // Remove overlay from DOM after transition
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    }, 300); // Match CSS transition duration
+  }
+}
+
+/**
  * Update UI based on authentication status
  */
 function updateAuthUI() {
-  const currentUser = auth.getCurrentUser();
+  // Check both firebaseAuth.getCurrentUser() and Firebase auth directly
+  const currentUser = firebaseAuth.getCurrentUser();
+  const firebaseUser = firebase.auth().currentUser;
   const authButtons = document.querySelector('.auth-buttons');
   
   if (!authButtons) return;
   
-  if (currentUser) {
-    // User is logged in
-    authButtons.innerHTML = createUserMenuHTML(currentUser);
-    
-    // Set up user menu dropdown
-    const userMenuBtn = document.querySelector('.user-menu-btn');
-    const userDropdown = document.querySelector('.user-dropdown');
-    
-    if (userMenuBtn && userDropdown) {
-      userMenuBtn.addEventListener('click', () => {
-        userDropdown.classList.toggle('visible');
-      });
+  // User is considered logged in if either method returns a user
+  if (currentUser || firebaseUser) {
+    const user = currentUser || firebaseUser;
+    // User is logged in - use the global updateUIForLoggedInUser if available
+    if (window.updateUIForLoggedInUser) {
+      window.updateUIForLoggedInUser();
+    } else {
+      // Fallback to local implementation
+      // If we only have firebaseUser, create a basic user object
+      const userForMenu = currentUser || {
+        name: firebaseUser.displayName || firebaseUser.email,
+        email: firebaseUser.email,
+        type: 'player' // Default type, will be updated when full user data loads
+      };
+      authButtons.innerHTML = createUserMenuHTML(userForMenu);
       
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.user-menu')) {
-          userDropdown.classList.remove('visible');
-        }
-      });
+      // Set up user menu dropdown
+      const userMenuBtn = document.querySelector('.user-menu-btn');
+      const userDropdown = document.querySelector('.user-dropdown');
+      
+      if (userMenuBtn && userDropdown) {
+        userMenuBtn.addEventListener('click', () => {
+          userDropdown.classList.toggle('visible');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.user-menu')) {
+            userDropdown.classList.remove('visible');
+          }
+        });
+      }
     }
     
     // Update navigation based on user type
-    updateNavigationForUserType(currentUser.type);
+    if (currentUser && currentUser.type) {
+      updateNavigationForUserType(currentUser.type);
+    }
   } else {
     // User is not logged in
     authButtons.innerHTML = `
@@ -67,19 +208,30 @@ function updateAuthUI() {
       <button id="register-btn" class="btn btn-primary">הרשמה</button>
     `;
     
-    // Re-attach event listeners for login/register buttons
+    // Re-attach event listeners for login/register buttons using global function if available
     const loginBtn = document.getElementById('login-btn');
     const registerBtn = document.getElementById('register-btn');
     
     if (loginBtn) {
       loginBtn.addEventListener('click', () => {
-        document.getElementById('login-modal').style.display = 'block';
+        const loginModal = document.getElementById('login-modal');
+        if (loginModal) {
+          loginModal.style.display = 'block';
+        }
       });
     }
     
     if (registerBtn) {
       registerBtn.addEventListener('click', () => {
-        document.getElementById('register-modal').style.display = 'block';
+        // Use global registration function if available
+        if (window.showMultiStageRegistration) {
+          window.showMultiStageRegistration();
+        } else {
+          const registerModal = document.getElementById('register-modal');
+          if (registerModal) {
+            registerModal.style.display = 'block';
+          }
+        }
       });
     }
   }
@@ -173,27 +325,54 @@ function setupLoginForm() {
         return;
       }
       
-      // Attempt login
-      const result = auth.login(email, password);
+      // Show loading message
+      showMessage('מתחבר...', 'info');
       
-      if (result.success) {
-        // Close modal
-        document.getElementById('login-modal').style.display = 'none';
-        
-        // Show success message
-        showMessage(result.message, 'success');
-        
-        // Update UI
-        updateAuthUI();
-        
-        // Redirect based on user type
-        redirectAfterLogin(result.user);
-      } else {
-        // Show error message
-        showMessage(result.message, 'error');
-      }
+      // Attempt login using Firebase Auth
+      firebaseAuth.login(email, password)
+        .then(result => {
+          if (result.success) {
+            // Close modal
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal) {
+              loginModal.style.display = 'none';
+            }
+            
+            // Show success message
+            if (window.showMessage) {
+              window.showMessage(result.message, 'success');
+            }
+          } else {
+            // Show error message
+            if (window.showMessage) {
+              window.showMessage(result.message, 'error');
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Login error:', error);
+          if (window.showMessage) {
+            window.showMessage(error.message || 'שגיאה בהתחברות', 'error');
+          }
+        });
     });
   }
+  
+  // Listen for auth state changes
+  document.addEventListener('authStateChanged', (e) => {
+    const user = e.detail.user;
+    
+    if (user) {
+      // User is logged in
+      showMessage('התחברת בהצלחה', 'success');
+      
+      // Update UI
+      updateAuthUI();
+      
+      // Redirect based on user type
+      redirectAfterLogin(user);
+    }
+  });
 }
 
 /**
@@ -218,11 +397,14 @@ function setupPlayerRegistrationForm() {
       };
       
       // Validate form
-      if (!userData.name || !userData.email || !userData.password || 
+      if (!userData.name || !userData.email || !userData.password ||
           !userData.age || !userData.position || !userData.level) {
         showMessage('יש למלא את כל השדות', 'error');
         return;
       }
+      
+      // Show loading message
+      showMessage('יוצר חשבון...', 'info');
       
       // Register player
       const result = auth.register(userData, 'player');
@@ -230,17 +412,6 @@ function setupPlayerRegistrationForm() {
       if (result.success) {
         // Close modal
         document.getElementById('register-modal').style.display = 'none';
-        
-        // Show success message
-        showMessage(result.message, 'success');
-        
-        // Update UI
-        updateAuthUI();
-        
-        // Redirect to challenges page
-        setTimeout(() => {
-          window.location.href = 'pages/challenges.html';
-        }, 1500);
       } else {
         // Show error message
         showMessage(result.message, 'error');
@@ -269,11 +440,14 @@ function setupScoutRegistrationForm() {
       };
       
       // Validate form
-      if (!userData.name || !userData.email || !userData.password || 
+      if (!userData.name || !userData.email || !userData.password ||
           !userData.club || !userData.position) {
         showMessage('יש למלא את כל השדות', 'error');
         return;
       }
+      
+      // Show loading message
+      showMessage('יוצר חשבון...', 'info');
       
       // Register scout
       const result = auth.register(userData, 'scout');
@@ -281,17 +455,6 @@ function setupScoutRegistrationForm() {
       if (result.success) {
         // Close modal
         document.getElementById('register-modal').style.display = 'none';
-        
-        // Show success message
-        showMessage(result.message, 'success');
-        
-        // Update UI
-        updateAuthUI();
-        
-        // Redirect to discover page
-        setTimeout(() => {
-          window.location.href = 'pages/discover.html';
-        }, 1500);
       } else {
         // Show error message
         showMessage(result.message, 'error');
@@ -310,14 +473,26 @@ function setupLogout() {
     if (e.target && e.target.id === 'logout-btn') {
       e.preventDefault();
       
-      // Log out
-      auth.logout();
-      
-      // Show message
-      showMessage('התנתקת בהצלחה', 'success');
-      
-      // Update UI
-      updateAuthUI();
+      // Log out using Firebase Auth
+      firebaseAuth.logout()
+        .then(result => {
+          // Clear cached auth state
+          setCachedAuthState(false);
+          
+          // Show message
+          if (window.showMessage) {
+            window.showMessage(result.message, 'success');
+          }
+          
+          // Update UI
+          updateAuthUI();
+        })
+        .catch(error => {
+          console.error('Logout error:', error);
+          if (window.showMessage) {
+            window.showMessage('שגיאה בהתנתקות', 'error');
+          }
+        });
     }
   });
 }

@@ -7,13 +7,12 @@
 
 // Firebase configuration object - REPLACE WITH YOUR OWN FIREBASE PROJECT CREDENTIALS
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID" // Optional
+  apiKey: "AIzaSyCajKv0i81Fjw_Vv_DDQs1co3GDcsjVeyU",
+  authDomain: "football-5e360.firebaseapp.com",
+  projectId: "football-5e360",
+  storageBucket: "football-5e360.appspot.com",
+  messagingSenderId: "1035428109661",
+  appId: "1:1035428109661:web:b41e0e45728f762bfb1cb4",
 };
 
 // Initialize Firebase
@@ -26,6 +25,15 @@ const storage = firebase.storage();
 
 // Set language to Hebrew for authentication messages
 auth.languageCode = 'he';
+
+// Set authentication persistence to LOCAL (persists across browser sessions)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+    console.log('Firebase Auth persistence set to LOCAL');
+  })
+  .catch((error) => {
+    console.error('Error setting auth persistence:', error);
+  });
 
 // Enable offline persistence for Firestore
 db.enablePersistence()

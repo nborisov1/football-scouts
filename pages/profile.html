@@ -8,12 +8,26 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <!-- Application Scripts -->
     <script src="../js/main.js" defer></script>
-    <script src="../auth/auth.js" defer></script>
-    <script src="../auth/auth-integration.js" defer></script>
+    <script src="../config/firebase.js" type="module"></script>
+    <script src="../auth/auth.js" type="module"></script>
+    <script src="../auth/auth-integration.js" type="module"></script>
     <script src="../js/profile.js" defer></script>
 </head>
-<body>
+<body class="auth-loading">
+    <!-- Authentication Loading Overlay -->
+    <div class="auth-loading-overlay" id="auth-loading-overlay">
+        <div class="auth-loading-spinner"></div>
+        <div class="auth-loading-text">טוען...</div>
+    </div>
     <header class="main-header">
         <div class="container">
             <div class="logo">

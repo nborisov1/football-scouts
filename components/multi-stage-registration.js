@@ -319,6 +319,71 @@ class MultiStageRegistration {
   }
   
   /**
+   * Create a form field with label, input, and error message
+   * @param {Object} config - Field configuration
+   * @returns {HTMLElement} - Form group element
+   */
+  createFormField(config) {
+    const {
+      id,
+      label,
+      type = 'text',
+      placeholder = '',
+      value = '',
+      required = true,
+      className = 'account-details',
+      onInput = null,
+      validator = null
+    } = config;
+
+    const group = document.createElement('div');
+    group.className = 'form-group';
+
+    // Label
+    const labelElement = document.createElement('label');
+    labelElement.htmlFor = id;
+    labelElement.textContent = label;
+    group.appendChild(labelElement);
+
+    // Input
+    const input = document.createElement('input');
+    input.type = type;
+    input.id = id;
+    input.className = 'form-control';
+    input.value = value;
+    input.placeholder = placeholder;
+    input.required = required;
+
+    // Event listener
+    input.addEventListener('input', () => {
+      if (onInput) onInput(input.value);
+      this.validateStage();
+      
+      if (validator) {
+        const errorElement = document.getElementById(`${id.replace('register-', '')}-error`);
+        const validationResult = validator(input.value);
+        
+        if (validationResult.isValid) {
+          errorElement.textContent = '';
+          input.classList.remove('is-invalid');
+        } else {
+          errorElement.textContent = validationResult.message;
+          input.classList.add('is-invalid');
+        }
+      }
+    });
+    group.appendChild(input);
+
+    // Error message
+    const errorElement = document.createElement('div');
+    errorElement.className = 'error-message';
+    errorElement.id = `${id.replace('register-', '')}-error`;
+    group.appendChild(errorElement);
+
+    return group;
+  }
+
+  /**
    * Create account details stage
    * @returns {HTMLElement} - Stage form content
    */
@@ -327,152 +392,66 @@ class MultiStageRegistration {
     container.className = 'account-details';
     
     // Name field
-    const nameGroup = document.createElement('div');
-    nameGroup.className = 'form-group';
-    
-    const nameLabel = document.createElement('label');
-    nameLabel.htmlFor = 'register-name';
-    nameLabel.textContent = 'שם מלא';
-    nameGroup.appendChild(nameLabel);
-    
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.id = 'register-name';
-    nameInput.className = 'form-control';
-    nameInput.value = this.userData.name;
-    nameInput.placeholder = 'הזן את שמך המלא';
-    nameInput.required = true;
-    nameInput.addEventListener('input', () => {
-      this.userData.name = nameInput.value;
-      this.validateStage();
+    const nameField = this.createFormField({
+      id: 'register-name',
+      label: 'שם מלא',
+      placeholder: 'הזן את שמך המלא',
+      value: this.userData.name,
+      onInput: (value) => { this.userData.name = value; }
     });
-    nameGroup.appendChild(nameInput);
-    
-    const nameError = document.createElement('div');
-    nameError.className = 'error-message';
-    nameError.id = 'name-error';
-    nameGroup.appendChild(nameError);
-    
-    container.appendChild(nameGroup);
+    container.appendChild(nameField);
     
     // Email field
-    const emailGroup = document.createElement('div');
-    emailGroup.className = 'form-group';
-    
-    const emailLabel = document.createElement('label');
-    emailLabel.htmlFor = 'register-email';
-    emailLabel.textContent = 'אימייל';
-    emailGroup.appendChild(emailLabel);
-    
-    const emailInput = document.createElement('input');
-    emailInput.type = 'email';
-    emailInput.id = 'register-email';
-    emailInput.className = 'form-control';
-    emailInput.value = this.userData.email;
-    emailInput.placeholder = 'הזן את כתובת האימייל שלך';
-    emailInput.required = true;
-    emailInput.addEventListener('input', () => {
-      this.userData.email = emailInput.value;
-      this.validateStage();
-      
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const errorElement = document.getElementById('email-error');
-      
-      if (emailInput.value && !emailRegex.test(emailInput.value)) {
-        errorElement.textContent = 'כתובת אימייל לא תקינה';
-        emailInput.classList.add('is-invalid');
-      } else {
-        errorElement.textContent = '';
-        emailInput.classList.remove('is-invalid');
+    const emailField = this.createFormField({
+      id: 'register-email',
+      label: 'אימייל',
+      type: 'email',
+      placeholder: 'הזן את כתובת האימייל שלך',
+      value: this.userData.email,
+      onInput: (value) => { this.userData.email = value; },
+      validator: (value) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return {
+          isValid: !value || emailRegex.test(value),
+          message: 'כתובת אימייל לא תקינה'
+        };
       }
     });
-    emailGroup.appendChild(emailInput);
-    
-    const emailError = document.createElement('div');
-    emailError.className = 'error-message';
-    emailError.id = 'email-error';
-    emailGroup.appendChild(emailError);
-    
-    container.appendChild(emailGroup);
+    container.appendChild(emailField);
     
     // Password field
-    const passwordGroup = document.createElement('div');
-    passwordGroup.className = 'form-group';
-    
-    const passwordLabel = document.createElement('label');
-    passwordLabel.htmlFor = 'register-password';
-    passwordLabel.textContent = 'סיסמה';
-    passwordGroup.appendChild(passwordLabel);
-    
-    const passwordInput = document.createElement('input');
-    passwordInput.type = 'password';
-    passwordInput.id = 'register-password';
-    passwordInput.className = 'form-control';
-    passwordInput.value = this.userData.password;
-    passwordInput.placeholder = 'הזן סיסמה (לפחות 8 תווים)';
-    passwordInput.required = true;
-    passwordInput.addEventListener('input', () => {
-      this.userData.password = passwordInput.value;
-      this.validateStage();
-      
-      // Validate password strength
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-      const errorElement = document.getElementById('password-error');
-      
-      if (passwordInput.value && !passwordRegex.test(passwordInput.value)) {
-        errorElement.textContent = 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר';
-        passwordInput.classList.add('is-invalid');
-      } else {
-        errorElement.textContent = '';
-        passwordInput.classList.remove('is-invalid');
+    const passwordField = this.createFormField({
+      id: 'register-password',
+      label: 'סיסמה',
+      type: 'password',
+      placeholder: 'הזן סיסמה (לפחות 8 תווים)',
+      value: this.userData.password,
+      onInput: (value) => { this.userData.password = value; },
+      validator: (value) => {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        return {
+          isValid: !value || passwordRegex.test(value),
+          message: 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'
+        };
       }
     });
-    passwordGroup.appendChild(passwordInput);
-    
-    const passwordError = document.createElement('div');
-    passwordError.className = 'error-message';
-    passwordError.id = 'password-error';
-    passwordGroup.appendChild(passwordError);
-    
-    container.appendChild(passwordGroup);
+    container.appendChild(passwordField);
     
     // Password confirmation field
-    const confirmPasswordGroup = document.createElement('div');
-    confirmPasswordGroup.className = 'form-group';
-    
-    const confirmPasswordLabel = document.createElement('label');
-    confirmPasswordLabel.htmlFor = 'register-confirm-password';
-    confirmPasswordLabel.textContent = 'אימות סיסמה';
-    confirmPasswordGroup.appendChild(confirmPasswordLabel);
-    
-    const confirmPasswordInput = document.createElement('input');
-    confirmPasswordInput.type = 'password';
-    confirmPasswordInput.id = 'register-confirm-password';
-    confirmPasswordInput.className = 'form-control';
-    confirmPasswordInput.placeholder = 'הזן את הסיסמה שוב';
-    confirmPasswordInput.required = true;
-    confirmPasswordInput.addEventListener('input', () => {
-      const errorElement = document.getElementById('confirm-password-error');
-      
-      if (confirmPasswordInput.value && confirmPasswordInput.value !== this.userData.password) {
-        errorElement.textContent = 'הסיסמאות אינן תואמות';
-        confirmPasswordInput.classList.add('is-invalid');
-      } else {
-        errorElement.textContent = '';
-        confirmPasswordInput.classList.remove('is-invalid');
+    const confirmPasswordField = this.createFormField({
+      id: 'register-confirm-password',
+      label: 'אימות סיסמה',
+      type: 'password',
+      placeholder: 'הזן את הסיסמה שוב',
+      onInput: () => {}, // No direct userData update
+      validator: (value) => {
+        return {
+          isValid: !value || value === this.userData.password,
+          message: 'הסיסמאות אינן תואמות'
+        };
       }
-      
-      this.validateStage();
     });
-    confirmPasswordGroup.appendChild(confirmPasswordInput);
-    
-    const confirmPasswordError = document.createElement('div');
-    confirmPasswordError.className = 'error-message';
-    confirmPasswordError.id = 'confirm-password-error';
-    confirmPasswordGroup.appendChild(confirmPasswordError);
-    
-    container.appendChild(confirmPasswordGroup);
+    container.appendChild(confirmPasswordField);
     
     // Disable next button if form is not valid
     setTimeout(() => {
@@ -483,6 +462,90 @@ class MultiStageRegistration {
   }
   
   /**
+   * Create a select field with options
+   * @param {Object} config - Select field configuration
+   * @returns {HTMLElement} - Form group element
+   */
+  createSelectField(config) {
+    const { id, label, options, value, onChange } = config;
+
+    const group = document.createElement('div');
+    group.className = 'form-group';
+
+    const labelElement = document.createElement('label');
+    labelElement.htmlFor = id;
+    labelElement.textContent = label;
+    group.appendChild(labelElement);
+
+    const select = document.createElement('select');
+    select.id = id;
+    select.className = 'form-control';
+    select.required = true;
+
+    options.forEach(option => {
+      const optionElement = document.createElement('option');
+      optionElement.value = option.value;
+      optionElement.textContent = option.label;
+      select.appendChild(optionElement);
+    });
+
+    select.value = value || '';
+    select.addEventListener('change', () => {
+      if (onChange) onChange(select.value);
+      this.validateStage();
+    });
+    group.appendChild(select);
+
+    return group;
+  }
+
+  /**
+   * Create a radio group field
+   * @param {Object} config - Radio group configuration
+   * @returns {HTMLElement} - Form group element
+   */
+  createRadioGroup(config) {
+    const { label, name, options, value, onChange } = config;
+
+    const group = document.createElement('div');
+    group.className = 'form-group';
+
+    const labelElement = document.createElement('label');
+    labelElement.textContent = label;
+    group.appendChild(labelElement);
+
+    const radioContainer = document.createElement('div');
+    radioContainer.className = 'radio-group';
+
+    options.forEach(option => {
+      const radioOption = document.createElement('div');
+      radioOption.className = 'radio-option';
+
+      const radioInput = document.createElement('input');
+      radioInput.type = 'radio';
+      radioInput.id = `${name}-${option.value}`;
+      radioInput.name = name;
+      radioInput.value = option.value;
+      radioInput.checked = value === option.value;
+      radioInput.addEventListener('change', () => {
+        if (onChange) onChange(option.value);
+        this.validateStage();
+      });
+      radioOption.appendChild(radioInput);
+
+      const radioLabel = document.createElement('label');
+      radioLabel.htmlFor = `${name}-${option.value}`;
+      radioLabel.textContent = option.label;
+      radioOption.appendChild(radioLabel);
+
+      radioContainer.appendChild(radioOption);
+    });
+
+    group.appendChild(radioContainer);
+    return group;
+  }
+
+  /**
    * Create player details stage
    * @returns {HTMLElement} - Stage form content
    */
@@ -491,155 +554,62 @@ class MultiStageRegistration {
     container.className = 'player-details';
     
     // Age field
-    const ageGroup = document.createElement('div');
-    ageGroup.className = 'form-group';
-    
-    const ageLabel = document.createElement('label');
-    ageLabel.htmlFor = 'register-age';
-    ageLabel.textContent = 'גיל';
-    ageGroup.appendChild(ageLabel);
-    
-    const ageInput = document.createElement('input');
-    ageInput.type = 'number';
-    ageInput.id = 'register-age';
-    ageInput.className = 'form-control';
-    ageInput.value = this.userData.age || '';
+    const ageField = this.createFormField({
+      id: 'register-age',
+      label: 'גיל',
+      type: 'number',
+      value: this.userData.age || '',
+      onInput: (value) => { this.userData.age = parseInt(value, 10); }
+    });
+    // Add min/max attributes
+    const ageInput = ageField.querySelector('input');
     ageInput.min = 8;
     ageInput.max = 50;
-    ageInput.required = true;
-    ageInput.addEventListener('input', () => {
-      this.userData.age = parseInt(ageInput.value, 10);
-      this.validateStage();
-    });
-    ageGroup.appendChild(ageInput);
-    
-    container.appendChild(ageGroup);
+    container.appendChild(ageField);
     
     // Position field
-    const positionGroup = document.createElement('div');
-    positionGroup.className = 'form-group';
-    
-    const positionLabel = document.createElement('label');
-    positionLabel.htmlFor = 'register-position';
-    positionLabel.textContent = 'עמדה';
-    positionGroup.appendChild(positionLabel);
-    
-    const positionSelect = document.createElement('select');
-    positionSelect.id = 'register-position';
-    positionSelect.className = 'form-control';
-    positionSelect.required = true;
-    
-    const positions = [
-      { value: '', label: 'בחר עמדה' },
-      { value: 'goalkeeper', label: 'שוער' },
-      { value: 'defender', label: 'מגן' },
-      { value: 'midfielder', label: 'קשר' },
-      { value: 'forward', label: 'חלוץ' }
-    ];
-    
-    positions.forEach(position => {
-      const option = document.createElement('option');
-      option.value = position.value;
-      option.textContent = position.label;
-      positionSelect.appendChild(option);
+    const positionField = this.createSelectField({
+      id: 'register-position',
+      label: 'עמדה',
+      options: [
+        { value: '', label: 'בחר עמדה' },
+        { value: 'goalkeeper', label: 'שוער' },
+        { value: 'defender', label: 'מגן' },
+        { value: 'midfielder', label: 'קשר' },
+        { value: 'forward', label: 'חלוץ' }
+      ],
+      value: this.userData.position,
+      onChange: (value) => { this.userData.position = value; }
     });
-    
-    positionSelect.value = this.userData.position || '';
-    positionSelect.addEventListener('change', () => {
-      this.userData.position = positionSelect.value;
-      this.validateStage();
-    });
-    positionGroup.appendChild(positionSelect);
-    
-    container.appendChild(positionGroup);
+    container.appendChild(positionField);
     
     // Dominant foot field
-    const footGroup = document.createElement('div');
-    footGroup.className = 'form-group';
-    
-    const footLabel = document.createElement('label');
-    footLabel.textContent = 'רגל דומיננטית';
-    footGroup.appendChild(footLabel);
-    
-    const footOptions = document.createElement('div');
-    footOptions.className = 'radio-group';
-    
-    const feet = [
-      { value: 'right', label: 'ימין' },
-      { value: 'left', label: 'שמאל' },
-      { value: 'both', label: 'שתיהן' }
-    ];
-    
-    feet.forEach(foot => {
-      const radioContainer = document.createElement('div');
-      radioContainer.className = 'radio-option';
-      
-      const radioInput = document.createElement('input');
-      radioInput.type = 'radio';
-      radioInput.id = `foot-${foot.value}`;
-      radioInput.name = 'dominant-foot';
-      radioInput.value = foot.value;
-      radioInput.checked = this.userData.dominantFoot === foot.value;
-      radioInput.addEventListener('change', () => {
-        this.userData.dominantFoot = foot.value;
-        this.validateStage();
-      });
-      radioContainer.appendChild(radioInput);
-      
-      const radioLabel = document.createElement('label');
-      radioLabel.htmlFor = `foot-${foot.value}`;
-      radioLabel.textContent = foot.label;
-      radioContainer.appendChild(radioLabel);
-      
-      footOptions.appendChild(radioContainer);
+    const footField = this.createRadioGroup({
+      label: 'רגל דומיננטית',
+      name: 'dominant-foot',
+      options: [
+        { value: 'right', label: 'ימין' },
+        { value: 'left', label: 'שמאל' },
+        { value: 'both', label: 'שתיהן' }
+      ],
+      value: this.userData.dominantFoot,
+      onChange: (value) => { this.userData.dominantFoot = value; }
     });
-    
-    footGroup.appendChild(footOptions);
-    container.appendChild(footGroup);
+    container.appendChild(footField);
     
     // Level field
-    const levelGroup = document.createElement('div');
-    levelGroup.className = 'form-group';
-    
-    const levelLabel = document.createElement('label');
-    levelLabel.textContent = 'רמה';
-    levelGroup.appendChild(levelLabel);
-    
-    const levelOptions = document.createElement('div');
-    levelOptions.className = 'radio-group';
-    
-    const levels = [
-      { value: 'beginner', label: 'מתחיל' },
-      { value: 'intermediate', label: 'בינוני' },
-      { value: 'advanced', label: 'מתקדם' }
-    ];
-    
-    levels.forEach(level => {
-      const radioContainer = document.createElement('div');
-      radioContainer.className = 'radio-option';
-      
-      const radioInput = document.createElement('input');
-      radioInput.type = 'radio';
-      radioInput.id = `level-${level.value}`;
-      radioInput.name = 'level';
-      radioInput.value = level.value;
-      radioInput.checked = this.userData.level === level.value;
-      radioInput.addEventListener('change', () => {
-        this.userData.level = level.value;
-        this.validateStage();
-      });
-      radioContainer.appendChild(radioInput);
-      
-      const radioLabel = document.createElement('label');
-      radioLabel.htmlFor = `level-${level.value}`;
-      radioLabel.textContent = level.label;
-      radioContainer.appendChild(radioLabel);
-      
-      levelOptions.appendChild(radioContainer);
+    const levelField = this.createRadioGroup({
+      label: 'רמה',
+      name: 'level',
+      options: [
+        { value: 'beginner', label: 'מתחיל' },
+        { value: 'intermediate', label: 'בינוני' },
+        { value: 'advanced', label: 'מתקדם' }
+      ],
+      value: this.userData.level,
+      onChange: (value) => { this.userData.level = value; }
     });
-    
-    levelGroup.appendChild(levelOptions);
-    container.appendChild(levelGroup);
+    container.appendChild(levelField);
     
     // Disable next button if form is not valid
     setTimeout(() => {
@@ -658,52 +628,24 @@ class MultiStageRegistration {
     container.className = 'scout-details';
     
     // Club field
-    const clubGroup = document.createElement('div');
-    clubGroup.className = 'form-group';
-    
-    const clubLabel = document.createElement('label');
-    clubLabel.htmlFor = 'register-club';
-    clubLabel.textContent = 'מועדון';
-    clubGroup.appendChild(clubLabel);
-    
-    const clubInput = document.createElement('input');
-    clubInput.type = 'text';
-    clubInput.id = 'register-club';
-    clubInput.className = 'form-control';
-    clubInput.value = this.userData.club || '';
-    clubInput.placeholder = 'הזן את שם המועדון';
-    clubInput.required = true;
-    clubInput.addEventListener('input', () => {
-      this.userData.club = clubInput.value;
-      this.validateStage();
+    const clubField = this.createFormField({
+      id: 'register-club',
+      label: 'מועדון',
+      placeholder: 'הזן את שם המועדון',
+      value: this.userData.club || '',
+      onInput: (value) => { this.userData.club = value; }
     });
-    clubGroup.appendChild(clubInput);
-    
-    container.appendChild(clubGroup);
+    container.appendChild(clubField);
     
     // Position field
-    const positionGroup = document.createElement('div');
-    positionGroup.className = 'form-group';
-    
-    const positionLabel = document.createElement('label');
-    positionLabel.htmlFor = 'register-scout-position';
-    positionLabel.textContent = 'תפקיד';
-    positionGroup.appendChild(positionLabel);
-    
-    const positionInput = document.createElement('input');
-    positionInput.type = 'text';
-    positionInput.id = 'register-scout-position';
-    positionInput.className = 'form-control';
-    positionInput.value = this.userData.scoutPosition || '';
-    positionInput.placeholder = 'הזן את התפקיד שלך במועדון';
-    positionInput.required = true;
-    positionInput.addEventListener('input', () => {
-      this.userData.scoutPosition = positionInput.value;
-      this.validateStage();
+    const positionField = this.createFormField({
+      id: 'register-scout-position',
+      label: 'תפקיד',
+      placeholder: 'הזן את התפקיד שלך במועדון',
+      value: this.userData.scoutPosition || '',
+      onInput: (value) => { this.userData.scoutPosition = value; }
     });
-    positionGroup.appendChild(positionInput);
-    
-    container.appendChild(positionGroup);
+    container.appendChild(positionField);
     
     // Disable next button if form is not valid
     setTimeout(() => {
@@ -834,9 +776,269 @@ class MultiStageRegistration {
     
     return container;
   }
-  
   /**
    * Move to the next stage
    */
   nextStage() {
+    // Check if current stage is valid
+    const visibleStages = this.stages.filter(stage =>
+      !stage.condition || stage.condition()
+    );
     
+    const currentStage = visibleStages[this.currentStage];
+    if (!currentStage.isValid()) {
+      return;
+    }
+    
+    // Move to next stage
+    this.currentStage++;
+    
+    // Re-render the component
+    this.render();
+  }
+  
+  /**
+   * Move to the previous stage
+   */
+  previousStage() {
+    if (this.currentStage > 0) {
+      this.currentStage--;
+      this.render();
+    }
+  }
+  
+  /**
+   * Validate the current stage
+   */
+  validateStage() {
+    const visibleStages = this.stages.filter(stage =>
+      !stage.condition || stage.condition()
+    );
+    
+    const currentStage = visibleStages[this.currentStage];
+    const nextButton = document.querySelector('.next-btn');
+    
+    if (nextButton) {
+      nextButton.disabled = !currentStage.isValid();
+    }
+  }
+  
+  /**
+   * Attach event listeners
+   */
+  attachEventListeners() {
+    // Add event listeners for terms and privacy links
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('terms-link')) {
+        e.preventDefault();
+        alert('Terms and conditions will be displayed here.');
+      } else if (e.target.classList.contains('privacy-link')) {
+        e.preventDefault();
+        alert('Privacy policy will be displayed here.');
+      }
+    });
+  }
+  
+  /**
+   * Submit registration
+   */
+  submitRegistration() {
+    // Show loading state
+    const submitButton = document.querySelector('.next-btn');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'מתבצעת הרשמה...';
+    
+    // Register user with Firebase
+    firebaseAuth.registerWithEmail({
+      email: this.userData.email,
+      password: this.userData.password
+    })
+    .then(uid => {
+      // Complete user profile
+      const profileData = {
+        name: this.userData.name,
+        email: this.userData.email
+      };
+      
+      if (this.userData.type === 'player') {
+        profileData.age = this.userData.age;
+        profileData.position = this.userData.position;
+        profileData.dominantFoot = this.userData.dominantFoot;
+        profileData.level = this.userData.level;
+      } else if (this.userData.type === 'scout') {
+        profileData.club = this.userData.club;
+        profileData.position = this.userData.scoutPosition;
+      }
+      
+      return firebaseAuth.completeUserProfile(uid, profileData, this.userData.type);
+    })
+    .then(() => {
+      // Show success message
+      this.showMessage('success', 'ההרשמה הושלמה בהצלחה!');
+      
+      // Close the modal and update UI after a short delay
+      setTimeout(() => {
+        // Close the modal
+        const multiStageModal = document.getElementById('multi-stage-modal');
+        if (multiStageModal) {
+          multiStageModal.style.display = 'none';
+        }
+        
+        // Update UI to show logged in state
+        this.updateUIForLoggedInUser();
+        
+        // If player, show message about challenges
+        if (this.userData.type === 'player') {
+          setTimeout(() => {
+            this.showGlobalMessage('מעביר אותך לאתגרים הראשוניים...', 'info');
+          }, 1000);
+        }
+      }, 2000);
+    })
+    .catch(error => {
+      // Show error message
+      this.showMessage('error', `שגיאה בהרשמה: ${error.message}`);
+      
+      // Reset button
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+    });
+  }
+  
+  /**
+   * Show a message to the user
+   * @param {string} type - Message type (success, error, info)
+   * @param {string} text - Message text
+   */
+  showMessage(type, text) {
+    this.showGlobalMessage(text, type, '.multi-stage-registration');
+  }
+  
+  /**
+   * Update the UI for a logged in user
+   */
+  updateUIForLoggedInUser() {
+    // Use the global function if available, otherwise implement locally
+    if (window.updateUIForLoggedInUser) {
+      window.updateUIForLoggedInUser();
+    } else {
+      this.updateUIForLoggedInUserLocal();
+    }
+  }
+  
+  /**
+   * Local implementation of UI update for logged in user
+   */
+  updateUIForLoggedInUserLocal() {
+    const authButtons = document.querySelector('.auth-buttons');
+    
+    if (authButtons) {
+      // Replace login/register buttons with user menu
+      authButtons.innerHTML = `
+        <div class="user-menu">
+          <button class="btn user-menu-btn">החשבון שלי <i class="fas fa-user"></i></button>
+          <div class="user-dropdown">
+            <a href="pages/profile.html">הפרופיל שלי</a>
+            <a href="pages/training.html">תוכנית האימון שלי</a>
+            <a href="#" id="logout-btn">התנתק</a>
+          </div>
+        </div>
+      `;
+      
+      // Add event listener for logout
+      document.getElementById('logout-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        // In a real app, this would call a logout API
+        location.reload(); // For demo, just reload the page
+      });
+      
+      // Toggle user dropdown
+      const userMenuBtn = document.querySelector('.user-menu-btn');
+      const userDropdown = document.querySelector('.user-dropdown');
+      
+      userMenuBtn.addEventListener('click', () => {
+        userDropdown.classList.toggle('visible');
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.user-menu')) {
+          userDropdown.classList.remove('visible');
+        }
+      });
+    }
+  }
+  
+  /**
+   * Show a global message to the user
+   * @param {string} text - Message text
+   * @param {string} type - Message type ('success', 'error', 'info')
+   * @param {string} container - Optional container selector for scoped messages
+   */
+  showGlobalMessage(text, type = 'info', container = null) {
+    // Use global message function if available
+    if (window.showMessage) {
+      window.showMessage(text, type);
+      return;
+    }
+    
+    // Fallback to local implementation
+    if (container) {
+      // Show message within specific container (like registration component)
+      const targetContainer = document.querySelector(container);
+      if (targetContainer) {
+        // Remove any existing messages in this container
+        const existingMessage = targetContainer.querySelector('.registration-message');
+        if (existingMessage) {
+          existingMessage.remove();
+        }
+        
+        // Create message element
+        const message = document.createElement('div');
+        message.className = `registration-message ${type}`;
+        message.textContent = text;
+        
+        // Add message to the component
+        targetContainer.insertBefore(message, targetContainer.firstChild);
+        
+        // Auto-remove success and info messages after a delay
+        if (type !== 'error') {
+          setTimeout(() => {
+            message.remove();
+          }, 5000);
+        }
+        return;
+      }
+    }
+    
+    // Global message implementation
+    let messageContainer = document.querySelector('.message-container');
+    
+    if (!messageContainer) {
+      messageContainer = document.createElement('div');
+      messageContainer.className = 'message-container';
+      document.body.appendChild(messageContainer);
+    }
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = `message message-${type}`;
+    messageElement.textContent = text;
+    
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'message-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => {
+      messageElement.remove();
+    });
+    
+    messageElement.appendChild(closeBtn);
+    messageContainer.appendChild(messageElement);
+    
+    setTimeout(() => {
+      messageElement.remove();
+    }, 5000);
+  }
+}
+
+export default MultiStageRegistration;

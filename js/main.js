@@ -21,10 +21,49 @@ document.addEventListener('DOMContentLoaded', () => {
  * Modal functionality
  * Handles opening and closing of login and registration modals
  */
+/**
+ * Initialize and show multi-stage registration modal
+ * @param {string} userType - Optional user type to pre-select ('player' or 'scout')
+ */
+function showMultiStageRegistration(userType = null) {
+  // Ensure the multi-stage modal exists, create it if it doesn't
+  let multiStageModal = document.getElementById('multi-stage-modal');
+  if (!multiStageModal) {
+    createMultiStageModal();
+    multiStageModal = document.getElementById('multi-stage-modal');
+  }
+  
+  if (multiStageModal) {
+    multiStageModal.style.display = 'block';
+    
+    // Initialize the multi-stage registration component
+    const container = document.getElementById('multi-stage-registration-container');
+    if (container) {
+      // Clear any existing content
+      container.innerHTML = '';
+      
+      // Create new MultiStageRegistration instance
+      import('../components/multi-stage-registration.js').then(module => {
+        const MultiStageRegistration = module.default;
+        const multiStageRegistration = new MultiStageRegistration('multi-stage-registration-container');
+        
+        // Set user type if provided
+        if (userType) {
+          multiStageRegistration.userData.type = userType;
+        }
+        
+        // Start from the first stage
+        multiStageRegistration.currentStage = 0;
+        multiStageRegistration.render();
+      });
+    }
+  }
+}
+
 function initModals() {
   // Get modal elements
   const loginModal = document.getElementById('login-modal');
-  const registerModal = document.getElementById('register-modal');
+  const multiStageModal = document.getElementById('multi-stage-modal');
   const loginBtn = document.getElementById('login-btn');
   const registerBtn = document.getElementById('register-btn');
   const playerRegisterBtn = document.getElementById('player-register');
@@ -44,40 +83,36 @@ function initModals() {
   // Open register modal
   if (registerBtn) {
     registerBtn.addEventListener('click', () => {
-      registerModal.style.display = 'block';
+      showMultiStageRegistration();
     });
   }
 
   // Open player registration
   if (playerRegisterBtn) {
     playerRegisterBtn.addEventListener('click', () => {
-      registerModal.style.display = 'block';
-      // Ensure player tab is active
-      document.querySelector('[data-tab="player-tab"]').click();
+      showMultiStageRegistration('player');
     });
   }
 
   // Open scout registration
   if (scoutRegisterBtn) {
     scoutRegisterBtn.addEventListener('click', () => {
-      registerModal.style.display = 'block';
-      // Ensure scout tab is active
-      document.querySelector('[data-tab="scout-tab"]').click();
+      showMultiStageRegistration('scout');
     });
   }
 
   // CTA register button
   if (ctaRegisterBtn) {
     ctaRegisterBtn.addEventListener('click', () => {
-      registerModal.style.display = 'block';
+      showMultiStageRegistration();
     });
   }
 
   // Close modals when clicking the X
   closeButtons.forEach(button => {
     button.addEventListener('click', () => {
-      loginModal.style.display = 'none';
-      registerModal.style.display = 'none';
+      if (loginModal) loginModal.style.display = 'none';
+      if (multiStageModal) multiStageModal.style.display = 'none';
     });
   });
 
@@ -86,8 +121,8 @@ function initModals() {
     if (event.target === loginModal) {
       loginModal.style.display = 'none';
     }
-    if (event.target === registerModal) {
-      registerModal.style.display = 'none';
+    if (event.target === multiStageModal) {
+      multiStageModal.style.display = 'none';
     }
   });
 
@@ -95,18 +130,65 @@ function initModals() {
   if (switchToRegister) {
     switchToRegister.addEventListener('click', (e) => {
       e.preventDefault();
-      loginModal.style.display = 'none';
-      registerModal.style.display = 'block';
+      if (loginModal) loginModal.style.display = 'none';
+      showMultiStageRegistration();
     });
   }
 
   if (switchToLogin) {
     switchToLogin.addEventListener('click', (e) => {
       e.preventDefault();
-      registerModal.style.display = 'none';
-      loginModal.style.display = 'block';
+      const multiStageModal = document.getElementById('multi-stage-modal');
+      if (multiStageModal) multiStageModal.style.display = 'none';
+      if (loginModal) loginModal.style.display = 'block';
     });
   }
+}
+
+/**
+ * Create a modal for the multi-stage registration component
+ */
+function createMultiStageModal() {
+  // Create modal element
+  const multiStageModal = document.createElement('div');
+  multiStageModal.className = 'modal';
+  multiStageModal.id = 'multi-stage-modal';
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content';
+  
+  // Create close button
+  const closeButton = document.createElement('span');
+  closeButton.className = 'close-modal';
+  closeButton.innerHTML = '&times;';
+  closeButton.addEventListener('click', () => {
+    multiStageModal.style.display = 'none';
+  });
+  
+  // Create title
+  const title = document.createElement('h2');
+  title.textContent = 'הרשמה';
+  
+  // Create container for multi-stage registration
+  const registrationContainer = document.createElement('div');
+  registrationContainer.id = 'multi-stage-registration-container';
+  
+  // Assemble modal
+  modalContent.appendChild(closeButton);
+  modalContent.appendChild(title);
+  modalContent.appendChild(registrationContainer);
+  multiStageModal.appendChild(modalContent);
+  
+  // Add modal to the document
+  document.body.appendChild(multiStageModal);
+  
+  // Close modal when clicking outside
+  window.addEventListener('click', (event) => {
+    if (event.target === multiStageModal) {
+      multiStageModal.style.display = 'none';
+    }
+  });
 }
 
 /**
@@ -421,7 +503,10 @@ function simulateLogin(email) {
  */
 function simulateRegistration(type, name, email) {
   // Hide modal
-  document.getElementById('register-modal').style.display = 'none';
+  const multiStageModal = document.getElementById('multi-stage-modal');
+  if (multiStageModal) {
+    multiStageModal.style.display = 'none';
+  }
   
   // Show success message
   const userType = type === 'player' ? 'שחקן' : 'סקאוט';
@@ -519,3 +604,8 @@ function showMessage(message, type = 'info') {
     messageElement.remove();
   }, 5000);
 }
+
+// Expose global functions for reuse across components
+window.showMessage = showMessage;
+window.updateUIForLoggedInUser = updateUIForLoggedInUser;
+window.showMultiStageRegistration = showMultiStageRegistration;

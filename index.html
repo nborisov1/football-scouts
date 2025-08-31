@@ -6,12 +6,27 @@
     <title>פוטבול סקאוטינג - חיבור בין שחקנים לסקאוטים</title>
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/multi-stage-registration.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <!-- Application Scripts -->
     <script src="js/main.js" defer></script>
-    <script src="auth/auth.js" defer></script>
-    <script src="auth/auth-integration.js" defer></script>
+    <script src="config/firebase.js" type="module"></script>
+    <script src="auth/auth.js" type="module"></script>
+    <script src="auth/auth-integration.js" type="module"></script>
+    <script src="js/registration.js" type="module"></script>
 </head>
-<body>
+<body class="auth-loading">
+    <!-- Authentication Loading Overlay -->
+    <div class="auth-loading-overlay" id="auth-loading-overlay">
+        <div class="auth-loading-spinner"></div>
+        <div class="auth-loading-text">טוען...</div>
+    </div>
     <header class="main-header">
         <div class="container">
             <div class="logo">
@@ -98,15 +113,12 @@
                     <button class="tab-btn" data-tab="ranked">דירוג הגבוה ביותר</button>
                 </div>
                 <div class="leaderboard-content active" id="consistent-leaderboard">
-                    <!-- Will be populated by JavaScript -->
                     <p class="placeholder-text">טוען נתונים...</p>
                 </div>
                 <div class="leaderboard-content" id="improved-leaderboard">
-                    <!-- Will be populated by JavaScript -->
                     <p class="placeholder-text">טוען נתונים...</p>
                 </div>
                 <div class="leaderboard-content" id="ranked-leaderboard">
-                    <!-- Will be populated by JavaScript -->
                     <p class="placeholder-text">טוען נתונים...</p>
                 </div>
                 <div class="view-all">
@@ -239,99 +251,6 @@
         </div>
     </div>
 
-    <!-- Modal for Registration -->
-    <div class="modal" id="register-modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>הרשמה</h2>
-            <div class="register-tabs">
-                <button class="tab-btn active" data-tab="player-tab">שחקן</button>
-                <button class="tab-btn" data-tab="scout-tab">סקאוט</button>
-            </div>
-            <div class="register-content active" id="player-tab">
-                <form id="player-form">
-                    <div class="form-group">
-                        <label for="player-name">שם מלא</label>
-                        <input type="text" id="player-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="player-email">אימייל</label>
-                        <input type="email" id="player-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="player-password">סיסמה</label>
-                        <input type="password" id="player-password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="player-age">גיל</label>
-                        <input type="number" id="player-age" min="8" max="40" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="player-position">עמדה</label>
-                        <select id="player-position" required>
-                            <option value="">בחר עמדה</option>
-                            <option value="goalkeeper">שוער</option>
-                            <option value="defender">מגן</option>
-                            <option value="midfielder">קשר</option>
-                            <option value="forward">חלוץ</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>רגל דומיננטית</label>
-                        <div class="radio-group">
-                            <input type="radio" id="right-foot" name="dominant-foot" value="right" checked>
-                            <label for="right-foot">ימין</label>
-                            <input type="radio" id="left-foot" name="dominant-foot" value="left">
-                            <label for="left-foot">שמאל</label>
-                            <input type="radio" id="both-feet" name="dominant-foot" value="both">
-                            <label for="both-feet">שתיהן</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="player-level">רמה נוכחית</label>
-                        <select id="player-level" required>
-                            <option value="">בחר רמה</option>
-                            <option value="beginner">מתחיל</option>
-                            <option value="intermediate">בינוני</option>
-                            <option value="advanced">מתקדם</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">הרשם כשחקן</button>
-                    </div>
-                </form>
-            </div>
-            <div class="register-content" id="scout-tab">
-                <form id="scout-form">
-                    <div class="form-group">
-                        <label for="scout-name">שם מלא</label>
-                        <input type="text" id="scout-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scout-email">אימייל</label>
-                        <input type="email" id="scout-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scout-password">סיסמה</label>
-                        <input type="password" id="scout-password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scout-club">מועדון</label>
-                        <input type="text" id="scout-club" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scout-position">תפקיד</label>
-                        <input type="text" id="scout-position" required>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">הרשם כסקאוט</button>
-                    </div>
-                </form>
-            </div>
-            <div class="form-footer">
-                <p>כבר יש לך חשבון? <a href="#" id="switch-to-login">התחבר</a></p>
-            </div>
-        </div>
-    </div>
+    <!-- 🚀 Registration modal is created dynamically by registration.js -->
 </body>
 </html>

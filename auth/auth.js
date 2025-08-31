@@ -1,9 +1,12 @@
 /**
  * Football Scouting Website - Authentication System
- * Handles user authentication, registration, and session management
+ * Handles user authentication, registration, and session management using Firebase
  */
 
 'use strict';
+
+// Import Firebase services
+import { auth as firebaseAuth, db } from '../config/firebase.js';
 
 // User types
 const USER_TYPES = {
@@ -12,39 +15,85 @@ const USER_TYPES = {
   ADMIN: 'admin'
 };
 
-// Local storage keys
+// Collections
+const COLLECTIONS = {
+  USERS: 'users'
+};
+
+// Local storage keys for compatibility
 const STORAGE_KEYS = {
-  CURRENT_USER: 'footballScout_currentUser',
-  USERS: 'footballScout_users'
+  CURRENT_USER: 'footballScout_currentUser'
 };
 
 /**
  * Authentication class
- * Handles all authentication-related functionality
+ * Handles all authentication-related functionality using Firebase
  */
 class Auth {
   constructor() {
-    // Initialize users if not exists
-    if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-      this.initializeUsers();
-    }
+    this.currentUser = null;
+    
+    // Listen for auth state changes
+    firebaseAuth.onAuthStateChanged(user => {
+      if (user) {
+        // User is signed in
+        this.getUserData(user.uid).then(userData => {
+          this.currentUser = userData;
+          // Store in localStorage for compatibility with existing code
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData));
+          // Dispatch event for auth state change
+          const event = new CustomEvent('authStateChanged', { detail: { user: userData } });
+          document.dispatchEvent(event);
+        }).catch(error => {
+          console.error('Error getting user data:', error);
+        });
+      } else {
+        // User is signed out
+        this.currentUser = null;
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+        // Dispatch event for auth state change
+        const event = new CustomEvent('authStateChanged', { detail: { user: null } });
+        document.dispatchEvent(event);
+      }
+    });
+    
+    // Initialize admin account if not exists
+    this.initializeAdmin();
   }
 
   /**
-   * Initialize users with admin account
+   * Initialize admin account if it doesn't exist
    */
-  initializeUsers() {
-    const initialUsers = {
-      'admin@example.com': {
-        name: 'מנהל מערכת',
-        email: 'admin@example.com',
-        password: this.hashPassword('admin123'), // In a real app, use a secure hash
-        type: USER_TYPES.ADMIN,
-        createdAt: new Date().toISOString()
+  async initializeAdmin() {
+    try {
+      // Check if admin exists
+      const adminQuery = await db.collection(COLLECTIONS.USERS)
+        .where('type', '==', USER_TYPES.ADMIN)
+        .limit(1)
+        .get();
+      
+      if (adminQuery.empty) {
+        // Create admin account
+        const adminEmail = 'admin@example.com';
+        const adminPassword = 'admin123';
+        
+        // Create user in Firebase Auth
+        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(adminEmail, adminPassword);
+        const uid = userCredential.user.uid;
+        
+        // Create user document in Firestore
+        await db.collection(COLLECTIONS.USERS).doc(uid).set({
+          name: 'מנהל מערכת',
+          email: adminEmail,
+          type: USER_TYPES.ADMIN,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log('Admin account created successfully');
       }
-    };
-    
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(initialUsers));
+    } catch (error) {
+      console.error('Error initializing admin account:', error);
+    }
   }
 
   /**
@@ -54,67 +103,70 @@ class Auth {
    * @returns {Object} - Result object with success status and message
    */
   register(userData, userType) {
-    // Get existing users
-    const users = this.getUsers();
-    
-    // Check if email already exists
-    if (users[userData.email]) {
+    try {
+      // Create user in Firebase Auth
+      firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password)
+        .then(userCredential => {
+          const uid = userCredential.user.uid;
+          
+          // Create base user object
+          const newUser = {
+            name: userData.name,
+            email: userData.email,
+            type: userType,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          
+          // Add user type specific data
+          if (userType === USER_TYPES.PLAYER) {
+            newUser.age = userData.age;
+            newUser.position = userData.position;
+            newUser.dominantFoot = userData.dominantFoot;
+            newUser.level = userData.level;
+            newUser.challenges = {
+              initial: {
+                completed: false,
+                videos: []
+              }
+            };
+            newUser.trainingProgram = {
+              unlocked: false,
+              currentStage: 0,
+              completedStages: []
+            };
+            newUser.stats = {
+              consistency: 0,
+              improvement: 0,
+              ranking: 0
+            };
+          } else if (userType === USER_TYPES.SCOUT) {
+            newUser.club = userData.club;
+            newUser.position = userData.position;
+            newUser.watchlist = [];
+          }
+          
+          // Save user data to Firestore
+          return db.collection(COLLECTIONS.USERS).doc(uid).set(newUser);
+        })
+        .catch(error => {
+          console.error('Error registering user:', error);
+          return {
+            success: false,
+            message: this.handleAuthError(error).message
+          };
+        });
+      
+      return {
+        success: true,
+        message: 'ההרשמה בוצעה בהצלחה'
+      };
+    } catch (error) {
+      console.error('Error in register:', error);
       return {
         success: false,
-        message: 'כתובת האימייל כבר קיימת במערכת'
+        message: 'אירעה שגיאה בתהליך ההרשמה'
       };
     }
-    
-    // Create new user object
-    const newUser = {
-      name: userData.name,
-      email: userData.email,
-      password: this.hashPassword(userData.password),
-      type: userType,
-      createdAt: new Date().toISOString()
-    };
-    
-    // Add user type specific data
-    if (userType === USER_TYPES.PLAYER) {
-      newUser.age = userData.age;
-      newUser.position = userData.position;
-      newUser.dominantFoot = userData.dominantFoot;
-      newUser.level = userData.level;
-      newUser.challenges = {
-        initial: {
-          completed: false,
-          videos: []
-        }
-      };
-      newUser.trainingProgram = {
-        unlocked: false,
-        currentStage: 0,
-        completedStages: []
-      };
-      newUser.stats = {
-        consistency: 0,
-        improvement: 0,
-        ranking: 0
-      };
-    } else if (userType === USER_TYPES.SCOUT) {
-      newUser.club = userData.club;
-      newUser.position = userData.position;
-      newUser.watchlist = [];
-    }
-    
-    // Add user to users object
-    users[userData.email] = newUser;
-    
-    // Save updated users
-    this.saveUsers(users);
-    
-    // Log in the new user
-    this.login(userData.email, userData.password);
-    
-    return {
-      success: true,
-      message: 'ההרשמה בוצעה בהצלחה'
-    };
   }
 
   /**
@@ -124,47 +176,62 @@ class Auth {
    * @returns {Object} - Result object with success status and message
    */
   login(email, password) {
-    // Get users
-    const users = this.getUsers();
-    
-    // Check if user exists
-    if (!users[email]) {
+    try {
+      // Sign in with Firebase
+      firebaseAuth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          // Get user data from Firestore
+          return this.getUserData(userCredential.user.uid);
+        })
+        .then(userData => {
+          // Store user data in localStorage for compatibility
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData));
+          
+          return {
+            success: true,
+            message: 'התחברת בהצלחה',
+            user: userData
+          };
+        })
+        .catch(error => {
+          console.error('Error logging in:', error);
+          return {
+            success: false,
+            message: this.handleAuthError(error).message
+          };
+        });
+      
+      // Return success for compatibility with synchronous code
+      // The actual result will be handled by the auth state change listener
+      return {
+        success: true,
+        message: 'מתחבר...',
+        user: null
+      };
+    } catch (error) {
+      console.error('Error in login:', error);
       return {
         success: false,
-        message: 'כתובת האימייל לא קיימת במערכת'
+        message: 'אירעה שגיאה בתהליך ההתחברות'
       };
     }
-    
-    // Check password
-    if (users[email].password !== this.hashPassword(password)) {
-      return {
-        success: false,
-        message: 'סיסמה שגויה'
-      };
-    }
-    
-    // Create session user (without password)
-    const sessionUser = { ...users[email] };
-    delete sessionUser.password;
-    
-    // Save to local storage
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(sessionUser));
-    
-    return {
-      success: true,
-      message: 'התחברת בהצלחה',
-      user: sessionUser
-    };
   }
 
   /**
    * Log out the current user
    */
   logout() {
-    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-    
-    // Redirect to home page
-    window.location.href = '/';
+    firebaseAuth.signOut()
+      .then(() => {
+        // Clear local storage
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+        
+        // Redirect to home page
+        window.location.href = '/';
+      })
+      .catch(error => {
+        console.error('Error signing out:', error);
+      });
   }
 
   /**
@@ -172,7 +239,7 @@ class Auth {
    * @returns {boolean} - True if a user is logged in
    */
   isLoggedIn() {
-    return !!this.getCurrentUser();
+    return !!firebaseAuth.currentUser || !!this.getCurrentUser();
   }
 
   /**
@@ -180,8 +247,35 @@ class Auth {
    * @returns {Object|null} - Current user object or null if not logged in
    */
   getCurrentUser() {
+    // First check if we have the user in memory
+    if (this.currentUser) {
+      return this.currentUser;
+    }
+    
+    // Then check localStorage for compatibility with existing code
     const userJson = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
     return userJson ? JSON.parse(userJson) : null;
+  }
+
+  /**
+   * Get user data from Firestore
+   * @param {string} uid - User ID
+   * @returns {Promise} - Promise that resolves with the user data
+   */
+  async getUserData(uid) {
+    try {
+      const doc = await db.collection(COLLECTIONS.USERS).doc(uid).get();
+      
+      if (doc.exists) {
+        const userData = doc.data();
+        userData.id = doc.id;
+        return userData;
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Error getting user data: ${error.message}`);
+    }
   }
 
   /**
@@ -201,70 +295,118 @@ class Auth {
    * @returns {Object} - Result object with success status and message
    */
   updateUser(email, updates) {
-    // Get users
-    const users = this.getUsers();
-    
-    // Check if user exists
-    if (!users[email]) {
+    try {
+      // Get current user
+      const currentUser = this.getCurrentUser();
+      
+      if (!currentUser || !currentUser.id) {
+        return {
+          success: false,
+          message: 'המשתמש לא מחובר'
+        };
+      }
+      
+      // Update user data in Firestore
+      db.collection(COLLECTIONS.USERS).doc(currentUser.id).update(updates)
+        .then(() => {
+          // Update current user in memory
+          Object.assign(this.currentUser, updates);
+          
+          // Update localStorage for compatibility
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(this.currentUser));
+          
+          return {
+            success: true,
+            message: 'הפרטים עודכנו בהצלחה'
+          };
+        })
+        .catch(error => {
+          console.error('Error updating user:', error);
+          return {
+            success: false,
+            message: `Error updating user: ${error.message}`
+          };
+        });
+      
+      return {
+        success: true,
+        message: 'הפרטים עודכנו בהצלחה'
+      };
+    } catch (error) {
+      console.error('Error in updateUser:', error);
       return {
         success: false,
-        message: 'המשתמש לא קיים'
+        message: 'אירעה שגיאה בעדכון הפרטים'
       };
     }
-    
-    // Update user data
-    Object.assign(users[email], updates);
-    
-    // Save updated users
-    this.saveUsers(users);
-    
-    // Update current user if it's the same user
-    const currentUser = this.getCurrentUser();
-    if (currentUser && currentUser.email === email) {
-      const updatedUser = { ...users[email] };
-      delete updatedUser.password;
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedUser));
-    }
-    
-    return {
-      success: true,
-      message: 'הפרטים עודכנו בהצלחה'
-    };
   }
 
   /**
    * Get all users
    * @returns {Object} - Object with all users
    */
-  getUsers() {
-    const usersJson = localStorage.getItem(STORAGE_KEYS.USERS);
-    return usersJson ? JSON.parse(usersJson) : {};
+  async getUsers() {
+    try {
+      const snapshot = await db.collection(COLLECTIONS.USERS).get();
+      const users = {};
+      
+      snapshot.forEach(doc => {
+        const userData = doc.data();
+        userData.id = doc.id;
+        users[userData.email] = userData;
+      });
+      
+      return users;
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return {};
+    }
   }
 
   /**
-   * Save users to local storage
+   * Save users to Firestore (compatibility method)
    * @param {Object} users - Users object
    */
   saveUsers(users) {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    // This method is kept for compatibility but doesn't do anything
+    // as users are saved individually in Firestore
+    console.warn('saveUsers is deprecated with Firebase. Use updateUser instead.');
   }
 
   /**
-   * Simple password hashing (for demo purposes only)
-   * In a real application, use a proper hashing algorithm
-   * @param {string} password - Password to hash
-   * @returns {string} - Hashed password
+   * Handle Firebase authentication errors
+   * @param {Object} error - Firebase auth error
+   * @returns {Object} - Error object with message
    */
-  hashPassword(password) {
-    // This is NOT secure and is only for demonstration
-    // In a real app, use bcrypt or another secure hashing algorithm
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-      const char = password.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+  handleAuthError(error) {
+    let message = 'אירעה שגיאה. אנא נסה שוב.';
+    
+    switch (error.code) {
+      case 'auth/email-already-in-use':
+        message = 'כתובת האימייל כבר קיימת במערכת';
+        break;
+      case 'auth/invalid-email':
+        message = 'כתובת אימייל לא תקינה';
+        break;
+      case 'auth/user-not-found':
+        message = 'משתמש לא קיים';
+        break;
+      case 'auth/wrong-password':
+        message = 'סיסמה שגויה';
+        break;
+      case 'auth/weak-password':
+        message = 'הסיסמה חלשה מדי. יש להשתמש בלפחות 6 תווים';
+        break;
+      case 'auth/too-many-requests':
+        message = 'יותר מדי ניסיונות כניסה. אנא נסה שוב מאוחר יותר';
+        break;
     }
-    return hash.toString(16);
+    
+    return {
+      success: false,
+      message: message,
+      originalError: error
+    };
   }
 }
 

@@ -269,6 +269,29 @@ class FirebaseAuth {
   }
 
   /**
+   * Delete user data from Firestore
+   * @param {string} uid - User ID
+   * @returns {Promise} - Promise that resolves when the user is deleted
+   */
+  async deleteUser(uid) {
+    try {
+      await db.collection(COLLECTIONS.USERS).doc(uid).delete();
+      
+      // Clear current user if it's the same user
+      if (this.currentUser && this.currentUser.id === uid) {
+        this.currentUser = null;
+      }
+      
+      return {
+        success: true,
+        message: 'החשבון נמחק בהצלחה'
+      };
+    } catch (error) {
+      throw new Error(`Error deleting user: ${error.message}`);
+    }
+  }
+
+  /**
    * Get all users
    * @returns {Promise} - Promise that resolves with all users
    */

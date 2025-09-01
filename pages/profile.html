@@ -20,7 +20,7 @@
     <script src="../config/firebase.js" type="module"></script>
     <script src="../auth/auth.js" type="module"></script>
     <script src="../auth/auth-integration.js" type="module"></script>
-    <script src="../js/profile.js" defer></script>
+    <script src="../js/profile.js" type="module"></script>
 </head>
 <body class="auth-loading">
     <!-- Authentication Loading Overlay -->
@@ -68,9 +68,8 @@
                             <div class="photo-container">
                                 <img id="profile-image" src="../images/default-profile.jpg" alt="תמונת פרופיל">
                             </div>
-                            <button id="change-photo-btn" class="btn btn-secondary btn-sm">שנה תמונה</button>
                         </div>
-                        <div class="profile-stats">
+                        <div class="profile-stats" id="profile-stats-section">
                             <h3>הסטטיסטיקות שלי</h3>
                             <div class="stat-item">
                                 <div class="stat-label">רמה</div>
@@ -89,91 +88,27 @@
                                 <div class="stat-value" id="player-ranking">0</div>
                             </div>
                         </div>
-                        <div class="profile-actions">
-                            <a href="training.html" class="btn btn-primary btn-block">תוכנית האימון שלי</a>
-                            <a href="challenges.html" class="btn btn-secondary btn-block">האתגרים שלי</a>
+                        <div class="profile-actions" id="profile-actions-section">
+                            <a href="training.html" class="btn btn-primary btn-block" id="training-link">תוכנית האימון שלי</a>
+                            <a href="challenges.html" class="btn btn-secondary btn-block" id="challenges-link">האתגרים שלי</a>
                         </div>
                     </div>
 
                     <!-- Profile Main Content -->
                     <div class="profile-main">
-                        <div class="profile-section">
-                            <h3>פרטים אישיים</h3>
-                            <form id="personal-info-form">
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label for="player-name">שם מלא</label>
-                                        <input type="text" id="player-name" name="name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="player-email">אימייל</label>
-                                        <input type="email" id="player-email" name="email" disabled>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="player-age">גיל</label>
-                                        <input type="number" id="player-age" name="age" min="8" max="40">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="player-position">עמדה</label>
-                                        <select id="player-position" name="position">
-                                            <option value="goalkeeper">שוער</option>
-                                            <option value="defender">מגן</option>
-                                            <option value="midfielder">קשר</option>
-                                            <option value="forward">חלוץ</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>רגל דומיננטית</label>
-                                        <div class="radio-group">
-                                            <input type="radio" id="right-foot" name="dominantFoot" value="right">
-                                            <label for="right-foot">ימין</label>
-                                            <input type="radio" id="left-foot" name="dominantFoot" value="left">
-                                            <label for="left-foot">שמאל</label>
-                                            <input type="radio" id="both-feet" name="dominantFoot" value="both">
-                                            <label for="both-feet">שתיהן</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="player-club">מועדון נוכחי (אופציונלי)</label>
-                                        <input type="text" id="player-club" name="club">
-                                    </div>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">שמור שינויים</button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <div class="profile-section">
+                        <div class="profile-section" id="videos-section">
                             <h3>הסרטונים שלי</h3>
                             <div class="videos-container" id="player-videos">
-                                <p class="no-videos-message">אין סרטונים להצגה</p>
+                                <p class="no-videos-message">טוען סרטונים...</p>
                                 <!-- Videos will be populated by JavaScript -->
                             </div>
                         </div>
 
-                        <div class="profile-section">
-                            <h3>הגדרות חשבון</h3>
-                            <form id="account-settings-form">
-                                <div class="form-group">
-                                    <label for="current-password">סיסמה נוכחית</label>
-                                    <input type="password" id="current-password" name="currentPassword">
-                                </div>
-                                <div class="form-group">
-                                    <label for="new-password">סיסמה חדשה</label>
-                                    <input type="password" id="new-password" name="newPassword">
-                                </div>
-                                <div class="form-group">
-                                    <label for="confirm-password">אימות סיסמה חדשה</label>
-                                    <input type="password" id="confirm-password" name="confirmPassword">
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">עדכן סיסמה</button>
-                                </div>
-                            </form>
-                            <div class="danger-zone">
-                                <h4>אזור מסוכן</h4>
-                                <button id="delete-account-btn" class="btn btn-danger">מחק חשבון</button>
+                        <div class="profile-section" id="activity-section">
+                            <h3>פעילות אחרונה</h3>
+                            <div class="activity-container" id="player-activity">
+                                <p class="no-activity-message">אין פעילות להצגה</p>
+                                <!-- Activity will be populated by JavaScript -->
                             </div>
                         </div>
                     </div>

@@ -1,112 +1,148 @@
-# פוטבול סקאוטינג - Football Scouting Website
+# Football Scouting Platform
 
-פלטפורמה המחברת בין שחקני כדורגל מוכשרים לסקאוטים מקצועיים
+A pioneering digital platform that revolutionizes how young football talents are discovered, developed, and connected with professional scouts worldwide.
 
-## תיאור הפרויקט (Project Description)
+## Overview
 
-פוטבול סקאוטינג הוא אתר אינטרנט המאפשר לשחקני כדורגל ליצור פרופיל אישי, להשלים אתגרים, לקבל תוכנית אימון מותאמת אישית, ולהתקדם בדירוגים. סקאוטים יכולים לגלות שחקנים מוכשרים, לצפות בסרטונים שלהם, וליצור קשר עם שחקנים מעניינים.
+Football Scouting is a comprehensive platform that solves the challenges of talent identification and development in the football industry. It provides players with professional exposure and development tools while offering scouts advanced data-driven talent discovery capabilities.
 
-האתר כולל מערכת ניהול מתקדמת המאפשרת למנהלי המערכת לנהל משתמשים, לאשר סרטונים, ולפקח על טבלאות המובילים.
+**Hebrew Version**: פלטפורמה פורצת דרך הפוכת את אופן גילוי, פיתוח וחיבור בין כישרונות כדורגל צעירים לסקאוטים מקצועיים ברחבי העולם.
 
-## תכונות עיקריות (Main Features)
+## Key Features
 
-### שחקנים (Players)
-- הרשמה ויצירת פרופיל אישי
-- השלמת אתגרים ראשוניים לקביעת רמת המיומנות
-- קבלת תוכנית אימון מותאמת אישית (מתחיל, בינוני, מתקדם)
-- העלאת סרטונים של ביצוע תרגילים
-- צבירת נקודות ודירוג בטבלאות המובילים
+### For Players 🥅
+- **Comprehensive Profile Creation** with initial skill assessments
+- **Personalized Training Programs** adapted to individual capabilities
+- **Challenge Completion System** with video uploads and progress tracking
+- **Advanced Progress Dashboard** with visual analytics and goal tracking
+- **Tactical & Mental Development Modules** for holistic growth
 
-### סקאוטים (Scouts)
-- הרשמה ויצירת פרופיל סקאוט
-- צפייה בטבלאות מובילים ופרופילי שחקנים
-- גילוי שחקנים מעניינים
-- יצירת רשימת מעקב של שחקנים
-- יצירת קשר עם שחקנים דרך הפלטפורמה
+### For Scouts 🔍
+- **Advanced Player Discovery** with intelligent filtering and search
+- **Rich Player Profiles** with assessment data and performance metrics
+- **Video Evaluation Tools** with tagging, notes, and report generation
+- **Watchlist Management** with update notifications
+- **Secure Communication System** for player contact
 
-### מנהלי מערכת (Admins)
-- ניהול משתמשים (שחקנים וסקאוטים)
-- אישור או דחייה של סרטונים
-- עדכון תוכניות אימון
-- ניהול טבלאות מובילים
-- צפייה בדוחות ונתונים
+### For Administrators ⚙️
+- **User Management Interface** for players, scouts, and admin accounts
+- **Video Moderation System** with approval workflow and feedback
+- **Training Program Management** with content creation tools
+- **Analytics Dashboard** with platform statistics and insights
+- **System Configuration** and quality control tools
 
-## מבנה הפרויקט (Project Structure)
+## Project Structure
 
 ```
-football-scouting/
-├── index.html                  # דף הבית
-├── css/                        # קבצי CSS
-│   ├── normalize.css           # איפוס סגנונות
-│   ├── main.css                # סגנונות כלליים
-│   ├── challenges.css          # סגנונות לדף האתגרים
-│   ├── profile.css             # סגנונות לדף הפרופיל
-│   ├── training.css            # סגנונות לדף האימון
-│   ├── leaderboards.css        # סגנונות לדף טבלאות המובילים
-│   ├── discover.css            # סגנונות לדף גילוי שחקנים
-│   ├── watchlist.css           # סגנונות לדף רשימת המעקב
-│   └── admin.css               # סגנונות לפאנל הניהול
-├── js/                         # קבצי JavaScript
-│   ├── main.js                 # פונקציונליות כללית
-│   ├── challenges.js           # פונקציונליות לדף האתגרים
-│   ├── profile.js              # פונקציונליות לדף הפרופיל
-│   ├── training.js             # פונקציונליות לדף האימון
-│   ├── leaderboards.js         # פונקציונליות לדף טבלאות המובילים
-│   ├── discover.js             # פונקציונליות לדף גילוי שחקנים
-│   ├── watchlist.js            # פונקציונליות לדף רשימת המעקב
-│   ├── admin.js                # פונקציונליות כללית לפאנל הניהול
-│   └── admin-videos.js         # פונקציונליות לניהול סרטונים
-├── auth/                       # מערכת אימות
-│   ├── auth.js                 # מחלקת אימות
-│   └── auth-integration.js     # אינטגרציה של מערכת האימות
-├── pages/                      # דפי תוכן
-│   ├── challenges.html         # דף אתגרים
-│   ├── profile.html            # דף פרופיל
-│   ├── training.html           # דף אימון
-│   ├── leaderboards.html       # דף טבלאות מובילים
-│   ├── discover.html           # דף גילוי שחקנים
-│   └── watchlist.html          # דף רשימת מעקב
-├── admin/                      # פאנל ניהול
-│   ├── dashboard.html          # לוח בקרה
-│   └── videos.html             # ניהול סרטונים
-└── images/                     # תמונות
-    └── placeholder.md          # מידע על תמונות נדרשות
+football-scouts/
+├── index.html                    # Main homepage
+├── README.md                     # This file
+├── docs/                         # 📚 Documentation
+│   ├── PROJECT_OVERVIEW.md       # Comprehensive project overview
+│   ├── DEVELOPMENT_ROADMAP.md    # 6-week development plan
+│   ├── guides/                   # User guides
+│   │   ├── ACCESSIBILITY.md      # Accessibility guidelines
+│   │   └── RUN_LOCALLY.md        # Local development setup
+│   ├── technical/                # Technical documentation
+│   │   ├── AUTH_DATABASE_GUIDE.md # Authentication & database guide
+│   │   ├── BROWSER_COMPATIBILITY.md # Browser support guide
+│   │   ├── PERFORMANCE.md        # Performance optimization
+│   │   ├── SECURITY.md           # Security guidelines
+│   │   ├── SEO.md               # SEO optimization
+│   │   └── TESTING.md           # Testing procedures
+│   └── operations/               # Operations & deployment
+│       └── DEPLOYMENT.md         # Deployment guide
+├── config/                       # Configuration files
+│   └── firebase.js              # Firebase configuration
+├── css/                          # Stylesheets
+├── js/                           # JavaScript modules
+├── auth/                         # Authentication system
+├── pages/                        # Application pages
+├── admin/                        # Admin panel
+├── components/                   # Reusable components
+└── images/                       # Asset images
 ```
 
-## טכנולוגיות (Technologies)
+## Technology Stack
 
-- HTML5
-- CSS3 (כולל CSS Variables, Flexbox, Grid)
-- JavaScript (ES6+)
-- LocalStorage לשמירת נתונים (במקום שרת אמיתי)
-- תמיכה מלאה ב-RTL (Right-to-Left) לעברית
+### Current (Prototype)
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Styling**: CSS Variables, Flexbox, Grid Layout
+- **Data Storage**: localStorage (development/demo)
+- **Languages**: Full RTL support for Hebrew + English
 
-## התקנה והפעלה (Installation and Setup)
+### Target (Production)
+- **Backend as a Service**: Firebase Ecosystem
+  - **Authentication**: Firebase Auth
+  - **Database**: Cloud Firestore (NoSQL)
+  - **Storage**: Firebase Storage (videos, images)
+  - **Hosting**: Firebase Hosting
+  - **Functions**: Cloud Functions (serverless logic)
+- **Analytics**: Firebase Analytics
+- **Messaging**: Firebase Cloud Messaging
 
-1. הורד או שכפל את המאגר:
+## Quick Start
+
+### Prerequisites
+- Modern web browser (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+- Local web server (recommended) or direct file access
+
+### Installation
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/football-scouts.git
+   cd football-scouts
    ```
-   git clone https://github.com/yourusername/football-scouting.git
+
+2. **Start local development:**
+   ```bash
+   # Option 1: Using Python
+   python -m http.server 8000
+   
+   # Option 2: Using Node.js
+   npx http-server -p 8000
+   
+   # Option 3: Using VS Code Live Server
+   # Install Live Server extension and click "Go Live"
    ```
 
-2. פתח את הקובץ `index.html` בדפדפן כלשהו.
+3. **Open in browser:**
+   Navigate to `http://localhost:8000`
 
-3. הוסף את התמונות הנדרשות לתיקיית `images/` (ראה `images/placeholder.md` לפרטים).
+### Demo Account
+- **Admin Email**: admin@example.com
+- **Admin Password**: admin123
 
-## חשבונות לדוגמה (Sample Accounts)
+## Documentation
 
-האתר מגיע עם חשבון מנהל מערכת מוגדר מראש:
+| Document | Description |
+|----------|-------------|
+| 📋 [Project Overview](docs/PROJECT_OVERVIEW.md) | Comprehensive project description and features |
+| 🗓️ [Development Roadmap](docs/DEVELOPMENT_ROADMAP.md) | 6-week development timeline |
+| 🚀 [Local Setup Guide](docs/guides/RUN_LOCALLY.md) | Detailed local development setup |
+| 🔐 [Security Guidelines](docs/technical/SECURITY.md) | Security best practices |
+| ⚡ [Performance Guide](docs/technical/PERFORMANCE.md) | Optimization recommendations |
+| 🌐 [Deployment Guide](docs/operations/DEPLOYMENT.md) | Production deployment steps |
+| ♿ [Accessibility Guide](docs/guides/ACCESSIBILITY.md) | WCAG compliance guidelines |
 
-- **אימייל**: admin@example.com
-- **סיסמה**: admin123
+## Development Status
 
-## פיתוח עתידי (Future Development)
+🚧 **Current Phase**: Prototype/Demo with localStorage  
+🎯 **Next Phase**: Firebase integration (Week 1-3 of roadmap)  
+🏁 **Target Completion**: 6 weeks from Firebase integration start
 
-- אינטגרציה עם שרת אמיתי ובסיס נתונים
-- מערכת הודעות בזמן אמת
-- ניתוח וידאו מתקדם לשחקנים
-- אפליקציית מובייל
-- תמיכה בשפות נוספות
+## Contributing
 
-## רישיון (License)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-כל הזכויות שמורות © 2025 פוטבול סקאוטינג
+## License
+
+© 2025 Football Scouting Platform. All rights reserved.
+
+---
+
+**Built with ❤️ for the football community 🥅**

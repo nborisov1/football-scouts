@@ -1,6 +1,10 @@
-# מדריך מערכת האימות ובסיס הנתונים - פוטבול סקאוטינג
+# Authentication & Database Guide - Football Scouting Platform
 
-מסמך זה מפרט את מערכת האימות ובסיס הנתונים של אתר פוטבול סקאוטינג, וכיצד לגשת לפאנל הניהול.
+This document details the authentication system and database structure of the Football Scouting platform, including how to access the admin panel.
+
+**Hebrew**: מדריך מערכת האימות ובסיס הנתונים - פוטבול סקאוטינג
+
+This document details the authentication system and database structure, and how to access the admin panel.
 
 ## מערכת האימות
 

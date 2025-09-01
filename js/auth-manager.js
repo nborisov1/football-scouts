@@ -33,9 +33,36 @@ class AuthManager {
         if (user) {
           this.loadUserDataFromFirebase(user.uid);
         } else {
+          // CRITICAL FIX: Clear all storage when Firebase auth state becomes null
+          this.clearAllStorageData();
           this.handleAuthStateChange(null);
         }
       });
+    }
+  }
+
+  /**
+   * CRITICAL FIX: Clear all storage data to prevent persistence after logout
+   */
+  clearAllStorageData() {
+    // Clear localStorage data
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('sessionUser');
+    localStorage.removeItem('footballScout_currentUser');
+    localStorage.removeItem('authData');
+    
+    // Clear sessionStorage data
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('sessionUser');
+    sessionStorage.removeItem('footballScout_currentUser');
+    sessionStorage.removeItem('authData');
+    
+    // Clear URL parameters
+    if (window.history && window.history.replaceState) {
+      const url = new URL(window.location);
+      url.searchParams.delete('auth');
+      url.searchParams.delete('user');
+      window.history.replaceState({}, '', url.toString());
     }
   }
 
@@ -89,14 +116,51 @@ class AuthManager {
           this.handleAuthStateChange(userData);
           return userData;
         } else {
-          throw new Error('User document not found');
+          console.warn('⚠️ User exists in Firebase Auth but not in Firestore. Creating user document...', uid);
+          
+          // Get user info from Firebase Auth
+          const firebaseUser = firebase.auth().currentUser;
+          if (firebaseUser) {
+            // Create a basic user document in Firestore
+            const basicUserData = {
+              name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              email: firebaseUser.email,
+              type: 'player', // Default to player, can be changed later
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              // Add default player data
+              age: 18,
+              position: '',
+              dominantFoot: 'right',
+              level: 'beginner'
+            };
+            
+            // Save to Firestore
+            await db.collection(COLLECTIONS.USERS).doc(uid).set(basicUserData);
+            console.log('✅ Created missing Firestore document for user:', firebaseUser.email);
+            
+            // Load the newly created user data
+            const userData = { uid, ...basicUserData };
+            this.handleAuthStateChange(userData);
+            return userData;
+          } else {
+            // No Firebase user, sign out
+            await firebase.auth().signOut();
+            this.handleAuthStateChange(null);
+            return null;
+          }
         }
       } else {
         throw new Error('Firebase Firestore not available');
       }
     } catch (error) {
       console.error('Error loading user data from Firebase:', error);
-      throw error;
+      // Sign out on any error to prevent infinite loading
+      if (firebase.auth && firebase.auth().currentUser) {
+        await firebase.auth().signOut();
+      }
+      this.handleAuthStateChange(null);
+      return null;
     }
   }
 
@@ -230,23 +294,50 @@ class AuthManager {
         throw new Error('Firebase Auth not available');
       }
 
+      console.log('🔄 Signing in user:', email);
       const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
       const userData = await this.loadUserDataFromFirebase(userCredential.user.uid);
       
-      return { success: true, user: userData };
+      if (userData) {
+        console.log('✅ Sign in successful:', userData.email, userData.type);
+        return { success: true, user: userData };
+      } else {
+        console.error('❌ Failed to load user data after successful authentication');
+        throw new Error('Failed to load user data');
+      }
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('❌ Sign in error:', error);
       throw new Error(this.getAuthErrorMessage(error));
     }
   }
 
   /**
-   * Sign out user
+   * Sign out user - FIXED: Properly clear all persistent data
    */
   async signOut() {
     try {
       // Clear current user in memory
       this.currentUser = null;
+      
+      // CRITICAL FIX: Clear all localStorage data that might persist
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('sessionUser');
+      localStorage.removeItem('footballScout_currentUser');
+      localStorage.removeItem('authData');
+      
+      // CRITICAL FIX: Clear sessionStorage data
+      sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem('sessionUser');
+      sessionStorage.removeItem('footballScout_currentUser');
+      sessionStorage.removeItem('authData');
+      
+      // Clear any URL parameters that might contain auth data
+      if (window.history && window.history.replaceState) {
+        const url = new URL(window.location);
+        url.searchParams.delete('auth');
+        url.searchParams.delete('user');
+        window.history.replaceState({}, '', url.toString());
+      }
       
       // Sign out from Firebase
       if (firebase.auth) {
@@ -256,6 +347,7 @@ class AuthManager {
       // Update local state
       this.handleAuthStateChange(null);
       
+      console.log('✅ All user data cleared from all storage locations');
       return { success: true };
     } catch (error) {
       console.error('Sign out error:', error);
@@ -271,11 +363,23 @@ class AuthManager {
   }
 
   /**
-   * Check if user is of specific type
+   * Check if user is of specific type - FIXED with debug logging
    */
   isUserType(type) {
     const currentUser = this.getCurrentUser();
-    return currentUser && currentUser.type === type;
+    const result = currentUser && currentUser.type === type;
+    
+    // ADMIN FIX: Add debug logging for admin access issues
+    if (type === USER_TYPES.ADMIN) {
+      console.log('🔍 Admin access check:', {
+        hasUser: !!currentUser,
+        userType: currentUser?.type,
+        isAdmin: result,
+        email: currentUser?.email
+      });
+    }
+    
+    return result;
   }
 
   /**
@@ -375,15 +479,20 @@ class AuthManager {
   }
 
   /**
-   * Initialize admin account if needed
+   * Initialize admin account if needed - FIXED for proper admin access
    */
   async initializeAdmin() {
     try {
       if (!firebase.firestore) {
+        console.log('⚠️ Firebase Firestore not available for admin initialization');
         return;
       }
 
       const db = firebase.firestore();
+      
+      // ADMIN FIX: Use the same admin credentials that are expected by the system
+      const adminEmail = 'admin@example.com';
+      const adminPassword = 'admin123';
       
       // Check if admin exists
       const adminQuery = await db.collection(COLLECTIONS.USERS)
@@ -392,28 +501,60 @@ class AuthManager {
         .get();
 
       if (adminQuery.empty) {
-        // Create admin account
-        const adminEmail = 'admin@footballscouting.co.il';
-        const adminPassword = 'Admin123!';
+        console.log('🔄 Creating admin account...');
+        
+        try {
+          // Create user in Firebase Auth
+          const userCredential = await firebase.auth().createUserWithEmailAndPassword(adminEmail, adminPassword);
+          const uid = userCredential.user.uid;
 
-        // Create user in Firebase Auth
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(adminEmail, adminPassword);
-        const uid = userCredential.user.uid;
+          // Create admin user document
+          await db.collection(COLLECTIONS.USERS).doc(uid).set({
+            name: 'מנהל מערכת',
+            email: adminEmail,
+            type: USER_TYPES.ADMIN,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
 
-        // Create admin user document
-        await db.collection(COLLECTIONS.USERS).doc(uid).set({
-          name: 'מנהל מערכת',
-          email: adminEmail,
-          type: USER_TYPES.ADMIN,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        console.log('Admin account created successfully');
-        showMessage('חשבון מנהל נוצר בהצלחה', 'success');
+          console.log('✅ Admin account created successfully');
+          showMessage('חשבון מנהל נוצר בהצלחה', 'success');
+          
+          // CRITICAL FIX: Sign out the admin after creation so login works properly
+          await firebase.auth().signOut();
+          
+        } catch (createError) {
+          // ADMIN FIX: If admin already exists in Auth but not in Firestore, add to Firestore
+          if (createError.code === 'auth/email-already-in-use') {
+            console.log('⚠️ Admin exists in Auth, creating Firestore document...');
+            
+            try {
+              const userCredential = await firebase.auth().signInWithEmailAndPassword(adminEmail, adminPassword);
+              const uid = userCredential.user.uid;
+              
+              await db.collection(COLLECTIONS.USERS).doc(uid).set({
+                name: 'מנהל מערכת',
+                email: adminEmail,
+                type: USER_TYPES.ADMIN,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              
+              console.log('✅ Admin Firestore document created');
+              await firebase.auth().signOut();
+              
+            } catch (signInError) {
+              console.error('❌ Could not sign in to create admin document:', signInError);
+            }
+          } else {
+            throw createError;
+          }
+        }
+      } else {
+        console.log('✅ Admin account already exists');
       }
     } catch (error) {
-      console.error('Error initializing admin:', error);
+      console.error('❌ Error initializing admin:', error);
     }
   }
 }
@@ -427,4 +568,42 @@ export default authManager;
 // Export to global for backward compatibility
 if (typeof window !== 'undefined') {
   window.authManager = authManager;
+  
+  // DEBUGGING HELPER: Add debugging function for troubleshooting
+  window.debugAuth = () => {
+    console.log('🔍 Auth Debug Info:', {
+      currentUser: authManager.getCurrentUser(),
+      isAuthenticated: authManager.isAuthenticated(),
+      isPlayer: authManager.isUserType('player'),
+      isScout: authManager.isUserType('scout'),
+      isAdmin: authManager.isUserType('admin'),
+      localStorage: {
+        currentUser: localStorage.getItem('currentUser'),
+        sessionUser: localStorage.getItem('sessionUser'),
+        footballScout_currentUser: localStorage.getItem('footballScout_currentUser')
+      },
+      sessionStorage: {
+        currentUser: sessionStorage.getItem('currentUser'),
+        sessionUser: sessionStorage.getItem('sessionUser')
+      },
+      firebaseUser: firebase.auth()?.currentUser
+    });
+  };
+  
+  // DEBUGGING HELPER: Force logout function for troubleshooting
+  window.forceLogout = async () => {
+    console.log('🔧 FORCE LOGOUT - Clearing everything');
+    authManager.clearAllStorageData();
+    
+    if (firebase.auth && firebase.auth().currentUser) {
+      await firebase.auth().signOut();
+    }
+    
+    authManager.handleAuthStateChange(null);
+    
+    console.log('✅ Force logout complete');
+    if (confirm('Force logout complete. Reload page to ensure clean state?')) {
+      window.location.reload();
+    }
+  };
 }

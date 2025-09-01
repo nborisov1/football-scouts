@@ -47,5 +47,9 @@ db.enablePersistence()
     }
   });
 
-// Export Firebase services
-export { auth, db, storage };
+// Make Firebase services available globally
+window.firebaseAuth = auth;
+window.firebaseDb = db;
+window.firebaseStorage = storage;
+
+console.log('✅ Firebase initialized and available globally');

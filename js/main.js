@@ -6,113 +6,115 @@
 // Use strict mode for better error catching and performance
 'use strict';
 
-// Storage keys for consistency
-const STORAGE_KEYS = {
-  CURRENT_USER: 'currentUser',
-  SESSION_USER: 'sessionUser'
-};
+
 
 // Global user data
 let currentUserData = null;
+let welcomeMessageShown = false;
 
 // Wait for the DOM to be fully loaded before executing code
 document.addEventListener('DOMContentLoaded', () => {
-  // Check authentication first
-  checkAuthenticationState();
+  // Wait for auth-manager to be available and check authentication
+  initializeWithAuthManager();
   
   // Initialize all components
   initModals();
   initTabs();
   initMobileMenu();
   initTestimonialSlider();
-  initFormSubmissions();
   initLeaderboards();
+  
+  // Initialize authentication modules (will be available globally after module loading)
+  setTimeout(() => {
+    if (window.initializeLogin && window.initializeRegistration) {
+      window.initializeLogin();
+      window.initializeRegistration();
+    }
+  }, 100);
 });
 
 /**
- * Check authentication state and update UI accordingly
+ * Initialize the app with the new auth manager
  */
-async function checkAuthenticationState() {
+async function initializeWithAuthManager() {
   try {
-    // Check for user data in storage (immediate check)
-    const storedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-    const sessionUser = sessionStorage.getItem(STORAGE_KEYS.SESSION_USER);
+    // Wait for authManager to be available
+    let attempts = 0;
+    while (typeof window.authManager === 'undefined' && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
     
-    if (storedUser || sessionUser) {
-      currentUserData = JSON.parse(storedUser || sessionUser);
-      console.log('Found stored user data:', currentUserData);
-      updateUIForAuthenticatedUser(currentUserData);
+    if (typeof window.authManager === 'undefined') {
+      console.error('AuthManager not available, falling back to no-auth mode');
+      updateUIForUnauthenticatedUser();
       return;
     }
-
-    // Check URL parameters for auth data
-    const urlParams = new URLSearchParams(window.location.search);
-    const authData = urlParams.get('auth');
     
-    if (authData) {
-      try {
-        currentUserData = JSON.parse(decodeURIComponent(authData));
-        console.log('Found auth data in URL:', currentUserData);
-        
-        // Store in sessionStorage for this session
-        sessionStorage.setItem(STORAGE_KEYS.SESSION_USER, JSON.stringify(currentUserData));
-        
-        // Clean URL
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-        
-        updateUIForAuthenticatedUser(currentUserData);
-        return;
-      } catch (e) {
-        console.error('Error parsing auth data from URL:', e);
-      }
-    }
 
-    // Try Firebase auth if available
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-          // User is signed in via Firebase
-          loadUserDataFromFirebase(user.uid);
-        } else {
-          // No user signed in - show default UI
-          updateUIForGuestUser();
+    
+    // Listen for auth state changes
+    window.authManager.onAuthStateChanged((user) => {
+      if (user) {
+
+        currentUserData = user;
+        
+        // Only show welcome message if this is a fresh login (not page reload)
+        // We can detect this by checking if the auth loading overlay is still visible
+        const authOverlay = document.getElementById('auth-loading-overlay');
+        const isPageLoad = authOverlay && authOverlay.style.display !== 'none';
+        
+        if (!isPageLoad && !welcomeMessageShown) {
+          // This is a fresh login, show welcome message
+          const userTypeHebrew = user.type === 'player' ? 'שחקן' : user.type === 'scout' ? 'סקאוט' : 'מנהל';
+          showMessage(`ברוך הבא ${user.name}! התחברת בהצלחה כ${userTypeHebrew}`, 'success');
+          welcomeMessageShown = true;
+          
+          // Reset the flag after a delay to allow future logins
+          setTimeout(() => {
+            welcomeMessageShown = false;
+          }, 5000);
         }
-      });
-    } else {
-      // No Firebase available - show default UI
-      updateUIForGuestUser();
-    }
+        
+        updateUIForAuthenticatedUser(user);
+      } else {
+
+        currentUserData = null;
+        welcomeMessageShown = false; // Reset welcome message flag on logout
+        updateUIForUnauthenticatedUser();
+      }
+      
+      // Always hide loading overlay when auth state is determined
+      hideAuthLoadingOverlay();
+    });
+    
+    // Initialize admin if needed
+    await window.authManager.initializeAdmin();
     
   } catch (error) {
-    console.error('Error checking authentication state:', error);
-    updateUIForGuestUser();
+    console.error('Error initializing auth:', error);
+    updateUIForUnauthenticatedUser();
   }
 }
 
 /**
- * Load user data from Firebase
+ * Hide the authentication loading overlay
  */
-async function loadUserDataFromFirebase(uid) {
-  try {
-    if (typeof firebase !== 'undefined' && firebase.firestore) {
-      const db = firebase.firestore();
-      const userDoc = await db.collection('users').doc(uid).get();
-      
-      if (userDoc.exists) {
-        currentUserData = { uid, ...userDoc.data() };
-        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUserData));
-        updateUIForAuthenticatedUser(currentUserData);
-      } else {
-        console.log('No user document found');
-        updateUIForGuestUser();
-      }
-    }
-  } catch (error) {
-    console.error('Error loading user data from Firebase:', error);
-    updateUIForGuestUser();
+function hideAuthLoadingOverlay() {
+  const authOverlay = document.getElementById('auth-loading-overlay');
+  if (authOverlay) {
+    authOverlay.style.display = 'none';
   }
+  
+  // Remove auth-loading class from body
+  document.body.classList.remove('auth-loading');
+  
+  console.log('✅ Auth loading overlay hidden');
 }
+
+/**
+ * REMOVED: Old Firebase loading function - now handled by auth-manager
+ */
 
 /**
  * Update UI for authenticated users
@@ -121,13 +123,7 @@ function updateUIForAuthenticatedUser(userData) {
   console.log('Updating UI for authenticated user:', userData);
   
   // Hide auth loading overlay
-  const authOverlay = document.getElementById('auth-loading-overlay');
-  if (authOverlay) {
-    authOverlay.style.display = 'none';
-  }
-  
-  // Remove auth-loading class from body
-  document.body.classList.remove('auth-loading');
+  hideAuthLoadingOverlay();
   
   // Update header
   updateHeaderForAuthenticatedUser(userData);
@@ -140,19 +136,15 @@ function updateUIForAuthenticatedUser(userData) {
 }
 
 /**
- * Update UI for guest users
+ * Update UI for unauthenticated users
  */
-function updateUIForGuestUser() {
-  console.log('Updating UI for guest user');
+function updateUIForUnauthenticatedUser() {
   
   // Hide auth loading overlay
-  const authOverlay = document.getElementById('auth-loading-overlay');
-  if (authOverlay) {
-    authOverlay.style.display = 'none';
-  }
+  hideAuthLoadingOverlay();
   
-  // Remove auth-loading class from body
-  document.body.classList.remove('auth-loading');
+  // Update header to show login/register buttons
+  updateHeaderForUnauthenticatedUser();
   
   // Show guest content
   showGuestContent();
@@ -214,6 +206,29 @@ function updateHeaderForAuthenticatedUser(userData) {
       });
     }
   }
+}
+
+/**
+ * Update header for unauthenticated users
+ */
+function updateHeaderForUnauthenticatedUser() {
+  const authButtons = document.querySelector('.auth-buttons');
+  
+  if (authButtons) {
+    // Show login and register buttons
+    authButtons.innerHTML = `
+      <button id="login-btn" class="btn">התחברות</button>
+      <button id="register-btn" class="btn btn-primary">הרשמה</button>
+    `;
+    
+    // Re-initialize button events since we replaced the HTML
+    setTimeout(() => {
+      if (window.initializeLogin) {
+        window.initializeLogin();
+      }
+    }, 100);
+  }
+
 }
 
 /**
@@ -528,23 +543,47 @@ function hidePersonalizedContent() {
 }
 
 /**
- * Logout function
+ * Logout function - Updated to use auth-manager
  */
-function logout() {
-  // Clear stored data
-  localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-  sessionStorage.removeItem(STORAGE_KEYS.SESSION_USER);
-  
-  // Sign out from Firebase if available
-  if (typeof firebase !== 'undefined' && firebase.auth) {
-    firebase.auth().signOut();
+async function logout() {
+  try {
+    console.log('🔄 Logging out user...');
+    
+    // Use the auth-manager for proper logout
+    if (window.authManager) {
+      await window.authManager.signOut();
+      console.log('✅ Logged out successfully');
+    } else {
+      console.warn('⚠️ AuthManager not available, using fallback logout');
+      
+      // Fallback: Sign out from Firebase directly
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        await firebase.auth().signOut();
+      }
+      
+      // Clear any remaining storage
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+    
+    // Reset global user data
+    currentUserData = null;
+    
+    // Show logout message
+    showMessage('התנתקת בהצלחה', 'success');
+    
+    // Update UI to logged out state
+    updateUIForUnauthenticatedUser();
+    
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    showMessage('שגיאה בהתנתקות', 'error');
+    
+    // Force reload as fallback
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   }
-  
-  // Reset global user data
-  currentUserData = null;
-  
-  // Reload page to reset UI
-  window.location.reload();
 }
 
 /**
@@ -841,84 +880,8 @@ function initTestimonialSlider() {
 }
 
 /**
- * Form Submissions
- * Handles form validation and submission
+ * REMOVED: Form submissions moved to login.js and registration.js
  */
-function initFormSubmissions() {
-  // Login form
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Get form values
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      
-      // Simple validation
-      if (!email || !password) {
-        showMessage('יש למלא את כל השדות', 'error');
-        return;
-      }
-      
-      // In a real application, you would send this data to a server
-      // For now, we'll simulate a successful login
-      simulateLogin(email);
-    });
-  }
-  
-  // Player registration form
-  const playerForm = document.getElementById('player-form');
-  if (playerForm) {
-    playerForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Get form values
-      const name = document.getElementById('player-name').value;
-      const email = document.getElementById('player-email').value;
-      const password = document.getElementById('player-password').value;
-      const age = document.getElementById('player-age').value;
-      const position = document.getElementById('player-position').value;
-      const dominantFoot = document.querySelector('input[name="dominant-foot"]:checked').value;
-      const level = document.getElementById('player-level').value;
-      
-      // Simple validation
-      if (!name || !email || !password || !age || !position || !level) {
-        showMessage('יש למלא את כל השדות', 'error');
-        return;
-      }
-      
-      // In a real application, you would send this data to a server
-      // For now, we'll simulate a successful registration
-      simulateRegistration('player', name, email);
-    });
-  }
-  
-  // Scout registration form
-  const scoutForm = document.getElementById('scout-form');
-  if (scoutForm) {
-    scoutForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Get form values
-      const name = document.getElementById('scout-name').value;
-      const email = document.getElementById('scout-email').value;
-      const password = document.getElementById('scout-password').value;
-      const club = document.getElementById('scout-club').value;
-      const position = document.getElementById('scout-position').value;
-      
-      // Simple validation
-      if (!name || !email || !password || !club || !position) {
-        showMessage('יש למלא את כל השדות', 'error');
-        return;
-      }
-      
-      // In a real application, you would send this data to a server
-      // For now, we'll simulate a successful registration
-      simulateRegistration('scout', name, email);
-    });
-  }
-}
 
 /**
  * Leaderboards functionality
@@ -1028,46 +991,80 @@ function populateLeaderboard(id, players, scoreLabel) {
 }
 
 /**
- * Simulates a login (for demo purposes)
+ * Handle real Firebase login
  * @param {string} email - User's email
+ * @param {string} password - User's password
  */
-function simulateLogin(email) {
-  // Hide modal
-  document.getElementById('login-modal').style.display = 'none';
-  
-  // Show success message
-  showMessage(`ברוך הבא! התחברת בהצלחה עם ${email}`, 'success');
-  
-  // Update UI to show logged in state
-  updateUIForLoggedInUser();
+async function handleRealLogin(email, password) {
+  try {
+    // Check if authManager is available
+    if (!window.authManager) {
+      showMessage('מערכת האימות לא זמינה. אנא נסה שוב.', 'error');
+      return;
+    }
+
+    // Show loading
+    showMessage('מתחבר...', 'info');
+    
+    // Attempt Firebase login
+    const result = await window.authManager.signIn(email, password);
+    
+    if (result.success) {
+      // Hide modal
+      document.getElementById('login-modal').style.display = 'none';
+      
+      // Success message will be shown by auth state change listener
+      console.log('✅ Login successful:', result.user.email);
+    } else {
+      showMessage('שגיאה בהתחברות. אנא בדוק את הפרטים ונסה שוב.', 'error');
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    showMessage(error.message || 'שגיאה בהתחברות. אנא נסה שוב.', 'error');
+  }
 }
 
 /**
- * Simulates a registration (for demo purposes)
+ * Handle real Firebase registration
  * @param {string} type - Type of user ('player' or 'scout')
- * @param {string} name - User's name
- * @param {string} email - User's email
+ * @param {Object} userData - User data including name, email, password
  */
-function simulateRegistration(type, name, email) {
-  // Hide modal
-  const multiStageModal = document.getElementById('multi-stage-modal');
-  if (multiStageModal) {
-    multiStageModal.style.display = 'none';
-  }
-  
-  // Show success message
-  const userType = type === 'player' ? 'שחקן' : 'סקאוט';
-  showMessage(`ברוך הבא ${name}! נרשמת בהצלחה כ${userType}`, 'success');
-  
-  // If player, redirect to initial challenges
-  if (type === 'player') {
-    // In a real app, this would redirect to the challenges page
-    setTimeout(() => {
-      showMessage('מעביר אותך לאתגרים הראשוניים...', 'info');
-    }, 2000);
-  } else {
-    // Update UI to show logged in state
-    updateUIForLoggedInUser();
+async function handleRealRegistration(type, userData) {
+  try {
+    // Check if authManager is available
+    if (!window.authManager) {
+      showMessage('מערכת האימות לא זמינה. אנא נסה שוב.', 'error');
+      return;
+    }
+
+    // Show loading
+    showMessage('נרשם...', 'info');
+    
+    // Attempt Firebase registration
+    const result = await window.authManager.register(userData, type);
+    
+    if (result.success) {
+      // Hide modal
+      const multiStageModal = document.getElementById('multi-stage-modal');
+      if (multiStageModal) {
+        multiStageModal.style.display = 'none';
+      }
+      
+      // Success message will be shown by auth state change listener
+      console.log('✅ Registration successful:', userData.email);
+      
+      // If player, show additional info
+      if (type === 'player') {
+        setTimeout(() => {
+          showMessage('מעביר אותך לאתגרים הראשוניים...', 'info');
+        }, 2000);
+      }
+    } else {
+      showMessage('שגיאה ברישום. אנא נסה שוב.', 'error');
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    showMessage(error.message || 'שגיאה ברישום. אנא נסה שוב.', 'error');
   }
 }
 

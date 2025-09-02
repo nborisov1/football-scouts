@@ -27,15 +27,31 @@ class AuthManager {
    * Initialize authentication system
    */
   initializeAuth() {
+    // Check for existing session first
+    console.log('🔄 Checking for existing user session...');
+    const session = this.getSessionFromStorage();
+    if (session && session.user) {
+      console.log('✅ Found existing session for:', session.user.email);
+      this.currentUser = session.user;
+      // Notify listeners about existing session
+      this.handleAuthStateChange(session.user);
+    }
+    
     // Set up Firebase auth state listener if available
     if (typeof firebase !== 'undefined' && firebase.auth) {
       firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-          this.loadUserDataFromFirebase(user.uid);
+          // Only load from Firebase if we don't already have a session
+          if (!this.currentUser || this.currentUser.uid !== user.uid) {
+            this.loadUserDataFromFirebase(user.uid);
+          }
         } else {
-          // CRITICAL FIX: Clear all storage when Firebase auth state becomes null
-          this.clearAllStorageData();
-          this.handleAuthStateChange(null);
+          // Only clear if we actually had a Firebase user
+          const firebaseUser = firebase.auth().currentUser;
+          if (!firebaseUser) {
+            this.clearAllStorageData();
+            this.handleAuthStateChange(null);
+          }
         }
       });
     }
@@ -49,6 +65,7 @@ class AuthManager {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('sessionUser');
     localStorage.removeItem('footballScout_currentUser');
+    localStorage.removeItem('footballScout_session'); // Clear our new session
     localStorage.removeItem('authData');
     
     // Clear sessionStorage data
@@ -169,6 +186,20 @@ class AuthManager {
    */
   handleAuthStateChange(userData) {
     this.currentUser = userData;
+    
+    // Save user session to localStorage for fast access
+    if (userData) {
+      localStorage.setItem('footballScout_session', JSON.stringify({
+        user: userData,
+        timestamp: Date.now(),
+        expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+      }));
+      console.log('✅ User session saved to localStorage');
+    } else {
+      // Clear session on logout
+      localStorage.removeItem('footballScout_session');
+      console.log('✅ User session cleared from localStorage');
+    }
     
     // Dispatch custom event
     const event = new CustomEvent('authStateChanged', { 
@@ -330,10 +361,47 @@ class AuthManager {
   }
 
   /**
-   * Get current user
+   * Get current user - check session first, then memory
    */
   getCurrentUser() {
-    return this.currentUser;
+    // First check if we have user in memory
+    if (this.currentUser) {
+      return this.currentUser;
+    }
+    
+    // Check localStorage session
+    const session = this.getSessionFromStorage();
+    if (session && session.user) {
+      this.currentUser = session.user;
+      return this.currentUser;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Get user session from localStorage
+   */
+  getSessionFromStorage() {
+    try {
+      const sessionData = localStorage.getItem('footballScout_session');
+      if (!sessionData) return null;
+      
+      const session = JSON.parse(sessionData);
+      
+      // Check if session is expired
+      if (session.expires && Date.now() > session.expires) {
+        console.log('🕐 Session expired, clearing...');
+        localStorage.removeItem('footballScout_session');
+        return null;
+      }
+      
+      return session;
+    } catch (error) {
+      console.error('Error reading session from localStorage:', error);
+      localStorage.removeItem('footballScout_session');
+      return null;
+    }
   }
 
   /**

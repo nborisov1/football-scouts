@@ -5,21 +5,27 @@
 
 'use strict';
 
+/**
+ * Update user session in localStorage
+ */
+function updateUserSession(user) {
+  try {
+    const session = {
+      user: user,
+      timestamp: Date.now(),
+      expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+    };
+    localStorage.setItem('footballScout_session', JSON.stringify(session));
+    console.log('✅ User session updated');
+  } catch (error) {
+    console.error('Error updating user session:', error);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if user is logged in and is a player
-  const currentUser = auth.getCurrentUser();
-  
-  if (!currentUser) {
-    // Redirect to login page if not logged in
-    window.location.href = '../index.html';
-    return;
-  }
-  
-  if (currentUser.type !== 'player') {
-    // Redirect to home page if not a player
-    window.location.href = '../index.html';
-    return;
-  }
+  // Use fast session-based authentication check
+  const currentUser = window.requireAuthentication('player');
+  if (!currentUser) return; // requireAuthentication handles redirect
   
   // Initialize challenges
   initChallenges();
@@ -29,20 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
  * Initialize challenges functionality
  */
 function initChallenges() {
-  // Get current user
-  const currentUser = auth.getCurrentUser();
+  // Get current user from session
+  const currentUser = window.getCurrentUserFromSession();
   
   // Check if user has challenges data
   if (!currentUser.challenges) {
     // Initialize challenges data
-    const users = auth.getUsers();
-    users[currentUser.email].challenges = {
+    currentUser.challenges = {
       initial: {
         completed: false,
         videos: []
       }
     };
-    auth.saveUsers(users);
+    
+    // Update session with new challenges data
+    updateUserSession(currentUser);
   }
   
   // Set up upload forms
@@ -140,16 +147,15 @@ function uploadVideo(challengeId, file) {
   // For this demo, we'll just simulate a successful upload
   
   // Get current user
-  const currentUser = auth.getCurrentUser();
-  const users = auth.getUsers();
+  const currentUser = window.getCurrentUserFromSession();
   
   // Add video to user's challenges
-  if (!users[currentUser.email].challenges.initial.videos) {
-    users[currentUser.email].challenges.initial.videos = [];
+  if (!currentUser.challenges.initial.videos) {
+    currentUser.challenges.initial.videos = [];
   }
   
   // Check if video for this challenge already exists
-  const existingVideoIndex = users[currentUser.email].challenges.initial.videos.findIndex(
+  const existingVideoIndex = currentUser.challenges.initial.videos.findIndex(
     video => video.challengeId === challengeId
   );
   
@@ -165,13 +171,13 @@ function uploadVideo(challengeId, file) {
   
   // Update or add video
   if (existingVideoIndex !== -1) {
-    users[currentUser.email].challenges.initial.videos[existingVideoIndex] = videoObject;
+    currentUser.challenges.initial.videos[existingVideoIndex] = videoObject;
   } else {
-    users[currentUser.email].challenges.initial.videos.push(videoObject);
+    currentUser.challenges.initial.videos.push(videoObject);
   }
   
-  // Save users
-  auth.saveUsers(users);
+  // Update session
+  updateUserSession(currentUser);
   
   // Update challenge status
   updateChallengeStatus();
@@ -185,9 +191,8 @@ function uploadVideo(challengeId, file) {
  */
 function updateChallengeStatus() {
   // Get current user
-  const currentUser = auth.getCurrentUser();
-  const users = auth.getUsers();
-  const user = users[currentUser.email];
+  const currentUser = window.getCurrentUserFromSession();
+  const user = currentUser;
   
   // Get videos
   const videos = user.challenges.initial.videos || [];
@@ -236,9 +241,9 @@ function updateChallengeStatus() {
   
   // Check if all challenges are completed
   if (completedCount === totalChallenges) {
-    // Mark initial challenges as completed
-    users[currentUser.email].challenges.initial.completed = true;
-    auth.saveUsers(users);
+          // Mark initial challenges as completed
+      currentUser.challenges.initial.completed = true;
+      updateUserSession(currentUser);
     
     // Show completion message
     document.getElementById('challenges-complete').classList.remove('hidden');
@@ -261,34 +266,26 @@ function assignSkillLevel(email) {
   // In a real application, this would be done by admins or an AI system
   // For this demo, we'll randomly assign a skill level
   
-  const users = auth.getUsers();
   const skillLevels = ['beginner', 'intermediate', 'advanced'];
   const randomLevel = skillLevels[Math.floor(Math.random() * skillLevels.length)];
   
-  // Update user's level
-  users[email].level = randomLevel;
-  
-  // Unlock training program
-  users[email].trainingProgram = {
-    unlocked: true,
-    currentStage: 1,
-    completedStages: [],
-    level: randomLevel
-  };
-  
-  // Save users
-  auth.saveUsers(users);
-  
-  // Update current user in local storage
-  const currentUser = auth.getCurrentUser();
+  // Update current user level if it's the same user
+  const currentUser = window.getCurrentUserFromSession();
   if (currentUser && currentUser.email === email) {
     currentUser.level = randomLevel;
-    currentUser.trainingProgram = users[email].trainingProgram;
-    localStorage.setItem('footballScout_currentUser', JSON.stringify(currentUser));
-  }
   
-  // Show message
-  showMessage(`רמת המיומנות שלך נקבעה: ${getHebrewLevel(randomLevel)}. תוכנית האימון שלך זמינה עכשיו!`, 'success');
+    // Unlock training program
+    currentUser.trainingProgram = {
+      unlocked: true,
+      currentStage: 1,
+      completedStages: [],
+      level: randomLevel
+    };
+    
+    updateUserSession(currentUser);
+    // Show message
+    window.showMessage(`רמת המיומנות שלך נקבעה: ${getHebrewLevel(randomLevel)}. תוכנית האימון שלך זמינה עכשיו!`, 'success');
+  }
 }
 
 /**

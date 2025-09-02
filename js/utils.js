@@ -358,3 +358,57 @@ window.footballScoutUtils = {
   COLLECTIONS: window.COLLECTIONS,
   MOCK_PLAYERS: window.MOCK_PLAYERS
 };
+
+// ===== AUTHENTICATION UTILITIES =====
+/**
+ * Get current authenticated user from session (fast, no Firebase queries)
+ */
+window.getCurrentUserFromSession = function() {
+  try {
+    const sessionData = localStorage.getItem('footballScout_session');
+    if (!sessionData) return null;
+    
+    const session = JSON.parse(sessionData);
+    
+    // Check if session is expired
+    if (session.expires && Date.now() > session.expires) {
+      localStorage.removeItem('footballScout_session');
+      return null;
+    }
+    
+    return session.user;
+  } catch (error) {
+    console.error('Error reading user session:', error);
+    localStorage.removeItem('footballScout_session');
+    return null;
+  }
+};
+
+/**
+ * Check if user is authenticated (fast session check)
+ */
+window.isUserAuthenticated = function() {
+  return !!window.getCurrentUserFromSession();
+};
+
+/**
+ * Redirect to home if not authenticated
+ */
+window.requireAuthentication = function(requiredUserType = null) {
+  const user = window.getCurrentUserFromSession();
+  
+  if (!user) {
+    console.log('❌ No authenticated user found, redirecting to home...');
+    window.location.href = '../index.html';
+    return null;
+  }
+  
+  if (requiredUserType && user.type !== requiredUserType) {
+    console.log(`❌ User type ${user.type} not allowed, required: ${requiredUserType}`);
+    window.location.href = '../index.html';
+    return null;
+  }
+  
+  console.log('✅ User authenticated:', user.email, 'Type:', user.type);
+  return user;
+};

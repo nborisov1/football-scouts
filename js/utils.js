@@ -6,20 +6,20 @@
 'use strict';
 
 // ===== CONSTANTS =====
-export const USER_TYPES = {
+window.USER_TYPES = {
   PLAYER: 'player',
   SCOUT: 'scout',
   ADMIN: 'admin'
 };
 
-export const COLLECTIONS = {
+window. COLLECTIONS = {
   USERS: 'users',
   VIDEOS: 'videos',
   CHALLENGES: 'challenges'
 };
 
 // ===== MOCK DATA =====
-export const MOCK_PLAYERS = [
+window. MOCK_PLAYERS = [
   {
     id: 1,
     name: 'דני לוי',
@@ -98,7 +98,7 @@ export const MOCK_PLAYERS = [
 ];
 
 // ===== TRANSLATION FUNCTIONS =====
-export function getHebrewUserType(type) {
+window. getHebrewUserType(type) {
   switch (type) {
     case USER_TYPES.PLAYER:
       return 'שחקן';
@@ -111,7 +111,7 @@ export function getHebrewUserType(type) {
   }
 }
 
-export function getHebrewPosition(position) {
+window. getHebrewPosition(position) {
   switch (position) {
     case 'goalkeeper':
       return 'שוער';
@@ -126,7 +126,7 @@ export function getHebrewPosition(position) {
   }
 }
 
-export function getHebrewLevel(level) {
+window. getHebrewLevel(level) {
   switch (level) {
     case 'beginner':
       return 'מתחיל';
@@ -139,7 +139,7 @@ export function getHebrewLevel(level) {
   }
 }
 
-export function getHebrewFoot(foot) {
+window. getHebrewFoot(foot) {
   switch (foot) {
     case 'right':
       return 'ימין';
@@ -153,12 +153,12 @@ export function getHebrewFoot(foot) {
 }
 
 // ===== DATE UTILITIES =====
-export function formatDate(dateString) {
+window. formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('he-IL');
 }
 
-export function formatTimeAgo(timestamp) {
+window. formatTimeAgo(timestamp) {
   const now = new Date();
   const date = new Date(timestamp);
   const seconds = Math.floor((now - date) / 1000);
@@ -195,13 +195,13 @@ export function formatTimeAgo(timestamp) {
 // Note: Authentication storage functions removed - using only Firebase Auth state and memory
 
 // ===== URL UTILITIES =====
-export function createNavURL(path, userData = null) {
+window. createNavURL(path, userData = null) {
   // No longer passing auth data in URLs - relying on Firebase Auth state
   return path;
 }
 
 // ===== MESSAGE SYSTEM =====
-export function showMessage(message, type = 'info', duration = 5000) {
+window. showMessage(message, type = 'info', duration = 5000) {
   // Check if a message container already exists
   let messageContainer = document.querySelector('.message-container');
   
@@ -241,7 +241,7 @@ export function showMessage(message, type = 'info', duration = 5000) {
 }
 
 // ===== VALIDATION UTILITIES =====
-export function validateEmail(email) {
+window. validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return {
     isValid: emailRegex.test(email),
@@ -249,7 +249,7 @@ export function validateEmail(email) {
   };
 }
 
-export function validatePassword(password) {
+window. validatePassword(password) {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
   return {
     isValid: passwordRegex.test(password),
@@ -257,7 +257,7 @@ export function validatePassword(password) {
   };
 }
 
-export function validateRequired(value, fieldName) {
+window. validateRequired(value, fieldName) {
   const isValid = value && value.trim().length > 0;
   return {
     isValid,
@@ -266,7 +266,7 @@ export function validateRequired(value, fieldName) {
 }
 
 // ===== FILE UTILITIES =====
-export function validateVideoFile(file) {
+window. validateVideoFile(file) {
   const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
   const maxSize = 100 * 1024 * 1024; // 100MB
   
@@ -286,7 +286,7 @@ export function validateVideoFile(file) {
 }
 
 // ===== PROGRESS SIMULATION =====
-export function simulateProgress(progressBar, progressText, callback, duration = 3000) {
+window. simulateProgress(progressBar, progressText, callback, duration = 3000) {
   let progress = 0;
   const increment = 100 / (duration / 100);
   
@@ -313,20 +313,20 @@ export function simulateProgress(progressBar, progressText, callback, duration =
 }
 
 // ===== DOM UTILITIES =====
-export function createElement(tag, className = '', textContent = '') {
+window. createElement(tag, className = '', textContent = '') {
   const element = document.createElement(tag);
   if (className) element.className = className;
   if (textContent) element.textContent = textContent;
   return element;
 }
 
-export function createButton(text, className = '', onClick = null) {
+window. createButton(text, className = '', onClick = null) {
   const button = createElement('button', className, text);
   if (onClick) button.addEventListener('click', onClick);
   return button;
 }
 
-export function createInput(type, id, placeholder = '', value = '') {
+window. createInput(type, id, placeholder = '', value = '') {
   const input = createElement('input');
   input.type = type;
   input.id = id;
@@ -336,28 +336,25 @@ export function createInput(type, id, placeholder = '', value = '') {
 }
 
 // ===== EXPORT UTILITIES FOR GLOBAL ACCESS =====
-export function exportToGlobal() {
-  // Export commonly used functions to window object for backward compatibility
-  window.footballScoutUtils = {
-    showMessage,
-    getHebrewUserType,
-    getHebrewPosition,
-    getHebrewLevel,
-    getHebrewFoot,
-    formatDate,
-    formatTimeAgo,
-    validateEmail,
-    validatePassword,
-    validateRequired,
-    validateVideoFile,
-    simulateProgress,
-    createNavURL,
-    USER_TYPES,
-    MOCK_PLAYERS
-  };
-}
-
-// Auto-export to global if not in module context
-if (typeof window !== 'undefined' && !window.footballScoutUtils) {
-  exportToGlobal();
-}
+// Export all functions to global window object
+window.footballScoutUtils = {
+  showMessage: window.showMessage,
+  getHebrewUserType: window.getHebrewUserType,
+  getHebrewPosition: window.getHebrewPosition,
+  getHebrewLevel: window.getHebrewLevel,
+  getHebrewFoot: window.getHebrewFoot,
+  formatDate: window.formatDate,
+  formatTimeAgo: window.formatTimeAgo,
+  validateEmail: window.validateEmail,
+  validatePassword: window.validatePassword,
+  validateRequired: window.validateRequired,
+  validateVideoFile: window.validateVideoFile,
+  simulateProgress: window.simulateProgress,
+  createNavURL: window.createNavURL,
+  createElement: window.createElement,
+  createButton: window.createButton,
+  createInput: window.createInput,
+  USER_TYPES: window.USER_TYPES,
+  COLLECTIONS: window.COLLECTIONS,
+  MOCK_PLAYERS: window.MOCK_PLAYERS
+};

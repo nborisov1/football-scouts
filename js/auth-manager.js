@@ -539,12 +539,8 @@ class AuthManager {
 // Create singleton instance
 const authManager = new AuthManager();
 
-// Export for ES6 modules
-export default authManager;
-
-// Export to global for backward compatibility
-if (typeof window !== 'undefined') {
-  window.authManager = authManager;
+// Export to global window for non-module usage
+window.authManager = authManager;
   
   // DEBUGGING HELPER: Add debugging function for troubleshooting
   window.debugAuth = () => {

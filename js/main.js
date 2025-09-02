@@ -624,10 +624,9 @@ function showMultiStageRegistration(userType = null) {
       // Clear any existing content
       container.innerHTML = '';
       
-      // Create new MultiStageRegistration instance
-      import('../components/multi-stage-registration.js').then(module => {
-        const MultiStageRegistration = module.default;
-        const multiStageRegistration = new MultiStageRegistration('multi-stage-registration-container');
+      // Create new MultiStageRegistration instance using global class
+      if (window.MultiStageRegistration) {
+        const multiStageRegistration = new window.MultiStageRegistration('multi-stage-registration-container');
         
         // Set user type if provided
         if (userType) {
@@ -637,17 +636,16 @@ function showMultiStageRegistration(userType = null) {
         // Start from the first stage
         multiStageRegistration.currentStage = 0;
         multiStageRegistration.render();
-      }).catch(error => {
-        console.error('Failed to load registration component:', error);
+      } else {
+        console.error('MultiStageRegistration class not available');
         // Fallback to simple registration form
         container.innerHTML = `
           <div class="simple-registration">
             <h3>הרשמה</h3>
-            <p>טוען טופס הרשמה...</p>
-            <p>אם הדף לא נטען, <a href="#" onclick="location.reload()">רענן את הדף</a></p>
+            <p>רכיב ההרשמה לא נטען. <a href="#" onclick="location.reload()">רענן את הדף</a></p>
           </div>
         `;
-      });
+      }
     }
   }
 }

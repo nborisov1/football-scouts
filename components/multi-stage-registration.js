@@ -11,7 +11,7 @@
 (function() {
   'use strict';
 
-class MultiStageRegistration {
+  class MultiStageRegistration {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     if (!this.container) {
@@ -1060,6 +1060,9 @@ class MultiStageRegistration {
       messageElement.remove();
     }, 5000);
   }
-}
+  }
 
-export default MultiStageRegistration;
+  // Expose the class globally for use without modules
+  window.MultiStageRegistration = MultiStageRegistration;
+
+})(); // End IIFE

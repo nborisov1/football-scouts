@@ -411,7 +411,7 @@ class ProfileManager {
 }
 
 // Hebrew translations for profile fields
-export const PROFILE_TRANSLATIONS = {
+const PROFILE_TRANSLATIONS = {
   positions: {
     goalkeeper: 'שוער',
     defender: 'מגן', 
@@ -439,5 +439,7 @@ export const PROFILE_TRANSLATIONS = {
   }
 };
 
-// Export the ProfileManager and schemas
-export { ProfileManager, PROFILE_SCHEMAS };
+// Export to global window for non-module usage
+window.ProfileManager = ProfileManager;
+window.PROFILE_SCHEMAS = PROFILE_SCHEMAS;
+window.PROFILE_TRANSLATIONS = PROFILE_TRANSLATIONS;

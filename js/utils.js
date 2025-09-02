@@ -12,14 +12,14 @@ window.USER_TYPES = {
   ADMIN: 'admin'
 };
 
-window. COLLECTIONS = {
+window.COLLECTIONS = {
   USERS: 'users',
   VIDEOS: 'videos',
   CHALLENGES: 'challenges'
 };
 
 // ===== MOCK DATA =====
-window. MOCK_PLAYERS = [
+window.MOCK_PLAYERS = [
   {
     id: 1,
     name: 'דני לוי',
@@ -98,7 +98,7 @@ window. MOCK_PLAYERS = [
 ];
 
 // ===== TRANSLATION FUNCTIONS =====
-window. getHebrewUserType(type) {
+window.getHebrewUserType = function(type) {
   switch (type) {
     case USER_TYPES.PLAYER:
       return 'שחקן';
@@ -111,7 +111,7 @@ window. getHebrewUserType(type) {
   }
 }
 
-window. getHebrewPosition(position) {
+window.getHebrewPosition = function(position) {
   switch (position) {
     case 'goalkeeper':
       return 'שוער';
@@ -126,7 +126,7 @@ window. getHebrewPosition(position) {
   }
 }
 
-window. getHebrewLevel(level) {
+window.getHebrewLevel = function(level) {
   switch (level) {
     case 'beginner':
       return 'מתחיל';
@@ -139,7 +139,7 @@ window. getHebrewLevel(level) {
   }
 }
 
-window. getHebrewFoot(foot) {
+window.getHebrewFoot = function(foot) {
   switch (foot) {
     case 'right':
       return 'ימין';
@@ -153,12 +153,12 @@ window. getHebrewFoot(foot) {
 }
 
 // ===== DATE UTILITIES =====
-window. formatDate(dateString) {
+window.formatDate = function(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('he-IL');
 }
 
-window. formatTimeAgo(timestamp) {
+window.formatTimeAgo = function(timestamp) {
   const now = new Date();
   const date = new Date(timestamp);
   const seconds = Math.floor((now - date) / 1000);
@@ -195,13 +195,13 @@ window. formatTimeAgo(timestamp) {
 // Note: Authentication storage functions removed - using only Firebase Auth state and memory
 
 // ===== URL UTILITIES =====
-window. createNavURL(path, userData = null) {
+window.createNavURL = function(path, userData = null) {
   // No longer passing auth data in URLs - relying on Firebase Auth state
   return path;
 }
 
 // ===== MESSAGE SYSTEM =====
-window. showMessage(message, type = 'info', duration = 5000) {
+window.showMessage = function(message, type = 'info', duration = 5000) {
   // Check if a message container already exists
   let messageContainer = document.querySelector('.message-container');
   
@@ -241,7 +241,7 @@ window. showMessage(message, type = 'info', duration = 5000) {
 }
 
 // ===== VALIDATION UTILITIES =====
-window. validateEmail(email) {
+window.validateEmail = function(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return {
     isValid: emailRegex.test(email),
@@ -249,7 +249,7 @@ window. validateEmail(email) {
   };
 }
 
-window. validatePassword(password) {
+window.validatePassword = function(password) {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
   return {
     isValid: passwordRegex.test(password),
@@ -257,7 +257,7 @@ window. validatePassword(password) {
   };
 }
 
-window. validateRequired(value, fieldName) {
+window.validateRequired = function(value, fieldName) {
   const isValid = value && value.trim().length > 0;
   return {
     isValid,
@@ -266,7 +266,7 @@ window. validateRequired(value, fieldName) {
 }
 
 // ===== FILE UTILITIES =====
-window. validateVideoFile(file) {
+window.validateVideoFile = function(file) {
   const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
   const maxSize = 100 * 1024 * 1024; // 100MB
   
@@ -286,7 +286,7 @@ window. validateVideoFile(file) {
 }
 
 // ===== PROGRESS SIMULATION =====
-window. simulateProgress(progressBar, progressText, callback, duration = 3000) {
+window.simulateProgress = function(progressBar, progressText, callback, duration = 3000) {
   let progress = 0;
   const increment = 100 / (duration / 100);
   
@@ -313,20 +313,20 @@ window. simulateProgress(progressBar, progressText, callback, duration = 3000) {
 }
 
 // ===== DOM UTILITIES =====
-window. createElement(tag, className = '', textContent = '') {
+window.createElement = function(tag, className = '', textContent = '') {
   const element = document.createElement(tag);
   if (className) element.className = className;
   if (textContent) element.textContent = textContent;
   return element;
 }
 
-window. createButton(text, className = '', onClick = null) {
+window.createButton = function(text, className = '', onClick = null) {
   const button = createElement('button', className, text);
   if (onClick) button.addEventListener('click', onClick);
   return button;
 }
 
-window. createInput(type, id, placeholder = '', value = '') {
+window.createInput = function(type, id, placeholder = '', value = '') {
   const input = createElement('input');
   input.type = type;
   input.id = id;

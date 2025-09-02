@@ -46,7 +46,14 @@ async function initializeWithAuthManager() {
     }
     
     if (typeof window.authManager === 'undefined') {
-      console.error('AuthManager not available, falling back to no-auth mode');
+      console.error('❌ AuthManager not available after 5 seconds, falling back to no-auth mode');
+      console.log('🔍 Debug info:', {
+        firebase: typeof firebase,
+        firebaseAuth: typeof firebase?.auth,
+        ProfileManager: typeof window.ProfileManager,
+        USER_TYPES: typeof window.USER_TYPES,
+        COLLECTIONS: typeof window.COLLECTIONS
+      });
       updateUIForUnauthenticatedUser();
       return;
     }

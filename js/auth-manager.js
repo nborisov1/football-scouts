@@ -6,13 +6,10 @@
 
 'use strict';
 
-import {
-  USER_TYPES,
-  COLLECTIONS,
-  showMessage
-} from './utils.js';
+// Import from global window object instead of ES6 imports
+// These are available via utils.js loaded before this script
 
-import { ProfileManager } from './profile-manager.js';
+// ProfileManager is available via profile-manager.js loaded globally
 
 /**
  * Unified Authentication Manager
@@ -22,7 +19,7 @@ class AuthManager {
   constructor() {
     this.currentUser = null;
     this.authStateListeners = [];
-    this.profileManager = new ProfileManager();
+    this.profileManager = new window.ProfileManager();
     this.initializeAuth();
   }
 
@@ -111,7 +108,7 @@ class AuthManager {
     try {
       if (typeof firebase !== 'undefined' && firebase.firestore) {
         const db = firebase.firestore();
-        const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get();
+        const userDoc = await db.collection(window.COLLECTIONS.USERS).doc(uid).get();
         
         if (userDoc.exists) {
           const userData = { uid, ...userDoc.data() };
@@ -139,7 +136,7 @@ class AuthManager {
             };
             
             // Save to Firestore
-            await db.collection(COLLECTIONS.USERS).doc(uid).set(basicUserData);
+            await db.collection(window.COLLECTIONS.USERS).doc(uid).set(basicUserData);
             console.log('✅ Created missing Firestore document for user:', firebaseUser.email);
             
             // Load the newly created user data
@@ -347,7 +344,7 @@ class AuthManager {
     const result = currentUser && currentUser.type === type;
     
     // ADMIN FIX: Add debug logging for admin access issues
-    if (type === USER_TYPES.ADMIN) {
+    if (type === window.USER_TYPES.ADMIN) {
       console.log('🔍 Admin access check:', {
         hasUser: !!currentUser,
         userType: currentUser?.type,
@@ -414,7 +411,7 @@ class AuthManager {
 
       if (firebase.firestore) {
         const db = firebase.firestore();
-        await db.collection(COLLECTIONS.USERS).doc(currentUser.uid).update({
+        await db.collection(window.COLLECTIONS.USERS).doc(currentUser.uid).update({
           ...updates,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -472,8 +469,8 @@ class AuthManager {
       const adminPassword = 'admin123';
       
       // Check if admin exists
-      const adminQuery = await db.collection(COLLECTIONS.USERS)
-        .where('type', '==', USER_TYPES.ADMIN)
+      const adminQuery = await db.collection(window.COLLECTIONS.USERS)
+        .where('type', '==', window.USER_TYPES.ADMIN)
         .limit(1)
         .get();
 
@@ -486,16 +483,16 @@ class AuthManager {
           const uid = userCredential.user.uid;
 
           // Create admin user document
-          await db.collection(COLLECTIONS.USERS).doc(uid).set({
+          await db.collection(window.COLLECTIONS.USERS).doc(uid).set({
             name: 'מנהל מערכת',
             email: adminEmail,
-            type: USER_TYPES.ADMIN,
+            type: window.USER_TYPES.ADMIN,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
 
           console.log('✅ Admin account created successfully');
-          showMessage('חשבון מנהל נוצר בהצלחה', 'success');
+          window.showMessage('חשבון מנהל נוצר בהצלחה', 'success');
           
           // CRITICAL FIX: Sign out the admin after creation so login works properly
           await firebase.auth().signOut();
@@ -509,10 +506,10 @@ class AuthManager {
               const userCredential = await firebase.auth().signInWithEmailAndPassword(adminEmail, adminPassword);
               const uid = userCredential.user.uid;
               
-              await db.collection(COLLECTIONS.USERS).doc(uid).set({
+              await db.collection(window.COLLECTIONS.USERS).doc(uid).set({
                 name: 'מנהל מערכת',
                 email: adminEmail,
-                type: USER_TYPES.ADMIN,
+                type: window.USER_TYPES.ADMIN,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
               });
@@ -579,4 +576,3 @@ window.authManager = authManager;
       window.location.reload();
     }
   };
-}

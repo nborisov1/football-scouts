@@ -5,8 +5,8 @@
 
 'use strict';
 
-// Import Firebase services
-import { auth as firebaseAuth, db } from '../config/firebase.js';
+// Use global Firebase services instead of imports
+// Firebase services are available globally via config/firebase.js
 
 // User types
 const USER_TYPES = {
@@ -34,7 +34,7 @@ class Auth {
     this.currentUser = null;
     
     // Listen for auth state changes
-    firebaseAuth.onAuthStateChanged(user => {
+    firebase.auth().onAuthStateChanged(user => {
       if (user) {
         // User is signed in
         this.getUserData(user.uid).then(userData => {
@@ -78,11 +78,11 @@ class Auth {
         const adminPassword = 'admin123';
         
         // Create user in Firebase Auth
-        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(adminEmail, adminPassword);
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(adminEmail, adminPassword);
         const uid = userCredential.user.uid;
         
         // Create user document in Firestore
-        await db.collection(COLLECTIONS.USERS).doc(uid).set({
+        await firebase.firestore().collection(COLLECTIONS.USERS).doc(uid).set({
           name: 'מנהל מערכת',
           email: adminEmail,
           type: USER_TYPES.ADMIN,
@@ -105,7 +105,7 @@ class Auth {
   register(userData, userType) {
     try {
       // Create user in Firebase Auth
-      firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password)
+      firebase.auth().createUserWithEmailAndPassword(userData.email, userData.password)
         .then(userCredential => {
           const uid = userCredential.user.uid;
           
@@ -178,7 +178,7 @@ class Auth {
   login(email, password) {
     try {
       // Sign in with Firebase
-      firebaseAuth.signInWithEmailAndPassword(email, password)
+      firebase.auth().signInWithEmailAndPassword(email, password)
         .then(userCredential => {
           // Get user data from Firestore
           return this.getUserData(userCredential.user.uid);
@@ -221,7 +221,7 @@ class Auth {
    * Log out the current user
    */
   logout() {
-    firebaseAuth.signOut()
+    firebase.auth().signOut()
       .then(() => {
         // Clear local storage
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
@@ -239,7 +239,7 @@ class Auth {
    * @returns {boolean} - True if a user is logged in
    */
   isLoggedIn() {
-    return !!firebaseAuth.currentUser || !!this.getCurrentUser();
+    return !!firebase.auth().currentUser || !!this.getCurrentUser();
   }
 
   /**

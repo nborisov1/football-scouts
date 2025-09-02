@@ -5,7 +5,8 @@
 
 'use strict';
 
-import { auth, db } from '../config/firebase.js';
+// Use global Firebase services instead of imports
+// Firebase services are available globally via config/firebase.js
 
 // User types
 const USER_TYPES = {

@@ -312,7 +312,7 @@ function populateLeaderboard(leaderboardId, players, statKey, statLabel) {
     playerCell.innerHTML = `
       <div class="player-info">
         <div class="player-avatar">
-          <img src="${player.profileImage || '../images/default-profile.jpg'}" alt="${player.name}">
+          <img src="${player.profileImage || '../images/default-profile.svg'}" alt="${player.name}">
         </div>
         <div class="player-name">${player.name}</div>
       </div>
@@ -525,7 +525,7 @@ function showPlayerProfile(playerId) {
     content.innerHTML = `
       <div class="profile-header">
         <div class="profile-avatar">
-          <img src="${player.profileImage || '../images/default-profile.jpg'}" alt="${player.name}">
+          <img src="${player.profileImage || '../images/default-profile.svg'}" alt="${player.name}">
         </div>
         <div class="profile-info">
           <h3>${player.name}</h3>

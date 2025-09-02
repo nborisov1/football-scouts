@@ -5,17 +5,16 @@
 
 'use strict';
 
-import { AuthManager } from './auth-manager.js';
-import { ProfileManager, PROFILE_TRANSLATIONS } from './profile-manager.js';
-import { USER_TYPES, showMessage } from './utils.js';
+// Use global window objects instead of ES6 imports
+// AuthManager, ProfileManager, USER_TYPES, PROFILE_TRANSLATIONS, and showMessage are available globally
 
 /**
  * Enhanced Profile UI Manager
  */
 class EnhancedProfileManager {
   constructor() {
-    this.authManager = new AuthManager();
-    this.profileManager = new ProfileManager();
+    this.authManager = window.authManager;
+    this.profileManager = new window.ProfileManager();
     this.currentUser = null;
     this.isEditing = false;
   }
@@ -48,7 +47,7 @@ class EnhancedProfileManager {
       console.log('✅ Enhanced Profile Manager initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing profile:', error);
-      showMessage('שגיאה בטעינת הפרופיל', 'error');
+      window.showMessage('שגיאה בטעינת הפרופיל', 'error');
       
       // Redirect to home if no user
       setTimeout(() => {
@@ -166,7 +165,7 @@ class EnhancedProfileManager {
       { label: 'סוג משתמש', value: this.translateUserType(this.currentUser.type) }
     ];
 
-    if (this.currentUser.type === USER_TYPES.PLAYER) {
+    if (this.currentUser.type === window.USER_TYPES.PLAYER) {
       info.push(
         { label: 'גיל', value: this.currentUser.age || 'לא צוין' },
         { label: 'עמדה', value: this.translatePosition(this.currentUser.position) },
@@ -265,7 +264,7 @@ class EnhancedProfileManager {
         window.location.href = 'discover.html';
         break;
       default:
-        showMessage('פעולה זו עדיין לא זמינה', 'info');
+        window.showMessage('פעולה זו עדיין לא זמינה', 'info');
     }
   }
 
@@ -280,11 +279,11 @@ class EnhancedProfileManager {
     };
 
     // Hide/show sections based on user type
-    if (this.currentUser.type === USER_TYPES.PLAYER) {
+    if (this.currentUser.type === window.USER_TYPES.PLAYER) {
       this.showElement(elements.videos);
       this.hideElement(elements.watchlist);
       this.updatePlayerStats();
-    } else if (this.currentUser.type === USER_TYPES.SCOUT) {
+    } else if (this.currentUser.type === window.USER_TYPES.SCOUT) {
       this.hideElement(elements.videos);
       this.showElement(elements.watchlist);
       this.hideElement(elements.stats);
@@ -300,7 +299,7 @@ class EnhancedProfileManager {
    * Update player statistics
    */
   updatePlayerStats() {
-    if (this.currentUser.type !== USER_TYPES.PLAYER) return;
+    if (this.currentUser.type !== window.USER_TYPES.PLAYER) return;
 
     const stats = this.currentUser.stats || {};
     
@@ -314,7 +313,7 @@ class EnhancedProfileManager {
    * Load scout watchlist
    */
   async loadScoutWatchlist() {
-    if (this.currentUser.type !== USER_TYPES.SCOUT) return;
+    if (this.currentUser.type !== window.USER_TYPES.SCOUT) return;
 
     const container = document.getElementById('scout-watchlist');
     if (!container) return;
@@ -356,7 +355,7 @@ class EnhancedProfileManager {
    * Load user content (videos, activity, etc.)
    */
   async loadUserContent() {
-    if (this.currentUser.type === USER_TYPES.PLAYER) {
+    if (this.currentUser.type === window.USER_TYPES.PLAYER) {
       await this.loadPlayerVideos();
     }
     await this.loadRecentActivity();
@@ -459,7 +458,7 @@ class EnhancedProfileManager {
     }
 
     // Type-specific activities
-    if (this.currentUser.type === USER_TYPES.PLAYER) {
+    if (this.currentUser.type === window.USER_TYPES.PLAYER) {
       // Challenge activities
       const challenges = this.currentUser.challenges?.initial;
       if (challenges?.completed) {
@@ -505,10 +504,10 @@ class EnhancedProfileManager {
     const scoutFields = document.getElementById('scout-fields');
     
     if (playerFields) {
-      playerFields.style.display = this.currentUser.type === USER_TYPES.PLAYER ? 'block' : 'none';
+      playerFields.style.display = this.currentUser.type === window.USER_TYPES.PLAYER ? 'block' : 'none';
     }
     if (scoutFields) {
-      scoutFields.style.display = this.currentUser.type === USER_TYPES.SCOUT ? 'block' : 'none';
+      scoutFields.style.display = this.currentUser.type === window.USER_TYPES.SCOUT ? 'block' : 'none';
     }
 
     modal.style.display = 'block';
@@ -543,7 +542,7 @@ class EnhancedProfileManager {
     }
 
     // Player-specific fields
-    if (this.currentUser.type === USER_TYPES.PLAYER) {
+    if (this.currentUser.type === window.USER_TYPES.PLAYER) {
       this.setFormValue('edit-age', this.currentUser.age);
       this.setFormValue('edit-position', this.currentUser.position);
       this.setFormValue('edit-dominant-foot', this.currentUser.dominantFoot);
@@ -588,7 +587,7 @@ class EnhancedProfileManager {
     updates.isPublic = formData.has('isPublic');
 
     // Type-specific fields
-    if (this.currentUser.type === USER_TYPES.PLAYER) {
+    if (this.currentUser.type === window.USER_TYPES.PLAYER) {
       updates.age = parseInt(formData.get('age')) || null;
       updates.position = formData.get('position');
       updates.dominantFoot = formData.get('dominantFoot');
@@ -622,10 +621,10 @@ class EnhancedProfileManager {
       // Close modal
       this.closeEditModal();
       
-      showMessage('הפרופיל עודכן בהצלחה!', 'success');
+      window.showMessage('הפרופיל עודכן בהצלחה!', 'success');
     } catch (error) {
       console.error('❌ Error updating profile:', error);
-      showMessage('שגיאה בעדכון הפרופיל', 'error');
+      window.showMessage('שגיאה בעדכון הפרופיל', 'error');
     }
   }
 
@@ -701,5 +700,5 @@ document.addEventListener('DOMContentLoaded', () => {
   profileManager.init();
 });
 
-// Export for other modules
-export { EnhancedProfileManager };
+// Export to global window for non-module usage
+window.EnhancedProfileManager = EnhancedProfileManager;

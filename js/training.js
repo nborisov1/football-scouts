@@ -281,7 +281,7 @@ const TRAINING_PROGRAMS = {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Check if user is logged in and is a player
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.authManager?.getCurrentUser();
   
   if (!currentUser) {
     // Redirect to login page if not logged in
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function initTrainingProgram() {
   // Get current user
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.authManager?.getCurrentUser();
   
   // Check if training program is unlocked
   if (!currentUser.trainingProgram || !currentUser.trainingProgram.unlocked) {
@@ -327,7 +327,7 @@ function initTrainingProgram() {
  */
 function loadTrainingProgram() {
   // Get current user
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.authManager?.getCurrentUser();
   
   // Get player's level
   const level = currentUser.level || 'beginner';
@@ -471,7 +471,7 @@ function loadStage(stage) {
   `;
   
   // Check if stage is completed
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.authManager?.getCurrentUser();
   const completedStages = currentUser.trainingProgram.completedStages || [];
   
   if (completedStages.includes(stage.id)) {
@@ -587,7 +587,7 @@ function simulateUpload(progressBar, progressText, callback) {
  */
 function completeStage(stageId) {
   // Get current user
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.authManager?.getCurrentUser();
   const users = auth.getUsers();
   
   // Get player's level

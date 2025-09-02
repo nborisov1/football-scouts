@@ -78,13 +78,8 @@ function setupScoutRegistration() {
  * Setup registration modal events
  */
 function setupRegistrationModal() {
-  // Register button to open modal
-  const registerBtn = document.getElementById('register-btn');
-  if (registerBtn) {
-    registerBtn.addEventListener('click', () => {
-      openRegistrationModal();
-    });
-  }
+  // Register button events are now handled by event delegation in main.js
+  // No need to set up duplicate event listeners here
 
   // Close modal events
   const registrationModal = document.getElementById('multi-stage-modal');

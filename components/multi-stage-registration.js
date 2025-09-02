@@ -5,7 +5,11 @@
 
 'use strict';
 
-import firebaseAuth from '../auth/firebase-auth.js';
+// Firebase auth will be accessed through global window.authManager
+
+// Wrap in IIFE to avoid global pollution but expose the class
+(function() {
+  'use strict';
 
 class MultiStageRegistration {
   constructor(containerId) {
@@ -842,68 +846,85 @@ class MultiStageRegistration {
   /**
    * Submit registration
    */
-  submitRegistration() {
+  async submitRegistration() {
     // Show loading state
     const submitButton = document.querySelector('.next-btn');
     const originalText = submitButton.textContent;
     submitButton.disabled = true;
     submitButton.textContent = 'מתבצעת הרשמה...';
     
-    // Register user with Firebase
-    firebaseAuth.registerWithEmail({
-      email: this.userData.email,
-      password: this.userData.password
-    })
-    .then(uid => {
-      // Complete user profile
-      const profileData = {
+    try {
+      // Check if authManager is available
+      if (!window.authManager) {
+        throw new Error('מערכת האימות לא זמינה. אנא רענן את הדף ונסה שוב.');
+      }
+
+      // Prepare registration data
+      const registrationData = {
         name: this.userData.name,
-        email: this.userData.email
+        email: this.userData.email,
+        password: this.userData.password
       };
       
       if (this.userData.type === 'player') {
-        profileData.age = this.userData.age;
-        profileData.position = this.userData.position;
-        profileData.dominantFoot = this.userData.dominantFoot;
-        profileData.level = this.userData.level;
+        registrationData.age = this.userData.age;
+        registrationData.position = this.userData.position;
+        registrationData.dominantFoot = this.userData.dominantFoot;
+        registrationData.level = this.userData.level;
       } else if (this.userData.type === 'scout') {
-        profileData.club = this.userData.club;
-        profileData.position = this.userData.scoutPosition;
+        registrationData.club = this.userData.club;
+        registrationData.position = this.userData.scoutPosition;
       }
       
-      return firebaseAuth.completeUserProfile(uid, profileData, this.userData.type);
-    })
-    .then(() => {
-      // Show success message
-      this.showMessage('success', 'ההרשמה הושלמה בהצלחה!');
+      // Register user with Firebase through authManager
+      const result = await window.authManager.register(registrationData, this.userData.type);
       
-      // Close the modal and update UI after a short delay
-      setTimeout(() => {
-        // Close the modal
-        const multiStageModal = document.getElementById('multi-stage-modal');
-        if (multiStageModal) {
-          multiStageModal.style.display = 'none';
-        }
+      if (result.success) {
+        // Show success message
+        this.showMessage('success', 'ההרשמה הושלמה בהצלחה!');
         
-        // Update UI to show logged in state
-        this.updateUIForLoggedInUser();
-        
-        // If player, show message about challenges
-        if (this.userData.type === 'player') {
-          setTimeout(() => {
-            this.showGlobalMessage('מעביר אותך לאתגרים הראשוניים...', 'info');
-          }, 1000);
-        }
-      }, 2000);
-    })
-    .catch(error => {
-      // Show error message
-      this.showMessage('error', `שגיאה בהרשמה: ${error.message}`);
+        // Close the modal and update UI after a short delay
+        setTimeout(() => {
+          // Close the modal
+          const multiStageModal = document.getElementById('multi-stage-modal');
+          if (multiStageModal) {
+            multiStageModal.style.display = 'none';
+          }
+          
+          // The auth state change listener will handle UI updates
+          
+          // If player, show message about challenges
+          if (this.userData.type === 'player') {
+            setTimeout(() => {
+              this.showGlobalMessage('מעביר אותך לאתגרים הראשוניים...', 'info');
+            }, 1000);
+          }
+        }, 2000);
+      } else {
+        throw new Error('ההרשמה נכשלה. אנא נסה שוב.');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      
+      // Show user-friendly error message
+      let errorMessage = 'שגיאה בהרשמה. אנא נסה שוב.';
+      
+      if (error.message.includes('email-already-in-use') || error.message.includes('כתובת האימייל כבר בשימוש')) {
+        errorMessage = 'כתובת האימייל כבר רשומה במערכת. אנא השתמש בכתובת אחרת או נסה להתחבר.';
+      } else if (error.message.includes('weak-password') || error.message.includes('הסיסמה חלשה')) {
+        errorMessage = 'הסיסמה חלשה מדי. אנא בחר סיסמה חזקה יותר.';
+      } else if (error.message.includes('invalid-email')) {
+        errorMessage = 'כתובת אימייל לא תקינה.';
+      } else if (error.message.includes('מערכת האימות לא זמינה')) {
+        errorMessage = error.message;
+      }
+      
+      this.showMessage('error', errorMessage);
       
       // Reset button
       submitButton.disabled = false;
       submitButton.textContent = originalText;
-    });
+    }
   }
   
   /**

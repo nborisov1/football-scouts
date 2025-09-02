@@ -221,12 +221,8 @@ function updateHeaderForUnauthenticatedUser() {
       <button id="register-btn" class="btn btn-primary">הרשמה</button>
     `;
     
-    // Re-initialize button events since we replaced the HTML
-    setTimeout(() => {
-      if (window.initializeLogin) {
-        window.initializeLogin();
-      }
-    }, 100);
+    // Event listeners are handled by event delegation in setupAuthButtonListeners()
+    // No need to re-initialize button events
   }
 
 }
@@ -641,6 +637,16 @@ function showMultiStageRegistration(userType = null) {
         // Start from the first stage
         multiStageRegistration.currentStage = 0;
         multiStageRegistration.render();
+      }).catch(error => {
+        console.error('Failed to load registration component:', error);
+        // Fallback to simple registration form
+        container.innerHTML = `
+          <div class="simple-registration">
+            <h3>הרשמה</h3>
+            <p>טוען טופס הרשמה...</p>
+            <p>אם הדף לא נטען, <a href="#" onclick="location.reload()">רענן את הדף</a></p>
+          </div>
+        `;
       });
     }
   }
@@ -650,49 +656,15 @@ function initModals() {
   // Get modal elements
   const loginModal = document.getElementById('login-modal');
   const multiStageModal = document.getElementById('multi-stage-modal');
-  const loginBtn = document.getElementById('login-btn');
-  const registerBtn = document.getElementById('register-btn');
-  const playerRegisterBtn = document.getElementById('player-register');
-  const scoutRegisterBtn = document.getElementById('scout-register');
-  const ctaRegisterBtn = document.getElementById('cta-register');
   const closeButtons = document.querySelectorAll('.close-modal');
   const switchToRegister = document.getElementById('switch-to-register');
   const switchToLogin = document.getElementById('switch-to-login');
 
-  // Open login modal
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      loginModal.style.display = 'block';
-    });
-  }
-
-  // Open register modal
-  if (registerBtn) {
-    registerBtn.addEventListener('click', () => {
-      showMultiStageRegistration();
-    });
-  }
-
-  // Open player registration
-  if (playerRegisterBtn) {
-    playerRegisterBtn.addEventListener('click', () => {
-      showMultiStageRegistration('player');
-    });
-  }
-
-  // Open scout registration
-  if (scoutRegisterBtn) {
-    scoutRegisterBtn.addEventListener('click', () => {
-      showMultiStageRegistration('scout');
-    });
-  }
-
-  // CTA register button
-  if (ctaRegisterBtn) {
-    ctaRegisterBtn.addEventListener('click', () => {
-      showMultiStageRegistration();
-    });
-  }
+  // Set up button event listeners using event delegation to handle dynamically created buttons
+  setupAuthButtonListeners();
+  
+  // Set up other modal buttons that are always present
+  setupStaticModalButtons();
 
   // Close modals when clicking the X
   closeButtons.forEach(button => {
@@ -711,7 +683,68 @@ function initModals() {
       multiStageModal.style.display = 'none';
     }
   });
+  
+  // Fix navigation blocking issue - ensure modals don't interfere with navigation
+  document.addEventListener('click', (event) => {
+    // If clicking on navigation links, close any open modals
+    if (event.target.closest('.main-nav a, .auth-buttons a')) {
+      if (loginModal) loginModal.style.display = 'none';
+      const currentMultiStageModal = document.getElementById('multi-stage-modal');
+      if (currentMultiStageModal) currentMultiStageModal.style.display = 'none';
+    }
+  });
+}
 
+/**
+ * Set up auth button listeners using event delegation
+ * This handles buttons that get created/recreated dynamically
+ */
+function setupAuthButtonListeners() {
+  // Use event delegation on the document body to catch all button clicks
+  document.body.addEventListener('click', (e) => {
+    // Login button
+    if (e.target.id === 'login-btn') {
+      e.preventDefault();
+      const loginModal = document.getElementById('login-modal');
+      if (loginModal) {
+        loginModal.style.display = 'block';
+      }
+    }
+    
+    // Register button (header)
+    if (e.target.id === 'register-btn') {
+      e.preventDefault();
+      showMultiStageRegistration();
+    }
+    
+    // Player register button (homepage)
+    if (e.target.id === 'player-register') {
+      e.preventDefault();
+      showMultiStageRegistration('player');
+    }
+    
+    // Scout register button (homepage)
+    if (e.target.id === 'scout-register') {
+      e.preventDefault();
+      showMultiStageRegistration('scout');
+    }
+    
+    // CTA register button
+    if (e.target.id === 'cta-register') {
+      e.preventDefault();
+      showMultiStageRegistration();
+    }
+  });
+}
+
+/**
+ * Set up static modal buttons that don't change
+ */
+function setupStaticModalButtons() {
+  const loginModal = document.getElementById('login-modal');
+  const switchToRegister = document.getElementById('switch-to-register');
+  const switchToLogin = document.getElementById('switch-to-login');
+  
   // Switch between login and register
   if (switchToRegister) {
     switchToRegister.addEventListener('click', (e) => {

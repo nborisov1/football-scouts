@@ -1,0 +1,6 @@
+<svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="150" height="150" fill="#f0f0f0"/>
+<circle cx="75" cy="60" r="25" fill="#ccc"/>
+<path d="M40 120 C40 100, 55 85, 75 85 S110 100, 110 120" fill="#ccc"/>
+<text x="75" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">פרופיל</text>
+</svg>

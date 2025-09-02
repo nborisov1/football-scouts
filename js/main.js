@@ -167,10 +167,9 @@ function updateHeaderForAuthenticatedUser(userData) {
   const authButtons = document.querySelector('.auth-buttons');
   
   if (authButtons) {
-    // Create navigation URL with auth data
+    // Create navigation URL (no auth data needed with session system)
     const createNavURL = (path) => {
-      const authParam = encodeURIComponent(JSON.stringify(userData));
-      return `${path}?auth=${authParam}`;
+      return path; // Session-based auth doesn't need URL parameters
     };
     
     // Replace login/register buttons with user menu
@@ -594,15 +593,15 @@ async function logout() {
  */
 function startSession(sessionId) {
   if (currentUserData) {
-    const authParam = encodeURIComponent(JSON.stringify(currentUserData));
-    window.location.href = `pages/training.html?auth=${authParam}&session=${sessionId}`;
+    // No need for auth params with session system
+    window.location.href = `pages/training.html?session=${sessionId}`;
   }
 }
 
 function viewSession(sessionId) {
   if (currentUserData) {
-    const authParam = encodeURIComponent(JSON.stringify(currentUserData));
-    window.location.href = `pages/training.html?auth=${authParam}&view=${sessionId}`;
+    // No need for auth params with session system
+    window.location.href = `pages/training.html?view=${sessionId}`;
   }
 }
 

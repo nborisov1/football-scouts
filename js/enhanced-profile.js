@@ -26,11 +26,13 @@ class EnhancedProfileManager {
     console.log('🔄 Initializing Enhanced Profile Manager...');
     
     try {
-      // Get current user
-      this.currentUser = this.authManager.getCurrentUser();
+      // Use fast session-based authentication
+      this.currentUser = window.getCurrentUserFromSession();
       
       if (!this.currentUser) {
-        throw new Error('No authenticated user found');
+        console.log('❌ No user session found, redirecting to home...');
+        window.location.href = '../index.html';
+        return;
       }
 
       console.log('✅ User found:', this.currentUser);
@@ -44,15 +46,36 @@ class EnhancedProfileManager {
       this.configureForUserType();
       this.loadUserContent();
 
+      // Hide loading overlay
+      this.hideLoadingOverlay();
+
       console.log('✅ Enhanced Profile Manager initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing profile:', error);
       window.showMessage('שגיאה בטעינת הפרופיל', 'error');
       
+      // Hide loading overlay even on error
+      this.hideLoadingOverlay();
+      
       // Redirect to home if no user
       setTimeout(() => {
         window.location.href = '../index.html';
       }, 2000);
+    }
+  }
+
+  /**
+   * Hide loading overlay
+   */
+  hideLoadingOverlay() {
+    const overlay = document.getElementById('auth-loading-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    
+    const body = document.body;
+    if (body) {
+      body.classList.remove('auth-loading');
     }
   }
 

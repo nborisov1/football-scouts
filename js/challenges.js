@@ -23,12 +23,31 @@ function updateUserSession(user) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Use fast session-based authentication check
-  const currentUser = window.requireAuthentication('player');
-  if (!currentUser) return; // requireAuthentication handles redirect
-  
-  // Initialize challenges
-  initChallenges();
+  try {
+    // Use fast session-based authentication check
+    const currentUser = window.requireAuthentication('player');
+    if (!currentUser) return; // requireAuthentication handles redirect
+    
+    // Initialize challenges
+    initChallenges();
+    
+    // Remove loading overlay and show content
+    document.body.classList.remove('auth-loading');
+    const loadingOverlay = document.getElementById('auth-loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+    
+  } catch (error) {
+    console.error('Error during challenges page initialization:', error);
+    
+    // Still remove loading overlay even on error
+    document.body.classList.remove('auth-loading');
+    const loadingOverlay = document.getElementById('auth-loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+  }
 });
 
 /**

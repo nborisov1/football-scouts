@@ -399,13 +399,20 @@ window.requireAuthentication = function(requiredUserType = null) {
   
   if (!user) {
     console.log('❌ No authenticated user found, redirecting to home...');
-    window.location.href = '../index.html';
+    // Prevent infinite redirects by checking current page
+    if (!window.location.href.includes('index.html')) {
+      window.location.href = '../index.html';
+    }
     return null;
   }
   
   if (requiredUserType && user.type !== requiredUserType) {
     console.log(`❌ User type ${user.type} not allowed, required: ${requiredUserType}`);
-    window.location.href = '../index.html';
+    console.log(`❌ Current page requires '${requiredUserType}' but user is '${user.type}'`);
+    // Prevent infinite redirects by checking current page
+    if (!window.location.href.includes('index.html')) {
+      window.location.href = '../index.html';
+    }
     return null;
   }
   

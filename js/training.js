@@ -280,65 +280,94 @@ const TRAINING_PROGRAMS = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if user is logged in and is a player
-  const currentUser = window.authManager?.getCurrentUser();
-  
-  if (!currentUser) {
-    // Redirect to login page if not logged in
-    window.location.href = '../index.html';
-    return;
+  try {
+    // Use fast session-based authentication check
+    const currentUser = window.requireAuthentication('player');
+    if (!currentUser) return; // requireAuthentication handles redirect
+    
+    // Initialize training program
+    initTrainingProgram();
+    
+    // Remove loading overlay and show content
+    document.body.classList.remove('auth-loading');
+    const loadingOverlay = document.getElementById('auth-loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+    
+  } catch (error) {
+    console.error('Error during training page initialization:', error);
+    
+    // Still remove loading overlay even on error
+    document.body.classList.remove('auth-loading');
+    const loadingOverlay = document.getElementById('auth-loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
   }
-  
-  if (currentUser.type !== 'player') {
-    // Redirect to home page if not a player
-    window.location.href = '../index.html';
-    return;
-  }
-  
-  // Initialize training program
-  initTrainingProgram();
 });
 
 /**
  * Initialize training program
  */
 function initTrainingProgram() {
-  // Get current user
-  const currentUser = window.authManager?.getCurrentUser();
-  
-  // Check if training program is unlocked
-  if (!currentUser.trainingProgram || !currentUser.trainingProgram.unlocked) {
-    // Show locked message
-    document.getElementById('training-locked').classList.remove('hidden');
-    document.getElementById('training-program').classList.add('hidden');
-    return;
+  try {
+    // Get current user
+    const currentUser = window.getCurrentUserFromSession();
+    if (!currentUser) return;
+    
+    // Check if training program is unlocked
+    const isUnlocked = currentUser.trainingProgram && currentUser.trainingProgram.unlocked;
+    
+    const lockedElement = document.getElementById('training-locked');
+    const programElement = document.getElementById('training-program');
+    
+    if (!isUnlocked) {
+      // Show locked message
+      if (lockedElement) lockedElement.classList.remove('hidden');
+      if (programElement) programElement.classList.add('hidden');
+      return;
+    }
+    
+    // Show training program
+    if (lockedElement) lockedElement.classList.add('hidden');
+    if (programElement) programElement.classList.remove('hidden');
+    
+    // Load training program
+    loadTrainingProgram();
+    
+  } catch (error) {
+    console.error('Error in initTrainingProgram:', error);
   }
-  
-  // Show training program
-  document.getElementById('training-locked').classList.add('hidden');
-  document.getElementById('training-program').classList.remove('hidden');
-  
-  // Load training program
-  loadTrainingProgram();
 }
 
 /**
  * Load training program based on player's level
  */
 function loadTrainingProgram() {
-  // Get current user
-  const currentUser = window.authManager?.getCurrentUser();
-  
-  // Get player's level
-  const level = currentUser.level || 'beginner';
-  
-  // Get training program for level
-  const program = TRAINING_PROGRAMS[level];
-  
-  if (!program) {
-    showMessage('לא נמצאה תוכנית אימון מתאימה', 'error');
+  try {
+    // Get current user
+    const currentUser = window.getCurrentUserFromSession();
+    if (!currentUser) return;
+    
+    // Get player's level
+    const level = currentUser.level || 'beginner';
+    
+    // Get training program for level
+    const program = TRAINING_PROGRAMS[level];
+    if (!program) {
+      window.showMessage('לא נמצאה תוכנית אימון מתאימה', 'error');
+      return;
+    }
+  } catch (error) {
+    console.error('Error in loadTrainingProgram:', error);
     return;
   }
+  
+  // Continue with the training program loading
+  const currentUser = window.getCurrentUserFromSession();
+  const level = currentUser.level || 'beginner';
+  const program = TRAINING_PROGRAMS[level];
   
   // Update player level display
   document.getElementById('player-level').textContent = getHebrewLevel(level);
@@ -471,7 +500,7 @@ function loadStage(stage) {
   `;
   
   // Check if stage is completed
-  const currentUser = window.authManager?.getCurrentUser();
+  const currentUser = window.getCurrentUserFromSession();
   const completedStages = currentUser.trainingProgram.completedStages || [];
   
   if (completedStages.includes(stage.id)) {
@@ -587,7 +616,7 @@ function simulateUpload(progressBar, progressText, callback) {
  */
 function completeStage(stageId) {
   // Get current user
-  const currentUser = window.authManager?.getCurrentUser();
+  const currentUser = window.getCurrentUserFromSession();
   const users = auth.getUsers();
   
   // Get player's level

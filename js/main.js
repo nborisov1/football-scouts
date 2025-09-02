@@ -261,10 +261,10 @@ function showPersonalizedContent(userData) {
             </div>
           </div>
           <div class="quick-actions">
-            <a href="pages/training.html?auth=${encodeURIComponent(JSON.stringify(userData))}" class="btn btn-primary">
+            <a href="pages/training.html" class="btn btn-primary">
               <i class="fas fa-dumbbell"></i> המשך אימון
             </a>
-            <a href="pages/challenges.html?auth=${encodeURIComponent(JSON.stringify(userData))}" class="btn btn-secondary">
+            <a href="pages/challenges.html" class="btn btn-secondary">
               <i class="fas fa-tasks"></i> אתגרים חדשים
             </a>
           </div>

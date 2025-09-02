@@ -163,20 +163,9 @@ const videosPerPage = 5;
 let currentVideo = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if user is logged in and is an admin
-  const currentUser = auth.getCurrentUser();
-  
-  if (!currentUser) {
-    // Redirect to login page if not logged in
-    window.location.href = '../index.html';
-    return;
-  }
-  
-  if (currentUser.type !== 'admin') {
-    // Redirect to home page if not an admin
-    window.location.href = '../index.html';
-    return;
-  }
+  // Use fast session-based authentication check
+  const currentUser = window.requireAuthentication('admin');
+  if (!currentUser) return; // requireAuthentication handles redirect
   
   // Initialize videos page
   initVideosPage();

@@ -242,23 +242,31 @@ const playersPerPage = 6;
 let watchlist = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if user is logged in and is a scout
-  const currentUser = auth.getCurrentUser();
-  
-  if (!currentUser) {
-    // Redirect to login page if not logged in
-    window.location.href = '../index.html';
-    return;
+  try {
+    // Use fast session-based authentication check
+    const currentUser = window.requireAuthentication('scout');
+    if (!currentUser) return; // requireAuthentication handles redirect
+    
+    // Initialize discover functionality
+    initDiscover();
+    
+    // Remove loading overlay and show content
+    document.body.classList.remove('auth-loading');
+    const loadingOverlay = document.getElementById('auth-loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+    
+  } catch (error) {
+    console.error('Error during discover page initialization:', error);
+    
+    // Still remove loading overlay even on error
+    document.body.classList.remove('auth-loading');
+    const loadingOverlay = document.getElementById('auth-loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
   }
-  
-  if (currentUser.type !== 'scout') {
-    // Redirect to home page if not a scout
-    window.location.href = '../index.html';
-    return;
-  }
-  
-  // Initialize discover functionality
-  initDiscover();
 });
 
 /**
@@ -294,7 +302,7 @@ function initDiscover() {
  * Load watchlist from local storage
  */
 function loadWatchlist() {
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.getCurrentUserFromSession();
   
   // Check if user has watchlist
   if (currentUser.watchlist) {
@@ -316,7 +324,7 @@ function loadWatchlist() {
  * Save watchlist to local storage
  */
 function saveWatchlist() {
-  const currentUser = auth.getCurrentUser();
+  const currentUser = window.getCurrentUserFromSession();
   
   // Save to user data
   const users = auth.getUsers();

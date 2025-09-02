@@ -114,11 +114,9 @@ const utils = {
     }
   },
 
-  // Create navigation URL with auth data
+  // Create navigation URL - no auth parameters needed with session system
   createNavURL: (path, userData = currentUserData) => {
-    if (!userData) return path;
-    const authParam = encodeURIComponent(JSON.stringify(userData));
-    return `${path}?auth=${authParam}`;
+    return path; // Session-based auth eliminates need for URL parameters
   },
 
   // Translation helper

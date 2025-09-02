@@ -12,6 +12,8 @@ import {
   showMessage
 } from './utils.js';
 
+import { ProfileManager } from './profile-manager.js';
+
 /**
  * Unified Authentication Manager
  * Handles all authentication-related functionality using Firebase
@@ -20,6 +22,7 @@ class AuthManager {
   constructor() {
     this.currentUser = null;
     this.authStateListeners = [];
+    this.profileManager = new ProfileManager();
     this.initializeAuth();
   }
 
@@ -238,44 +241,18 @@ class AuthManager {
    */
   async completeUserProfile(uid, profileData, userType) {
     try {
-      const db = firebase.firestore();
-      
-      // Create base user object
+      // Use ProfileManager to create complete profile
       const userData = {
+        uid,
         name: profileData.name,
         email: profileData.email,
-        type: userType,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        ...profileData // Include all additional profile data
       };
 
-      // Add type-specific data
-      if (userType === USER_TYPES.PLAYER) {
-        userData.age = profileData.age;
-        userData.position = profileData.position;
-        userData.dominantFoot = profileData.dominantFoot;
-        userData.level = profileData.level;
-        userData.challenges = {
-          initial: {
-            completed: false,
-            videos: []
-          }
-        };
-        userData.trainingProgram = {
-          currentStage: 0,
-          completedStages: []
-        };
-      } else if (userType === USER_TYPES.SCOUT) {
-        userData.club = profileData.club;
-        userData.position = profileData.position;
-        userData.watchlist = [];
-      }
-
-      // Save to Firestore
-      await db.collection(COLLECTIONS.USERS).doc(uid).set(userData);
+      const completeUserData = await this.profileManager.createProfile(userType, userData);
+      completeUserData.uid = uid;
       
       // Update local user data - store only in memory
-      const completeUserData = { uid, ...userData };
       this.handleAuthStateChange(completeUserData);
       
       return completeUserData;

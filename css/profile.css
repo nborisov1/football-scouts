@@ -300,6 +300,225 @@
   }
 }
 
+/* Profile Completion Styles */
+.completion-container {
+  margin-bottom: var(--spacing-lg);
+}
+
+.completion-bar {
+  width: 100%;
+  height: 12px;
+  background-color: var(--medium-light);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+}
+
+.completion-progress {
+  height: 100%;
+  border-radius: var(--border-radius-sm);
+  transition: width 0.3s ease;
+}
+
+.completion-progress.low {
+  background-color: var(--danger-color);
+}
+
+.completion-progress.medium {
+  background-color: #f39c12;
+}
+
+.completion-progress.high {
+  background-color: var(--success-color);
+}
+
+.completion-text {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--dark-medium);
+  font-weight: 600;
+}
+
+/* Profile Recommendations */
+.recommendations {
+  margin-top: var(--spacing-lg);
+}
+
+.recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid;
+}
+
+.recommendation.high {
+  border-left-color: var(--danger-color);
+  background-color: #ffeaea;
+}
+
+.recommendation.medium {
+  border-left-color: #f39c12;
+  background-color: #fff3e0;
+}
+
+.recommendation.low {
+  border-left-color: var(--primary-color);
+  background-color: var(--primary-light);
+}
+
+.recommendation-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-circle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.recommendation.high .recommendation-icon {
+  background-color: var(--danger-color);
+}
+
+.recommendation.medium .recommendation-icon {
+  background-color: #f39c12;
+}
+
+.recommendation.low .recommendation-icon {
+  background-color: var(--primary-color);
+}
+
+.recommendation-content {
+  flex: 1;
+}
+
+.recommendation-message {
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  color: var(--dark-color);
+}
+
+.recommendation-action {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  border-radius: var(--border-radius-sm);
+}
+
+.no-recommendations {
+  text-align: center;
+  color: var(--success-color);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  padding: var(--spacing-lg);
+}
+
+/* Profile Info Grid */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background-color: var(--background-light);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--medium-light);
+}
+
+.info-label {
+  font-size: var(--font-size-sm);
+  color: var(--dark-medium);
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: var(--font-size-md);
+  color: var(--dark-color);
+  font-weight: 500;
+}
+
+/* Enhanced Modal Styles */
+.large-modal {
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-section {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--medium-light);
+}
+
+.form-section:last-child {
+  border-bottom: none;
+}
+
+.form-section h3 {
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-color);
+  font-size: var(--font-size-lg);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
+}
+
+/* Enhanced Activity Items */
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-circle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.activity-icon.registration {
+  background-color: var(--success-color);
+}
+
+.activity-icon.challenge {
+  background-color: #f39c12;
+}
+
+.activity-icon.video {
+  background-color: var(--primary-color);
+}
+
+.activity-icon.training {
+  background-color: #9b59b6;
+}
+
 @media (max-width: 768px) {
   .form-grid {
     grid-template-columns: 1fr;

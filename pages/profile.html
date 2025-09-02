@@ -16,11 +16,11 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     
     <!-- Application Scripts -->
-    <script src="../js/main.js" defer></script>
     <script src="../config/firebase.js" type="module"></script>
-    <script src="../auth/auth.js" type="module"></script>
-    <script src="../auth/auth-integration.js" type="module"></script>
-    <script src="../js/profile.js" type="module"></script>
+    <script src="../js/utils.js" type="module"></script>
+    <script src="../js/auth-manager.js" type="module"></script>
+    <script src="../js/profile-manager.js" type="module"></script>
+    <script src="../js/enhanced-profile.js" type="module"></script>
 </head>
 <body class="auth-loading">
     <!-- Authentication Loading Overlay -->
@@ -96,11 +96,50 @@
 
                     <!-- Profile Main Content -->
                     <div class="profile-main">
+                        <!-- Profile Completion Section -->
+                        <div class="profile-section" id="completion-section">
+                            <h3>השלמת פרופיל</h3>
+                            <div class="completion-container">
+                                <div class="completion-bar">
+                                    <div class="completion-progress" id="completion-progress"></div>
+                                </div>
+                                <div class="completion-text">
+                                    <span id="completion-percentage">0%</span> הושלם
+                                </div>
+                            </div>
+                            <div class="recommendations" id="profile-recommendations">
+                                <!-- Recommendations will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Profile Info Section -->
+                        <div class="profile-section" id="profile-info-section">
+                            <div class="section-header">
+                                <h3>פרטי פרופיל</h3>
+                                <button class="btn btn-secondary" id="edit-profile-btn">
+                                    <i class="fas fa-edit"></i> ערוך פרופיל
+                                </button>
+                            </div>
+                            <div class="profile-info-grid" id="profile-info-grid">
+                                <!-- Profile info will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Videos Section (Players only) -->
                         <div class="profile-section" id="videos-section">
                             <h3>הסרטונים שלי</h3>
                             <div class="videos-container" id="player-videos">
                                 <p class="no-videos-message">טוען סרטונים...</p>
                                 <!-- Videos will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Watchlist Section (Scouts only) -->
+                        <div class="profile-section" id="watchlist-section" style="display: none;">
+                            <h3>רשימת המעקב שלי</h3>
+                            <div class="watchlist-container" id="scout-watchlist">
+                                <p class="no-watchlist-message">טוען רשימת מעקב...</p>
+                                <!-- Watchlist will be populated by JavaScript -->
                             </div>
                         </div>
 
@@ -197,6 +236,151 @@
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">שמור תמונה</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Edit Profile -->
+    <div class="modal" id="edit-profile-modal">
+        <div class="modal-content large-modal">
+            <span class="close-modal">&times;</span>
+            <h2>עריכת פרופיל</h2>
+            <form id="edit-profile-form">
+                <!-- Basic Info -->
+                <div class="form-section">
+                    <h3>פרטים בסיסיים</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-name">שם מלא *</label>
+                            <input type="text" id="edit-name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-email">אימייל</label>
+                            <input type="email" id="edit-email" name="email" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player-specific fields -->
+                <div class="form-section" id="player-fields">
+                    <h3>פרטי שחקן</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-age">גיל *</label>
+                            <input type="number" id="edit-age" name="age" min="10" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-position">עמדה *</label>
+                            <select id="edit-position" name="position">
+                                <option value="">בחר עמדה</option>
+                                <option value="goalkeeper">שוער</option>
+                                <option value="defender">מגן</option>
+                                <option value="midfielder">קשר</option>
+                                <option value="forward">חלוץ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-dominant-foot">רגל דומיננטית</label>
+                            <select id="edit-dominant-foot" name="dominantFoot">
+                                <option value="">בחר רגל</option>
+                                <option value="right">ימין</option>
+                                <option value="left">שמאל</option>
+                                <option value="both">שתיהן</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-level">רמה</label>
+                            <select id="edit-level" name="level">
+                                <option value="beginner">מתחיל</option>
+                                <option value="intermediate">בינוני</option>
+                                <option value="advanced">מתקדם</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-height">גובה (ס"מ)</label>
+                            <input type="number" id="edit-height" name="height" min="140" max="220">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-weight">משקל (ק"ג)</label>
+                            <input type="number" id="edit-weight" name="weight" min="40" max="150">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scout-specific fields -->
+                <div class="form-section" id="scout-fields">
+                    <h3>פרטי סקאוט</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-club">מועדון *</label>
+                            <input type="text" id="edit-club" name="club">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-scout-position">תפקיד</label>
+                            <select id="edit-scout-position" name="position">
+                                <option value="">בחר תפקיד</option>
+                                <option value="head_scout">סקאוט ראשי</option>
+                                <option value="assistant_scout">עוזר סקאוט</option>
+                                <option value="talent_spotter">מגלה כשרונות</option>
+                                <option value="youth_scout">סקאוט נוער</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-experience">שנות ניסיון</label>
+                            <input type="text" id="edit-experience" name="experience" placeholder="למשל: 5 שנים">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-specialization">התמחות</label>
+                            <input type="text" id="edit-specialization" name="specialization" placeholder="למשל: פיתוח נוער">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="form-section">
+                    <h3>מיקום</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-city">עיר</label>
+                            <input type="text" id="edit-city" name="city" placeholder="למשל: תל אביב">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-country">מדינה</label>
+                            <select id="edit-country" name="country">
+                                <option value="Israel">ישראל</option>
+                                <option value="Palestine">פלסטין</option>
+                                <option value="Other">אחר</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings -->
+                <div class="form-section">
+                    <h3>הגדרות פרטיות</h3>
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="edit-is-public" name="isPublic">
+                            <span class="checkmark"></span>
+                            הפרופיל שלי ציבורי (יוכל להיות נראה לסקאוטים)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> שמור שינויים
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn">
+                        ביטול
+                    </button>
                 </div>
             </form>
         </div>

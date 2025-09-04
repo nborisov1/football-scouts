@@ -46,7 +46,9 @@ export const COLLECTIONS = {
   TRAINING: 'training',
   CHALLENGES: 'challenges',
   LEADERBOARDS: 'leaderboards',
-  SCOUT_REPORTS: 'scout_reports'
+  SCOUT_REPORTS: 'scout_reports',
+  VIDEOS: 'videos',
+  ANALYTICS: 'analytics'
 } as const
 
 export type UserType = typeof USER_TYPES[keyof typeof USER_TYPES]

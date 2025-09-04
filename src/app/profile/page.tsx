@@ -45,7 +45,7 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      name: user.name || '',
+      name: user.displayName || `${user.firstName} ${user.lastName}` || '',
       age: user.age || 18,
       position: user.position || '',
       dominantFoot: user.dominantFoot || 'right',
@@ -88,15 +88,15 @@ export default function ProfilePage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <section className="bg-blue-600 text-white py-12">
+      <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center">
             <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center ml-6">
               <i className="fas fa-user text-3xl"></i>
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{user.name}</h1>
-              <p className="text-blue-100">
+              <h1 className="text-3xl font-bold">{user.displayName || `${user.firstName} ${user.lastName}`}</h1>
+              <p className="text-white text-opacity-80">
                 {user.type === USER_TYPES.PLAYER && 'שחקן'}
                 {user.type === USER_TYPES.SCOUT && 'סקאוט'}
                 {user.type === USER_TYPES.ADMIN && 'מנהל'}
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                   {!isEditing ? (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="btn-primary"
                     >
                       <i className="fas fa-edit ml-2"></i>
                       ערוך פרופיל
@@ -147,7 +147,7 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">שם מלא</label>
-                      <p className="text-lg font-medium">{user.name}</p>
+                      <p className="text-lg font-medium">{user.displayName || `${user.firstName} ${user.lastName}`}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">אימייל</label>
@@ -291,7 +291,7 @@ export default function ProfilePage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">נקודות:</span>
-                    <span className="font-bold text-blue-600">{user.points || 0}</span>
+                    <span className="font-bold text-primary-600">{user.points || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">אימונים השבוע:</span>
@@ -321,7 +321,7 @@ export default function ProfilePage() {
                     <span>אתגר הושלם בהצלחה</span>
                   </div>
                   <div className="flex items-center text-sm">
-                    <i className="fas fa-chart-line text-blue-500 ml-2"></i>
+                    <i className="fas fa-chart-line text-primary-500 ml-2"></i>
                     <span>עליה בדירוג</span>
                   </div>
                 </div>

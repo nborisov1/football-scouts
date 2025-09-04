@@ -74,12 +74,12 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">פאנל ניהול</h1>
-              <p className="text-gray-600">ברוך הבא, {user.name}</p>
+              <p className="text-gray-600">ברוך הבא, {user.displayName || user.firstName}</p>
             </div>
             <div className="flex space-x-4 space-x-reverse">
               <button
                 onClick={() => showMessage('תכונה זו תהיה זמינה בקרוב', 'info')}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary"
               >
                 <i className="fas fa-download ml-2"></i>
                 ייצא דוח
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
             title="סך המשתמשים"
             value={stats.totalUsers}
             icon="fas fa-users"
-            color="bg-blue-500"
+            color="bg-primary-500"
           />
           <StatCard
             title="שחקנים"
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
                 onClick={() => showMessage('מעבר לניהול משתמשים', 'info')}
                 className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
               >
-                <i className="fas fa-users text-blue-500 ml-3"></i>
+                <i className="fas fa-users text-primary-500 ml-3"></i>
                 <div>
                   <div className="font-medium">ניהול משתמשים</div>
                   <div className="text-sm text-gray-500">הצג, ערוך והשעה משתמשים</div>
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                <i className="fas fa-video text-blue-500 ml-3"></i>
+                <i className="fas fa-video text-primary-500 ml-3"></i>
                 <div className="flex-1">
                   <div className="text-sm font-medium">סרטון חדש הועלה</div>
                   <div className="text-xs text-gray-500">לפני 12 דקות</div>
@@ -205,13 +205,13 @@ export default function AdminDashboard() {
                 עבור לבדיקה
               </button>
             </div>
-            <div className="text-center p-4 border border-blue-200 rounded-lg bg-blue-50">
-              <i className="fas fa-user-clock text-blue-500 text-3xl mb-2"></i>
-              <div className="text-lg font-bold text-blue-700">3</div>
-              <div className="text-sm text-blue-600">משתמשים ממתינים לאישור</div>
+            <div className="text-center p-4 border border-primary-200 rounded-lg bg-primary-50">
+              <i className="fas fa-user-clock text-primary-500 text-3xl mb-2"></i>
+              <div className="text-lg font-bold text-primary-700">3</div>
+              <div className="text-sm text-primary-600">משתמשים ממתינים לאישור</div>
               <button 
                 onClick={() => showMessage('מעבר לניהול משתמשים', 'info')}
-                className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="mt-2 text-primary-600 hover:text-primary-700 text-sm font-medium"
               >
                 עבור לאישור
               </button>

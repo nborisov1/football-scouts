@@ -64,7 +64,7 @@ export default function MessageContainer() {
         return `${baseStyles} bg-yellow-100 border border-yellow-200 text-yellow-800`
       case 'info':
       default:
-        return `${baseStyles} bg-blue-100 border border-blue-200 text-blue-800`
+        return `${baseStyles} bg-primary-100 border border-primary-200 text-primary-800`
     }
   }
 

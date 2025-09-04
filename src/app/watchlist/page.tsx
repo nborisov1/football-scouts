@@ -7,22 +7,14 @@
 
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_TYPES } from '@/lib/firebase'
 import { showMessage } from '@/components/MessageContainer'
+import ProtectedRoute from '@/components/ProtectedRoute'
+
+import { USER_TYPES } from '@/lib/firebase'
 
 export default function WatchlistPage() {
   const { user } = useAuth()
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">נדרשת התחברות</h2>
-          <p className="text-gray-600">התחבר כדי לצפות ברשימת המעקב שלך</p>
-        </div>
-      </div>
-    )
-  }
 
   if (user.type !== USER_TYPES.SCOUT) {
     return (
@@ -36,7 +28,8 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <section className="bg-indigo-600 text-white py-12">
         <div className="container mx-auto px-4">
@@ -66,6 +59,7 @@ export default function WatchlistPage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

@@ -8,6 +8,8 @@
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
+import ProtectedRoute from '@/components/ProtectedRoute'
+
 import { USER_TYPES } from '@/lib/firebase'
 
 export default function ProfilePage() {
@@ -22,16 +24,6 @@ export default function ProfilePage() {
     organization: user?.organization || ''
   })
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">נדרשת התחברות</h2>
-          <p className="text-gray-600">התחבר כדי לצפות בפרופיל שלך</p>
-        </div>
-      </div>
-    )
-  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -93,7 +85,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <section className="bg-blue-600 text-white py-12">
         <div className="container mx-auto px-4">
@@ -337,6 +330,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

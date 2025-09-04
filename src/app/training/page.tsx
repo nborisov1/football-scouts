@@ -8,6 +8,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 export default function TrainingPage() {
   const { user } = useAuth()
@@ -46,7 +47,8 @@ export default function TrainingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
@@ -127,6 +129,7 @@ export default function TrainingPage() {
           )}
         </div>
       </section>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

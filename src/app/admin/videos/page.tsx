@@ -7,8 +7,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_TYPES } from '@/lib/firebase'
 import { showMessage } from '@/components/MessageContainer'
+import ProtectedRoute from '@/components/ProtectedRoute'
+
+import { USER_TYPES } from '@/lib/firebase'
 
 interface Video {
   id: string
@@ -129,7 +131,8 @@ export default function AdminVideos() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -313,6 +316,7 @@ export default function AdminVideos() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

@@ -13,12 +13,7 @@ import { showMessage } from '@/components/MessageContainer'
 import RegistrationModal from '@/components/modals/RegistrationModal'
 import LoginModal from '@/components/modals/LoginModal'
 
-// Define user types locally to avoid Firebase import on server
-const USER_TYPES = {
-  PLAYER: 'player',
-  SCOUT: 'scout',
-  ADMIN: 'admin'
-} as const
+import { USER_TYPES } from '@/lib/firebase'
 
 // Mock data for demonstration (same as original)
 const mockLeaderboardData = {
@@ -131,9 +126,9 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
             <Link
               href="/training"
-              className="group bg-white text-field-700 px-8 py-4 rounded-xl font-display font-bold hover:bg-field-50 transition-all duration-300 hover:scale-105 shadow-stadium inline-flex items-center justify-center"
+              className="group bg-transparent text-white px-8 py-4 rounded-xl font-display font-bold border-2 border-white hover:bg-white hover:text-field-700 transition-all duration-300 hover:scale-105 shadow-stadium inline-flex items-center justify-center"
             >
-              <i className="fas fa-dumbbell ml-3 text-field-600 group-hover:text-field-700 transition-colors"></i>
+              <i className="fas fa-tasks ml-3 group-hover:text-field-600 transition-colors"></i>
               המשך אימון
             </Link>
             <Link

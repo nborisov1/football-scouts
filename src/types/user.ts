@@ -6,25 +6,21 @@ export type UserType = 'player' | 'scout' | 'admin'
 
 export interface UserData {
   uid: string
-  name: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+  emailVerified: boolean
   type: UserType
-  email: string
-  createdAt?: Date
-  updatedAt?: Date
-  
-  // Player-specific fields
-  age?: number
-  position?: string
-  dominantFoot?: 'right' | 'left' | 'both'
-  level?: 'beginner' | 'intermediate' | 'advanced' | 'professional'
-  height?: number
-  weight?: number
-  experience?: number
-  
-  // Scout-specific fields
-  organization?: string
-  certifications?: string[]
-  regionsOfInterest?: string[]
+  firstName: string
+  lastName: string
+  age: number
+  position: string
+  team: string
+  level: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  dominantFoot: 'right' | 'left' | 'both'
+  organization: string
+  createdAt?: any
+  updatedAt?: any
   
   // Progress tracking
   points?: number
@@ -45,19 +41,21 @@ export interface AuthContextType {
   user: UserData | null
   loading: boolean
   login: (email: string, password: string) => Promise<any>
-  register: (userData: RegisterData, userType: UserType) => Promise<any>
+  register: (userData: RegisterData) => Promise<any>
   logout: () => Promise<void>
   updateProfile: (updates: Partial<UserData>) => Promise<void>
-  initializeAdmin: () => Promise<void>
 }
 
 export interface RegisterData {
-  name: string
   email: string
   password: string
-  age?: number
-  position?: string
-  dominantFoot?: string
-  level?: string
-  organization?: string
+  firstName: string
+  lastName: string
+  type: UserType
+  age: number
+  position: string
+  team: string
+  level: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  dominantFoot: 'right' | 'left' | 'both'
+  organization: string
 }

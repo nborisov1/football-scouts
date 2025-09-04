@@ -10,12 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { RegisterData, UserType } from '@/types/user'
 import { showMessage } from '../MessageContainer'
 
-// Define user types locally to avoid Firebase import issues
-const USER_TYPES = {
-  PLAYER: 'player',
-  SCOUT: 'scout',
-  ADMIN: 'admin'
-} as const
+import { USER_TYPES } from '@/lib/firebase'
 
 interface RegistrationModalProps {
   isOpen: boolean

@@ -1,12 +1,13 @@
 /**
  * Firebase Configuration for Football Scouting Platform React App
  * Modern Firebase v9+ setup with TypeScript
+ * Proper client-side only initialization
  */
 
-import { initializeApp } from 'firebase/app'
-import { getAuth, connectAuthEmulator } from 'firebase/auth'
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
-import { getStorage, connectStorageEmulator } from 'firebase/storage'
+import { initializeApp, getApps } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 // Firebase configuration - same as original app
 const firebaseConfig = {
@@ -18,28 +19,17 @@ const firebaseConfig = {
   appId: "1:1035428109661:web:b41e0e45728f762bfb1cb4",
 }
 
-// Initialize Firebase
-let app: any
-let auth: any
-let db: any  
-let storage: any
+// Initialize Firebase only once and only on client
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
-try {
-  app = initializeApp(firebaseConfig)
-  
-  // Initialize Firebase services
-  auth = getAuth(app)
-  db = getFirestore(app)
-  storage = getStorage(app)
-  
-  // Set auth language to Hebrew
-  if (auth) {
-    auth.languageCode = 'he'
-  }
-  
-  console.log('✅ Firebase v9+ initialized successfully')
-} catch (error) {
-  console.error('❌ Firebase initialization error:', error)
+// Initialize Firebase services
+const auth = getAuth(app)
+const db = getFirestore(app)
+const storage = getStorage(app)
+
+// Set auth language to Hebrew
+if (typeof window !== 'undefined' && auth) {
+  auth.languageCode = 'he'
 }
 
 export { auth, db, storage }

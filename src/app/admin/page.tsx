@@ -7,8 +7,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_TYPES } from '@/lib/firebase'
 import { showMessage } from '@/components/MessageContainer'
+import ProtectedRoute from '@/components/ProtectedRoute'
+
+import { USER_TYPES } from '@/lib/firebase'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
@@ -64,7 +66,8 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -227,6 +230,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

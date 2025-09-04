@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 // Mock data (same as original)
 interface Player {
@@ -239,7 +240,8 @@ export default function LeaderboardsPage() {
   const currentTab = tabs.find(tab => tab.key === activeTab)!
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
@@ -533,6 +535,7 @@ export default function LeaderboardsPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

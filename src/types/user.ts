@@ -2,10 +2,9 @@
  * User type definitions for the Football Scouting Platform
  */
 
-import { User as FirebaseUser } from 'firebase/auth'
-import { UserType } from '@/lib/firebase'
+export type UserType = 'player' | 'scout' | 'admin'
 
-export interface UserData extends Omit<FirebaseUser, 'uid'> {
+export interface UserData {
   uid: string
   name: string
   type: UserType
@@ -45,8 +44,8 @@ export interface UserData extends Omit<FirebaseUser, 'uid'> {
 export interface AuthContextType {
   user: UserData | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (userData: RegisterData, userType: UserType) => Promise<void>
+  login: (email: string, password: string) => Promise<any>
+  register: (userData: RegisterData, userType: UserType) => Promise<any>
   logout: () => Promise<void>
   updateProfile: (updates: Partial<UserData>) => Promise<void>
   initializeAdmin: () => Promise<void>

@@ -65,24 +65,30 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md shadow-stadium border border-field-200/50" dir="rtl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">התחברות</h2>
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="w-10 h-10 bg-field-gradient rounded-full flex items-center justify-center shadow-stadium-glow">
+              <i className="fas fa-sign-in-alt text-white"></i>
+            </div>
+            <h2 className="text-2xl font-display font-bold text-stadium-900">התחברות</h2>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+            className="w-10 h-10 rounded-full bg-stadium-100 hover:bg-stadium-200 text-stadium-600 hover:text-stadium-800 transition-all duration-300 flex items-center justify-center"
             aria-label="סגור"
           >
-            ×
+            <i className="fas fa-times"></i>
           </button>
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+              <i className="fas fa-envelope ml-2 text-field-500"></i>
               אימייל
             </label>
             <input
@@ -92,14 +98,15 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
               value={formData.email}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
               placeholder="הזן את כתובת האימייל שלך"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+              <i className="fas fa-lock ml-2 text-field-500"></i>
               סיסמה
             </label>
             <input
@@ -109,7 +116,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
               value={formData.password}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
               placeholder="הזן את הסיסמה שלך"
               disabled={isLoading}
             />
@@ -118,32 +125,43 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full btn-primary py-4 text-lg font-display font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 space-x-reverse"
           >
-            {isLoading ? 'מתחבר...' : 'התחבר'}
+            {isLoading ? (
+              <>
+                <i className="fas fa-spinner animate-spin"></i>
+                <span>מתחבר...</span>
+              </>
+            ) : (
+              <>
+                <i className="fas fa-futbol"></i>
+                <span>התחבר</span>
+              </>
+            )}
           </button>
         </form>
 
         {/* Footer */}
-        <div className="mt-6 text-center space-y-3">
-          <p className="text-sm text-gray-600">
-            אין לך חשבון?{' '}
-            <button
-              onClick={handleSwitchToRegister}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              הרשם עכשיו
-            </button>
-          </p>
-          <p>
+        <div className="mt-8 text-center space-y-4">
+          <div className="border-t border-field-200 pt-6">
+            <p className="text-sm text-stadium-600 mb-4">
+              אין לך חשבון?{' '}
+              <button
+                onClick={handleSwitchToRegister}
+                className="text-field-600 hover:text-field-700 font-bold transition-colors"
+              >
+                הרשם עכשיו
+              </button>
+            </p>
             <button
               type="button"
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-field-500 hover:text-field-600 transition-colors flex items-center justify-center mx-auto space-x-1 space-x-reverse"
               onClick={() => showMessage('אפשרות שחזור סיסמה תופעל בקרוב', 'info')}
             >
-              שכחת סיסמה?
+              <i className="fas fa-question-circle"></i>
+              <span>שכחת סיסמה?</span>
             </button>
-          </p>
+          </div>
         </div>
       </div>
     </div>

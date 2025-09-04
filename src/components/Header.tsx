@@ -5,7 +5,7 @@
  * Preserves exact functionality from original header
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { USER_TYPES } from '@/lib/firebase'
@@ -42,34 +42,52 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white/95 backdrop-blur-md shadow-stadium border-b border-field-200/30 sticky top-0 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <Link href="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700">
-                פוטבול סקאוטינג
+              <Link href="/" className="group flex items-center space-x-3 space-x-reverse">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-field-gradient rounded-full flex items-center justify-center shadow-stadium-glow group-hover:animate-glow transition-all duration-300">
+                    <i className="fas fa-futbol text-white text-xl"></i>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-display font-bold text-gradient-field">
+                    פוטבול סקאוטינג
+                  </span>
+                  <span className="text-xs text-field-600 font-medium tracking-wide">
+                    FOOTBALL SCOUTING
+                  </span>
+                </div>
               </Link>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8 space-x-reverse">
-              <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link href="/" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
+                <i className="fas fa-home ml-2 text-field-500"></i>
                 דף הבית
               </Link>
-              <Link href="/leaderboards" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link href="/leaderboards" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
+                <i className="fas fa-trophy ml-2 text-accent-500"></i>
                 טבלאות מובילים
               </Link>
-              <Link href="/training" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link href="/training" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
+                <i className="fas fa-dumbbell ml-2 text-field-500"></i>
                 תוכניות אימון
               </Link>
-              <Link href="/challenges" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link href="/challenges" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
+                <i className="fas fa-bullseye ml-2 text-field-600 text-lg"></i>
                 אתגרים
               </Link>
-              <Link href="/about" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link href="/about" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
+                <i className="fas fa-info-circle ml-2 text-field-500"></i>
                 אודות
               </Link>
-              <Link href="/contact" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link href="/contact" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
+                <i className="fas fa-envelope ml-2 text-field-500"></i>
                 צור קשר
               </Link>
             </nav>
@@ -81,70 +99,86 @@ export default function Header() {
                 <div className="relative">
                   <button
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    className="flex items-center space-x-2 space-x-reverse bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center space-x-3 space-x-reverse bg-white/80 backdrop-blur-sm border border-field-200 rounded-xl px-6 py-3 text-sm font-medium text-stadium-700 hover:bg-field-50 hover:border-field-300 focus:outline-none focus:ring-2 focus:ring-field-500 transition-all duration-300 shadow-stadium"
                   >
-                    <span>{user.name || 'החשבון שלי'}</span>
-                    <i className="fas fa-user text-gray-500"></i>
+                    <span className="font-display font-semibold">{user.name || 'החשבון שלי'}</span>
+                    <div className="w-8 h-8 bg-field-gradient rounded-full flex items-center justify-center">
+                      <i className="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <i className="fas fa-chevron-down text-field-400 text-xs"></i>
                   </button>
 
                   {showUserDropdown && (
-                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <div className="absolute left-0 mt-3 w-56 bg-white/95 backdrop-blur-lg rounded-xl shadow-stadium border border-field-200/50 py-2 z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-field-100">
+                        <p className="text-sm font-medium text-stadium-900">{user.name}</p>
+                        <p className="text-xs text-field-600 capitalize">
+                          {user.type === USER_TYPES.PLAYER && '⚽ שחקן'}
+                          {user.type === USER_TYPES.SCOUT && '🔍 סקאוט'}
+                          {user.type === USER_TYPES.ADMIN && '👑 מנהל'}
+                        </p>
+                      </div>
                       <Link
                         href="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-3 text-sm text-stadium-700 hover:bg-field-50 hover:text-field-700 transition-colors"
                         onClick={() => setShowUserDropdown(false)}
                       >
+                        <i className="fas fa-user-circle ml-3 text-field-500"></i>
                         הפרופיל שלי
                       </Link>
                       <Link
                         href="/training"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-3 text-sm text-stadium-700 hover:bg-field-50 hover:text-field-700 transition-colors"
                         onClick={() => setShowUserDropdown(false)}
                       >
+                        <i className="fas fa-dumbbell ml-3 text-field-500"></i>
                         תוכנית האימון שלי
                       </Link>
                       <Link
                         href="/challenges"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-3 text-sm text-stadium-700 hover:bg-field-50 hover:text-field-700 transition-colors"
                         onClick={() => setShowUserDropdown(false)}
                       >
+                        <i className="fas fa-bullseye ml-3 text-field-600 text-base"></i>
                         אתגרים
                       </Link>
                       {user.type === USER_TYPES.SCOUT && (
                         <Link
                           href="/watchlist"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center px-4 py-3 text-sm text-stadium-700 hover:bg-field-50 hover:text-field-700 transition-colors"
                           onClick={() => setShowUserDropdown(false)}
                         >
+                          <i className="fas fa-bookmark ml-3 text-field-500"></i>
                           רשימת המעקב
                         </Link>
                       )}
                       {user.type === USER_TYPES.ADMIN && (
                         <>
-                          <hr className="my-1" />
+                          <div className="border-t border-field-100 my-2"></div>
                           <Link
                             href="/admin"
-                            className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            className="flex items-center px-4 py-3 text-sm text-accent-600 hover:bg-accent-50 hover:text-accent-700 transition-colors"
                             onClick={() => setShowUserDropdown(false)}
                           >
-                            <i className="fas fa-cog ml-2"></i>
+                            <i className="fas fa-cog ml-3"></i>
                             פאנל ניהול
                           </Link>
                           <Link
                             href="/admin/videos"
-                            className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            className="flex items-center px-4 py-3 text-sm text-accent-600 hover:bg-accent-50 hover:text-accent-700 transition-colors"
                             onClick={() => setShowUserDropdown(false)}
                           >
-                            <i className="fas fa-video ml-2"></i>
+                            <i className="fas fa-video ml-3"></i>
                             ניהול סרטונים
                           </Link>
                         </>
                       )}
-                      <hr className="my-1" />
+                      <div className="border-t border-field-100 my-2"></div>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                       >
+                        <i className="fas fa-sign-out-alt ml-3"></i>
                         התנתק
                       </button>
                     </div>
@@ -155,14 +189,16 @@ export default function Header() {
                 <div className="flex items-center space-x-3 space-x-reverse">
                   <button
                     onClick={openLogin}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="btn-secondary text-sm px-6 py-3 font-display hover:shadow-stadium transition-all duration-300"
                   >
+                    <i className="fas fa-sign-in-alt ml-2"></i>
                     התחברות
                   </button>
                   <button
                     onClick={() => openRegistration()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="btn-primary text-sm px-6 py-3 font-display hover:shadow-stadium-glow transition-all duration-300"
                   >
+                    <i className="fas fa-user-plus ml-2"></i>
                     הרשמה
                   </button>
                 </div>
@@ -171,35 +207,91 @@ export default function Header() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                className="md:hidden p-3 rounded-xl text-field-600 hover:text-field-700 hover:bg-field-50 focus:outline-none focus:ring-2 focus:ring-field-500 transition-all duration-300"
               >
-                <i className="fas fa-bars text-lg"></i>
+                <i className={`fas ${showMobileMenu ? 'fa-times' : 'fa-bars'} text-xl`}></i>
               </button>
             </div>
           </div>
 
           {/* Mobile Navigation */}
           {showMobileMenu && (
-            <div className="md:hidden py-4 border-t border-gray-200">
-              <nav className="flex flex-col space-y-2">
-                <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+            <div className="md:hidden py-6 border-t border-field-200/50 bg-white/95 backdrop-blur-md">
+              <nav className="flex flex-col space-y-1">
+                <Link 
+                  href="/" 
+                  className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <i className="fas fa-home ml-3 text-field-500"></i>
                   דף הבית
                 </Link>
-                <Link href="/leaderboards" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+                <Link 
+                  href="/leaderboards" 
+                  className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <i className="fas fa-trophy ml-3 text-accent-500"></i>
                   טבלאות מובילים
                 </Link>
-                <Link href="/training" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+                <Link 
+                  href="/training" 
+                  className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <i className="fas fa-dumbbell ml-3 text-field-500"></i>
                   תוכניות אימון
                 </Link>
-                <Link href="/challenges" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+                <Link 
+                  href="/challenges" 
+                  className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <i className="fas fa-bullseye ml-3 text-field-600 text-lg"></i>
                   אתגרים
                 </Link>
-                <Link href="/about" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+                <Link 
+                  href="/about" 
+                  className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <i className="fas fa-info-circle ml-3 text-field-500"></i>
                   אודות
                 </Link>
-                <Link href="/contact" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+                <Link 
+                  href="/contact" 
+                  className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <i className="fas fa-envelope ml-3 text-field-500"></i>
                   צור קשר
                 </Link>
+                
+                {/* Mobile Auth Buttons for Guests */}
+                {!user && (
+                  <div className="px-4 py-4 border-t border-field-200/50 mt-4 space-y-3">
+                    <button
+                      onClick={() => {
+                        openLogin()
+                        setShowMobileMenu(false)
+                      }}
+                      className="w-full btn-secondary text-sm py-3 font-display"
+                    >
+                      <i className="fas fa-sign-in-alt ml-2"></i>
+                      התחברות
+                    </button>
+                    <button
+                      onClick={() => {
+                        openRegistration()
+                        setShowMobileMenu(false)
+                      }}
+                      className="w-full btn-primary text-sm py-3 font-display"
+                    >
+                      <i className="fas fa-user-plus ml-2"></i>
+                      הרשמה
+                    </button>
+                  </div>
+                )}
               </nav>
             </div>
           )}
@@ -222,7 +314,7 @@ export default function Header() {
       {/* Click outside to close dropdowns */}
       {(showUserDropdown || showMobileMenu) && (
         <div 
-          className="fixed inset-0 z-10" 
+          className="fixed inset-0 z-40" 
           onClick={() => {
             setShowUserDropdown(false)
             setShowMobileMenu(false)

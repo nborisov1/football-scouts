@@ -9,8 +9,16 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_TYPES } from '@/lib/firebase'
 import { showMessage } from '@/components/MessageContainer'
+import RegistrationModal from '@/components/modals/RegistrationModal'
+import LoginModal from '@/components/modals/LoginModal'
+
+// Define user types locally to avoid Firebase import on server
+const USER_TYPES = {
+  PLAYER: 'player',
+  SCOUT: 'scout',
+  ADMIN: 'admin'
+} as const
 
 // Mock data for demonstration (same as original)
 const mockLeaderboardData = {
@@ -35,6 +43,9 @@ export default function HomePage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'consistent' | 'improved' | 'ranked'>('consistent')
   const [testimonialIndex, setTestimonialIndex] = useState(0)
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
+  const [registrationType, setRegistrationType] = useState<'player' | 'scout' | null>(null)
 
   const testimonials = [
     {
@@ -59,38 +70,44 @@ export default function HomePage() {
     return () => clearInterval(interval)
   }, [testimonials.length])
 
+  const openRegistration = (type?: 'player' | 'scout') => {
+    setRegistrationType(type || null)
+    setShowRegistrationModal(true)
+    setShowLoginModal(false)
+  }
+
+  const openLogin = () => {
+    setShowLoginModal(true)
+    setShowRegistrationModal(false)
+  }
+
   const renderGuestHero = () => (
-    <section className="bg-gradient-to-l from-blue-600 to-blue-800 text-white py-20">
+    <section className="bg-field-gradient text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="text-center lg:text-right">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-              גלה את הפוטנציאל שלך בכדורגל
-            </h1>
-            <p className="text-xl mb-8 text-blue-100">
-              פלטפורמה המחברת בין שחקני כדורגל מוכשרים לסקאוטים מקצועיים
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button 
-                onClick={() => showMessage('מערכת ההרשמה תיפתח בקרוב', 'info')}
-                className="bg-white text-blue-700 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors"
-              >
-                <i className="fas fa-running ml-2"></i>
-                הרשם כשחקן
-              </button>
-              <button 
-                onClick={() => showMessage('מערכת ההרשמה תיפתח בקרוב', 'info')}
-                className="bg-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-400 border-2 border-white transition-colors"
-              >
-                <i className="fas fa-search ml-2"></i>
-                הרשם כסקאוט
-              </button>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="w-[500px] h-[400px] bg-gray-300 rounded-lg shadow-2xl mx-auto flex items-center justify-center">
-              <span className="text-gray-600">תמונת גיבור</span>
-            </div>
+        <div className="text-center space-y-6">
+          <h1 className="text-4xl font-bold mb-4 text-with-shadow">
+            גלה את הפוטנציאל שלך בכדורגל
+          </h1>
+          <p className="text-xl text-white/90 text-with-shadow max-w-3xl mx-auto">
+            הפלטפורמה המובילה המחברת בין שחקני כדורגל מוכשרים לסקאוטים מקצועיים
+          </p>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
+            <button 
+              onClick={() => openRegistration('player')}
+              className="bg-transparent text-white px-8 py-4 rounded-xl font-display font-bold text-lg border-2 border-white hover:bg-white hover:text-field-700 transition-all duration-300 hover:scale-105 shadow-stadium flex items-center justify-center"
+            >
+              <i className="fas fa-search ml-3"></i>
+              הרשם כשחקן
+            </button>
+            <button 
+              onClick={() => openRegistration('scout')}
+              className="bg-transparent text-white px-8 py-4 rounded-xl font-display font-bold text-lg border-2 border-white hover:bg-white hover:text-field-700 transition-all duration-300 hover:scale-105 shadow-stadium flex items-center justify-center"
+            >
+              <i className="fas fa-search ml-3"></i>
+              הרשם כסקאוט
+            </button>
           </div>
         </div>
       </div>
@@ -98,67 +115,34 @@ export default function HomePage() {
   )
 
   const renderAuthenticatedHero = () => (
-    <section className="bg-gradient-to-l from-green-600 to-green-800 text-white py-16">
+    <section className="bg-field-gradient text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-          <div className="lg:col-span-2">
-            <h1 className="text-3xl lg:text-4xl font-bold mb-4">
-              שלום {user?.name || 'חבר'}!
-            </h1>
-            <p className="text-xl mb-6 text-green-100">
-              {user?.type === USER_TYPES.PLAYER && 'ממשיך להתפתח ולהשתפר'}
-              {user?.type === USER_TYPES.SCOUT && 'מגלה כישרונות חדשים'}
-              {user?.type === USER_TYPES.ADMIN && 'מנהל את הפלטפורמה'}
-            </p>
-            
-            {/* User Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
-                <i className="fas fa-calendar-check text-2xl mb-2"></i>
-                <div className="text-lg font-semibold">{user?.weeklyTrainings || 0}</div>
-                <div className="text-sm">אימונים השבוע</div>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
-                <i className="fas fa-trophy text-2xl mb-2"></i>
-                <div className="text-lg font-semibold">{user?.points || 0}</div>
-                <div className="text-sm">נקודות</div>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
-                <i className="fas fa-target text-2xl mb-2"></i>
-                <div className="text-lg font-semibold">{user?.completedChallenges || 0}</div>
-                <div className="text-sm">אתגרים הושלמו</div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/training"
-                className="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors inline-flex items-center justify-center"
-              >
-                <i className="fas fa-dumbbell ml-2"></i>
-                המשך אימון
-              </Link>
-              <Link
-                href="/challenges"
-                className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-400 border-2 border-white transition-colors inline-flex items-center justify-center"
-              >
-                <i className="fas fa-tasks ml-2"></i>
-                אתגרים חדשים
-              </Link>
-            </div>
-          </div>
-
-          {/* Progress Circle */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative w-32 h-32">
-              <div className="absolute inset-0 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{user?.weeklyProgress || 0}%</div>
-                  <div className="text-sm">השבוע</div>
-                </div>
-              </div>
-            </div>
+        <div className="text-center space-y-6">
+          <h1 className="text-4xl font-bold mb-4 text-with-shadow">
+            שלום {user?.name || 'חבר'}! 👋
+          </h1>
+          <p className="text-xl text-white/90 text-with-shadow">
+            {user?.type === USER_TYPES.PLAYER && '⚽ ממשיך להתפתח ולהשתפר בכדורגל'}
+            {user?.type === USER_TYPES.SCOUT && '🔍 מגלה כישרונות חדשים מדי יום'}
+            {user?.type === USER_TYPES.ADMIN && '👑 מנהל את הפלטפורמה בצורה מקצועית'}
+          </p>
+          
+          {/* Quick Actions */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
+            <Link
+              href="/training"
+              className="group bg-white text-field-700 px-8 py-4 rounded-xl font-display font-bold hover:bg-field-50 transition-all duration-300 hover:scale-105 shadow-stadium inline-flex items-center justify-center"
+            >
+              <i className="fas fa-dumbbell ml-3 text-field-600 group-hover:text-field-700 transition-colors"></i>
+              המשך אימון
+            </Link>
+            <Link
+              href="/challenges"
+              className="group bg-transparent text-white px-8 py-4 rounded-xl font-display font-bold border-2 border-white hover:bg-white hover:text-field-700 transition-all duration-300 hover:scale-105 shadow-stadium inline-flex items-center justify-center"
+            >
+              <i className="fas fa-tasks ml-3 group-hover:text-field-600 transition-colors"></i>
+              אתגרים חדשים
+            </Link>
           </div>
         </div>
       </div>
@@ -166,7 +150,7 @@ export default function HomePage() {
   )
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       {user ? renderAuthenticatedHero() : renderGuestHero()}
 
@@ -174,38 +158,64 @@ export default function HomePage() {
       {!user && (
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              איך זה עובד?
-            </h2>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4 text-stadium-900">
+                איך זה עובד?
+              </h2>
+              <p className="text-lg text-stadium-600 max-w-2xl mx-auto">
+                ארבעה שלבים פשוטים להתחלת המסע שלך בעולם הכדורגל
+              </p>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
                   icon: 'fas fa-user-plus',
                   title: 'צור פרופיל',
-                  description: 'הרשם ויצור פרופיל אישי עם הפרטים והיכולות שלך'
+                  description: 'הרשם ויצור פרופיל אישי עם הפרטים והיכולות שלך',
+                  color: 'field-500',
+                  step: '01'
                 },
                 {
                   icon: 'fas fa-tasks',
                   title: 'השלם אתגרים',
-                  description: 'בצע סדרת אתגרים ראשוניים כדי לקבוע את רמת המיומנות שלך'
+                  description: 'בצע סדרת אתגרים ראשוניים כדי לקבוע את רמת המיומנות שלך',
+                  color: 'accent-500',
+                  step: '02'
                 },
                 {
                   icon: 'fas fa-dumbbell',
                   title: 'קבל תוכנית אימון',
-                  description: 'קבל תוכנית אימון מותאמת אישית בהתאם לרמה שלך'
+                  description: 'קבל תוכנית אימון מותאמת אישית בהתאם לרמה שלך',
+                  color: 'field-600',
+                  step: '03'
                 },
                 {
                   icon: 'fas fa-trophy',
                   title: 'התקדם ובלוט',
-                  description: 'צבור נקודות, השתפר והופע בטבלאות המובילים שלנו'
+                  description: 'צבור נקודות, השתפר והופע בטבלאות המובילים שלנו',
+                  color: 'accent-600',
+                  step: '04'
                 }
               ].map((feature, index) => (
-                <div key={index} className="text-center p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
-                  <div className="text-4xl text-blue-600 mb-4">
-                    <i className={feature.icon}></i>
+                <div key={index} className="relative group">
+                  <div className="bg-white rounded-lg shadow-sm p-6 text-center hover:shadow-lg transition-all duration-300 border border-gray-200">
+                    {/* Step number */}
+                    <div className="absolute -top-4 -right-4 w-8 h-8 bg-field-gradient rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {feature.step}
+                    </div>
+                    
+                    <div className={`w-16 h-16 bg-${feature.color} rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <i className={`${feature.icon} text-white text-2xl`}></i>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold mb-3 text-stadium-900">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-stadium-600 leading-relaxed">
+                      {feature.description}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -214,27 +224,32 @@ export default function HomePage() {
       )}
 
       {/* Leaderboards Preview */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            טבלאות מובילים
-          </h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 text-stadium-900">
+              🏆 טבלאות מובילים
+            </h2>
+            <p className="text-lg text-stadium-600 max-w-2xl mx-auto">
+              עקוב אחר השחקנים הטובים ביותר והשתלב בקהילת האליטה
+            </p>
+          </div>
           
           {/* Tab Navigation */}
           <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-1 shadow-sm">
+            <div className="bg-white rounded-lg p-1 shadow-stadium border border-field-200">
               {[
-                { key: 'consistent' as const, label: 'הכי עקביים' },
-                { key: 'improved' as const, label: 'השיפור הגדול ביותר' },
-                { key: 'ranked' as const, label: 'דירוג הגבוה ביותר' }
+                { key: 'consistent' as const, label: 'הכי עקביים', icon: 'fas fa-calendar-check' },
+                { key: 'improved' as const, label: 'השיפור הגדול', icon: 'fas fa-chart-line' },
+                { key: 'ranked' as const, label: 'דירוג גבוה', icon: 'fas fa-crown' }
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                  className={`px-6 py-3 rounded-md font-medium transition-all duration-300 ${
                     activeTab === tab.key
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-600 hover:text-blue-600'
+                      ? 'bg-field-gradient text-white shadow-stadium-glow'
+                      : 'text-stadium-600 hover:text-field-600 hover:bg-field-50'
                   }`}
                 >
                   {tab.label}
@@ -245,41 +260,73 @@ export default function HomePage() {
 
           {/* Leaderboard Table */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">דירוג</th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">שם</th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">עמדה</th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">גיל</th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                    {activeTab === 'consistent' && 'ימים רצופים'}
-                    {activeTab === 'improved' && '% שיפור'}
-                    {activeTab === 'ranked' && 'נקודות'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {mockLeaderboardData[activeTab].map((player, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{index + 1}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{player.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{player.position}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{player.age}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-blue-600">{player.score}</td>
+            <div className="bg-gray-50 p-4">
+              <h3 className="text-lg font-semibold text-stadium-900">
+                {activeTab === 'consistent' && 'השחקנים הכי עקביים'}
+                {activeTab === 'improved' && 'השיפור הגדול ביותר'}
+                {activeTab === 'ranked' && 'הדירוג הגבוה ביותר'}
+              </h3>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">דירוג</th>
+                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">שחקן</th>
+                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">עמדה</th>
+                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">גיל</th>
+                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">
+                      {activeTab === 'consistent' && 'ימים רצופים'}
+                      {activeTab === 'improved' && 'אחוז שיפור'}
+                      {activeTab === 'ranked' && 'נקודות'}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {mockLeaderboardData[activeTab].map((player, index) => (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors group">
+                      <td className="px-6 py-5 text-sm font-bold">
+                        <div className="flex items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs ${
+                            index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-yellow-600' : 'bg-gray-500'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          {index < 3 && (
+                            <i className={`fas fa-medal ml-2 ${
+                              index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-yellow-600'
+                            }`}></i>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-sm font-semibold text-gray-900">
+                        {player.name}
+                      </td>
+                      <td className="px-6 py-5 text-sm text-gray-600">
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-700">
+                          {player.position}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-sm text-gray-600">{player.age}</td>
+                      <td className="px-6 py-5 text-sm">
+                        <span className="font-bold text-field-600 text-lg">{player.score}</span>
+                        {activeTab === 'improved' && <span className="text-gray-500 text-xs">%</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="text-center mt-8">
+          <div className="text-center mt-12">
             <Link
               href="/leaderboards"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors inline-flex items-center"
+              className="btn-primary px-8 py-4 text-lg hover:shadow-stadium-glow transition-all duration-300 hover:scale-105 inline-flex items-center"
             >
-              צפה בכל הטבלאות
-              <i className="fas fa-arrow-left mr-2"></i>
+              <span>צפה בכל הטבלאות</span>
+              <i className="fas fa-arrow-left mr-3"></i>
             </Link>
           </div>
         </div>
@@ -287,26 +334,34 @@ export default function HomePage() {
 
       {/* Testimonials - Only for guests */}
       {!user && (
-        <section className="py-16 bg-white">
+        <section className="py-16">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              סיפורי הצלחה
-            </h2>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4 text-stadium-900">
+                💬 סיפורי הצלחה
+              </h2>
+              <p className="text-lg text-stadium-600 max-w-2xl mx-auto">
+                שמע מהאנשים שכבר שינו את חייהם באמצעות הפלטפורמה שלנו
+              </p>
+            </div>
+            
             <div className="max-w-4xl mx-auto">
-              <div className="bg-gray-50 rounded-lg p-8 text-center">
-                <div className="mb-6">
-                  <p className="text-lg text-gray-700 italic mb-6">
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <div className="mb-10">
+                  <div className="text-6xl mb-6">💭</div>
+                  <p className="text-xl text-stadium-700 italic leading-relaxed mb-8 font-medium">
                     "{testimonials[testimonialIndex].content}"
                   </p>
-                  <div className="flex items-center justify-center space-x-4 space-x-reverse">
-                    <div className="w-15 h-15 bg-gray-300 rounded-full flex items-center justify-center">
-                      <i className="fas fa-user text-gray-500"></i>
+                  
+                  <div className="flex items-center justify-center space-x-6 space-x-reverse">
+                    <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
+                      <i className="fas fa-user text-gray-500 text-2xl"></i>
                     </div>
                     <div className="text-right">
-                      <h4 className="font-semibold text-gray-900">
+                      <h4 className="text-lg font-semibold text-stadium-900">
                         {testimonials[testimonialIndex].author}
                       </h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 font-medium">
                         {testimonials[testimonialIndex].role}
                       </p>
                     </div>
@@ -314,20 +369,36 @@ export default function HomePage() {
                 </div>
                 
                 {/* Navigation */}
-                <div className="flex justify-center space-x-4 space-x-reverse">
+                <div className="flex justify-center space-x-6 space-x-reverse">
                   <button
                     onClick={() => setTestimonialIndex((prev) => 
                       prev === 0 ? testimonials.length - 1 : prev - 1
                     )}
-                    className="p-2 rounded-full bg-white shadow hover:shadow-md transition-shadow"
+                    className="w-12 h-12 rounded-full bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center border border-gray-200"
                   >
                     <i className="fas fa-chevron-right text-gray-600"></i>
                   </button>
+                  
+                  {/* Dots indicator */}
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    {testimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setTestimonialIndex(index)}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                          index === testimonialIndex 
+                            ? 'bg-field-500 scale-125' 
+                            : 'bg-gray-300 hover:bg-field-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  
                   <button
                     onClick={() => setTestimonialIndex((prev) => 
                       (prev + 1) % testimonials.length
                     )}
-                    className="p-2 rounded-full bg-white shadow hover:shadow-md transition-shadow"
+                    className="w-12 h-12 rounded-full bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center border border-gray-200"
                   >
                     <i className="fas fa-chevron-left text-gray-600"></i>
                   </button>
@@ -340,23 +411,53 @@ export default function HomePage() {
 
       {/* CTA Section - Only for guests */}
       {!user && (
-        <section className="py-16 bg-blue-600 text-white">
+        <section className="bg-field-gradient text-white py-16">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">
-              מוכן להתחיל את המסע שלך?
-            </h2>
-            <p className="text-xl mb-8 text-blue-100">
-              הצטרף עכשיו וקח את הקריירה שלך לשלב הבא
-            </p>
-            <button 
-              onClick={() => showMessage('מערכת ההרשמה תיפתח בקרוב', 'info')}
-              className="bg-white text-blue-700 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors"
-            >
-              הרשם עכשיו
-            </button>
+            <div className="max-w-4xl mx-auto space-y-8">
+              <div className="space-y-6">
+                <h2 className="text-4xl font-bold mb-4 text-with-shadow leading-tight">
+                  מוכן להתחיל את המסע שלך?
+                </h2>
+                <p className="text-xl text-white/90 text-with-shadow max-w-2xl mx-auto leading-relaxed">
+                  הצטרף עכשיו לקהילת הכדורגל הגדולה בישראל וקח את הקריירה שלך לשלב הבא
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
+                <button 
+                  onClick={() => openRegistration('player')}
+                  className="bg-white text-field-700 px-8 py-4 rounded-xl font-display font-bold text-lg hover:bg-field-50 transition-all duration-300 hover:scale-105 shadow-stadium flex items-center justify-center"
+                >
+                  <i className="fas fa-running ml-3 text-field-600"></i>
+                  הרשם כשחקן
+                </button>
+                <button 
+                  onClick={() => openRegistration('scout')}
+                  className="bg-transparent text-white px-8 py-4 rounded-xl font-display font-bold text-lg border-2 border-white hover:bg-white hover:text-field-700 transition-all duration-300 hover:scale-105 shadow-stadium flex items-center justify-center"
+                >
+                  <i className="fas fa-search ml-3"></i>
+                  הרשם כסקאוט
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       )}
+
+      {/* Registration Modal */}
+      <RegistrationModal 
+        isOpen={showRegistrationModal} 
+        onClose={() => setShowRegistrationModal(false)}
+        onSwitchToLogin={openLogin}
+        initialType={registrationType}
+      />
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        onSwitchToRegister={openRegistration}
+      />
     </div>
   )
 }

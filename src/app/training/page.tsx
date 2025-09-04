@@ -48,10 +48,10 @@ export default function TrainingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <section className="bg-green-600 text-white py-12">
+      <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">תוכניות אימון</h1>
-          <p className="text-xl text-green-100">
+          <h1 className="text-4xl font-bold mb-4 text-with-shadow">תוכניות אימון</h1>
+          <p className="text-xl text-white/90 text-with-shadow">
             {user 
               ? `שלום ${user.name}, בחר תוכנית אימון מותאמת לרמה שלך`
               : 'תוכניות אימון מותאמות לכל רמה'
@@ -65,7 +65,7 @@ export default function TrainingPage() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {trainingPrograms.map((program) => (
-              <div key={program.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-lg transition-shadow">
+              <div key={program.id} className="football-card bg-white rounded-lg shadow-stadium p-6 hover:shadow-football-hover transition-all duration-300 border border-field-200">
                 <h3 className="text-xl font-bold mb-3">{program.title}</h3>
                 <p className="text-gray-600 mb-4">{program.description}</p>
                 
@@ -77,8 +77,8 @@ export default function TrainingPage() {
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">רמת קושי:</span>
                     <span className={`text-sm font-medium ${
-                      program.difficulty === 'קל' ? 'text-green-600' :
-                      program.difficulty === 'בינוני' ? 'text-yellow-600' : 'text-red-600'
+                      program.difficulty === 'קל' ? 'text-secondary-600' :
+                      program.difficulty === 'בינוני' ? 'text-accent-600' : 'text-red-600'
                     }`}>{program.difficulty}</span>
                   </div>
                 </div>
@@ -88,7 +88,7 @@ export default function TrainingPage() {
                   <ul className="space-y-1">
                     {program.exercises.map((exercise, index) => (
                       <li key={index} className="text-sm text-gray-600 flex items-center">
-                        <i className="fas fa-check text-green-500 ml-2"></i>
+                        <i className="fas fa-check text-secondary-500 ml-2"></i>
                         {exercise}
                       </li>
                     ))}
@@ -97,7 +97,7 @@ export default function TrainingPage() {
 
                 <button
                   onClick={() => handleStartProgram(program.id)}
-                  className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  className="w-full bg-field-gradient text-white py-2 px-4 rounded-lg hover:shadow-stadium-glow transition-all duration-300 font-medium"
                 >
                   התחל אימון
                 </button>
@@ -107,20 +107,20 @@ export default function TrainingPage() {
 
           {/* User Progress Section */}
           {user && (
-            <div className="mt-16 bg-white rounded-lg p-8">
-              <h2 className="text-2xl font-bold mb-6">ההתקדמות שלי</h2>
+            <div className="mt-16 stadium-card rounded-lg p-8 shadow-stadium border border-field-200">
+              <h2 className="text-2xl font-display font-bold mb-6 text-stadium-900">ההתקדמות שלי</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-3xl font-bold text-green-600">{user.weeklyTrainings || 0}</div>
-                  <div className="text-sm text-gray-600">אימונים השבוע</div>
+                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
+                  <div className="text-3xl font-bold text-field-600">{user.weeklyTrainings || 0}</div>
+                  <div className="text-sm text-stadium-600">אימונים השבוע</div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600">{user.points || 0}</div>
-                  <div className="text-sm text-gray-600">נקודות כושר</div>
+                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
+                  <div className="text-3xl font-bold text-secondary-600">{user.points || 0}</div>
+                  <div className="text-sm text-stadium-600">נקודות כושר</div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-3xl font-bold text-purple-600">{user.weeklyProgress || 0}%</div>
-                  <div className="text-sm text-gray-600">שיפור השבוע</div>
+                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
+                  <div className="text-3xl font-bold text-accent-600">{user.weeklyProgress || 0}%</div>
+                  <div className="text-sm text-stadium-600">שיפור השבוע</div>
                 </div>
               </div>
             </div>

@@ -19,15 +19,30 @@ const firebaseConfig = {
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig)
+let app: any
+let auth: any
+let db: any  
+let storage: any
 
-// Initialize Firebase services
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const storage = getStorage(app)
+try {
+  app = initializeApp(firebaseConfig)
+  
+  // Initialize Firebase services
+  auth = getAuth(app)
+  db = getFirestore(app)
+  storage = getStorage(app)
+  
+  // Set auth language to Hebrew
+  if (auth) {
+    auth.languageCode = 'he'
+  }
+  
+  console.log('✅ Firebase v9+ initialized successfully')
+} catch (error) {
+  console.error('❌ Firebase initialization error:', error)
+}
 
-// Set auth language to Hebrew
-auth.languageCode = 'he'
+export { auth, db, storage }
 
 // Constants from original app
 export const USER_TYPES = {
@@ -45,5 +60,3 @@ export const COLLECTIONS = {
 } as const
 
 export type UserType = typeof USER_TYPES[keyof typeof USER_TYPES]
-
-console.log('✅ Firebase v9+ initialized successfully')

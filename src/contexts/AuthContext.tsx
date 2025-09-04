@@ -6,22 +6,39 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  User as FirebaseUser
-} from 'firebase/auth'
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  serverTimestamp 
-} from 'firebase/firestore'
-import { auth, db, USER_TYPES, COLLECTIONS, UserType } from '@/lib/firebase'
-import { UserData, AuthContextType, RegisterData } from '@/types/user'
+import { UserData, AuthContextType, RegisterData, UserType } from '@/types/user'
+
+// Dynamic imports for Firebase to avoid server-side execution
+let firebaseAuth: any = null
+let firebaseDb: any = null
+let firebaseImports: any = null
+let firestoreImports: any = null
+let USER_TYPES: any = null
+let COLLECTIONS: any = null
+
+const initializeFirebase = async () => {
+  if (typeof window === 'undefined') return false
+  
+  try {
+    const [authModule, firestoreModule, configModule] = await Promise.all([
+      import('firebase/auth'),
+      import('firebase/firestore'), 
+      import('@/lib/firebase')
+    ])
+    
+    firebaseImports = authModule
+    firestoreImports = firestoreModule
+    firebaseAuth = configModule.auth
+    firebaseDb = configModule.db
+    USER_TYPES = configModule.USER_TYPES
+    COLLECTIONS = configModule.COLLECTIONS
+    
+    return true
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error)
+    return false
+  }
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -30,26 +47,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log('🔄 Setting up Firebase auth listener...')
-    
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        console.log('✅ Firebase user found:', firebaseUser.email)
-        await loadUserData(firebaseUser.uid)
-      } else {
-        console.log('❌ No Firebase user found')
-        setUser(null)
+    const initAuth = async () => {
+      if (typeof window === 'undefined') {
+        setLoading(false)
+        return
       }
-      setLoading(false)
-    })
+      
+      console.log('🔄 Setting up Firebase auth listener...')
+      
+      const firebaseReady = await initializeFirebase()
+      if (!firebaseReady || !firebaseAuth || !firebaseImports) {
+        console.log('❌ Firebase not available, proceeding without auth')
+        setLoading(false)
+        return
+      }
+      
+      try {
+        const unsubscribe = firebaseImports.onAuthStateChanged(firebaseAuth, async (firebaseUser: any) => {
+          try {
+            if (firebaseUser) {
+              console.log('✅ Firebase user found:', firebaseUser.email)
+              await loadUserData(firebaseUser.uid)
+            } else {
+              console.log('❌ No Firebase user found')
+              setUser(null)
+            }
+          } catch (error) {
+            console.error('❌ Error in auth state change:', error)
+            setUser(null)
+          } finally {
+            setLoading(false)
+          }
+        })
 
-    return unsubscribe
+        return () => {
+          if (unsubscribe) unsubscribe()
+        }
+      } catch (error) {
+        console.error('❌ Error setting up auth listener:', error)
+        setLoading(false)
+      }
+    }
+    
+    initAuth()
   }, [])
 
   const loadUserData = async (uid: string) => {
     try {
+      if (!uid || typeof window === 'undefined' || !firebaseDb || !firestoreImports) return
+      
       console.log('🔄 Loading user data for:', uid)
-      const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, uid))
+      const userDoc = await firestoreImports.getDoc(firestoreImports.doc(firebaseDb, COLLECTIONS.USERS, uid))
       
       if (userDoc.exists()) {
         const userData = { uid, ...userDoc.data() } as UserData
@@ -58,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.warn('⚠️ User document not found in Firestore for uid:', uid)
         // Create basic user document if missing
-        const firebaseUser = auth.currentUser
+        const firebaseUser = firebaseAuth?.currentUser
         if (firebaseUser) {
           await createMissingUserDocument(uid, firebaseUser)
         }
@@ -69,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const createMissingUserDocument = async (uid: string, firebaseUser: FirebaseUser) => {
+  const createMissingUserDocument = async (uid: string, firebaseUser: any) => {
     try {
       const basicUserData: Partial<UserData> = {
         name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'משתמש',
@@ -87,10 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         weeklyProgress: 0
       }
 
-      await setDoc(doc(db, COLLECTIONS.USERS, uid), {
+      await firestoreImports.setDoc(firestoreImports.doc(firebaseDb, COLLECTIONS.USERS, uid), {
         ...basicUserData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        createdAt: firestoreImports.serverTimestamp(),
+        updatedAt: firestoreImports.serverTimestamp()
       })
 
       console.log('✅ Created missing user document for:', firebaseUser.email)
@@ -104,10 +152,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      if (!firebaseAuth || !firebaseImports) {
+        throw new Error('שירות האימות אינו זמין כרגע')
+      }
+      
       setLoading(true)
       console.log('🔄 Logging in user:', email)
       
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await firebaseImports.signInWithEmailAndPassword(firebaseAuth, email, password)
       console.log('✅ Firebase login successful')
       
       // User data will be loaded by the auth state listener
@@ -132,12 +184,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (userData: RegisterData, userType: UserType) => {
     try {
+      if (!firebaseAuth || !firebaseImports || !firebaseDb || !firestoreImports) {
+        throw new Error('שירות האימות אינו זמין כרגע')
+      }
+      
       setLoading(true)
       console.log('🔄 Registering user:', userData.email, 'as', userType)
       
       // Create Firebase Auth account
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
+      const userCredential = await firebaseImports.createUserWithEmailAndPassword(
+        firebaseAuth, 
         userData.email, 
         userData.password
       )
@@ -169,10 +225,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         completeUserData.regionsOfInterest = []
       }
 
-      await setDoc(doc(db, COLLECTIONS.USERS, uid), {
+      await firestoreImports.setDoc(firestoreImports.doc(firebaseDb, COLLECTIONS.USERS, uid), {
         ...completeUserData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        createdAt: firestoreImports.serverTimestamp(),
+        updatedAt: firestoreImports.serverTimestamp()
       })
 
       console.log('✅ User registration completed successfully')
@@ -189,8 +245,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      if (!firebaseAuth || !firebaseImports) {
+        throw new Error('שירות האימות אינו זמין כרגע')
+      }
+      
       console.log('🔄 Logging out user...')
-      await firebaseSignOut(auth)
+      await firebaseImports.signOut(firebaseAuth)
       setUser(null)
       console.log('✅ Logout successful')
       
@@ -207,12 +267,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (updates: Partial<UserData>) => {
     try {
       if (!user) throw new Error('No authenticated user')
+      if (!firebaseDb || !firestoreImports) throw new Error('שירות האימות אינו זמין כרגע')
 
       console.log('🔄 Updating user profile...')
       
-      await updateDoc(doc(db, COLLECTIONS.USERS, user.uid), {
+      await firestoreImports.updateDoc(firestoreImports.doc(firebaseDb, COLLECTIONS.USERS, user.uid), {
         ...updates,
-        updatedAt: serverTimestamp()
+        updatedAt: firestoreImports.serverTimestamp()
       })
 
       // Update local state
@@ -227,11 +288,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initialize admin account if it doesn't exist (for testing)
   const initializeAdmin = async () => {
     try {
-      // Check if admin already exists
+      // Only run once per session
+      if (typeof window !== 'undefined' && window.sessionStorage.getItem('admin-check-done')) {
+        return
+      }
+
       const adminEmail = 'admin@example.com'
       const adminPassword = 'admin123'
       
-      // Try to create admin account
+      // Check if admin document exists first
+      if (!firebaseDb || !firestoreImports) {
+        throw new Error('שירות האימות אינו זמין כרגע')
+      }
+      
+      const adminDoc = await firestoreImports.getDoc(firestoreImports.doc(firebaseDb, COLLECTIONS.USERS, 'admin-uid'))
+      if (adminDoc.exists()) {
+        console.log('ℹ️ Admin account already exists')
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('admin-check-done', 'true')
+        }
+        return
+      }
+      
+      // Try to create admin account only if it doesn't exist
       const adminData = {
         email: adminEmail,
         password: adminPassword,
@@ -241,22 +320,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       await register(adminData, USER_TYPES.ADMIN)
       console.log('✅ Admin account created successfully')
+      
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('admin-check-done', 'true')
+      }
     } catch (error: any) {
       // Admin probably already exists, this is fine
-      if (error.message.includes('email-already-in-use')) {
+      if (error.message.includes('email-already-in-use') || error.code === 'auth/email-already-in-use') {
         console.log('ℹ️ Admin account already exists')
       } else {
         console.log('⚠️ Could not create admin account:', error.message)
       }
+      
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('admin-check-done', 'true')
+      }
     }
   }
 
-  // Initialize admin on first load (only in development)
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      initializeAdmin()
-    }
-  }, [])
+  // Initialize admin on first load (only in development and on manual request)
+  // Removed automatic admin initialization to prevent conflicts
+  // Admin can be created manually via the UI when needed
 
   const value: AuthContextType = {
     user,
@@ -266,6 +350,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     updateProfile,
     initializeAdmin
+  }
+
+  // Don't render children until auth is initialized on client side
+  if (typeof window !== 'undefined' && loading) {
+    return (
+      <div className="min-h-screen bg-stadium-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-field-gradient rounded-full flex items-center justify-center mx-auto mb-4 animate-glow">
+            <i className="fas fa-futbol text-white text-xl"></i>
+          </div>
+          <p className="text-stadium-600">טוען...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -278,7 +376,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    // Return a safe default instead of throwing
+    return {
+      user: null,
+      loading: true,
+      login: async () => { throw new Error('AuthProvider not available') },
+      register: async () => { throw new Error('AuthProvider not available') },
+      logout: async () => { throw new Error('AuthProvider not available') },
+      updateProfile: async () => { throw new Error('AuthProvider not available') },
+      initializeAdmin: async () => { throw new Error('AuthProvider not available') }
+    }
   }
   return context
 }

@@ -241,10 +241,10 @@ export default function LeaderboardsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <section className="bg-blue-600 text-white py-12">
+      <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">טבלאות מובילים</h1>
-          <p className="text-xl text-blue-100">גלה את השחקנים המובילים בקטגוריות שונות</p>
+          <h1 className="text-4xl font-bold mb-4 text-with-shadow">טבלאות מובילים</h1>
+          <p className="text-xl text-white/90 text-with-shadow">גלה את השחקנים המובילים בקטגוריות שונות</p>
         </div>
       </section>
 
@@ -253,15 +253,15 @@ export default function LeaderboardsPage() {
         <div className="container mx-auto px-4">
           {/* Tabs */}
           <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-1 shadow-sm">
+            <div className="bg-white rounded-lg p-1 shadow-stadium border border-field-200">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-3 rounded-md font-medium transition-colors ${
+                  className={`px-6 py-3 rounded-md font-medium transition-all duration-300 ${
                     activeTab === tab.key
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-600 hover:text-blue-600'
+                      ? 'bg-field-gradient text-white shadow-stadium-glow'
+                      : 'text-stadium-600 hover:text-field-600 hover:bg-field-50'
                   }`}
                 >
                   {tab.label}
@@ -330,14 +330,14 @@ export default function LeaderboardsPage() {
                             <td className="px-6 py-4 text-sm text-gray-600">
                               {getHebrewLevel(player.level)}
                             </td>
-                            <td className="px-6 py-4 text-sm font-semibold text-blue-600">
+                            <td className="px-6 py-4 text-sm font-semibold text-field-600">
                               {player.stats[statKey]}
                               {activeTab === 'improved' && '%'}
                             </td>
                             <td className="px-6 py-4">
                               <button
                                 onClick={() => handleViewProfile(player)}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                className="text-field-600 hover:text-field-800 text-sm font-medium transition-colors"
                               >
                                 צפה בפרופיל
                               </button>
@@ -364,7 +364,7 @@ export default function LeaderboardsPage() {
                       id="age-filter"
                       value={filters.age}
                       onChange={(e) => setFilters(prev => ({ ...prev, age: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-stadium-300 rounded-md focus:outline-none focus:ring-2 focus:ring-field-500 bg-white text-stadium-900 hover:border-field-400 transition-colors"
                     >
                       <option value="">הכל</option>
                       <option value="8-12">8-12</option>
@@ -382,7 +382,7 @@ export default function LeaderboardsPage() {
                       id="position-filter"
                       value={filters.position}
                       onChange={(e) => setFilters(prev => ({ ...prev, position: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-stadium-300 rounded-md focus:outline-none focus:ring-2 focus:ring-field-500 bg-white text-stadium-900 hover:border-field-400 transition-colors"
                     >
                       <option value="">הכל</option>
                       <option value="goalkeeper">שוער</option>
@@ -400,7 +400,7 @@ export default function LeaderboardsPage() {
                       id="level-filter"
                       value={filters.level}
                       onChange={(e) => setFilters(prev => ({ ...prev, level: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-stadium-300 rounded-md focus:outline-none focus:ring-2 focus:ring-field-500 bg-white text-stadium-900 hover:border-field-400 transition-colors"
                     >
                       <option value="">הכל</option>
                       <option value="beginner">מתחיל</option>
@@ -412,14 +412,14 @@ export default function LeaderboardsPage() {
                   <div className="flex space-x-2 space-x-reverse">
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                      className="flex-1 bg-field-gradient text-white py-2 px-4 rounded-md hover:shadow-stadium-glow transition-all duration-300 font-medium"
                     >
                       סנן
                     </button>
                     <button
                       type="button"
                       onClick={handleFilterReset}
-                      className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
+                      className="flex-1 bg-stadium-200 text-stadium-700 py-2 px-4 rounded-md hover:bg-stadium-300 transition-all duration-300 font-medium"
                     >
                       נקה
                     </button>
@@ -488,17 +488,17 @@ export default function LeaderboardsPage() {
             <div className="mb-6">
               <h4 className="text-lg font-semibold mb-4">סטטיסטיקות</h4>
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{selectedPlayer.stats.consistency}</div>
-                  <div className="text-sm text-gray-600">ימים רצופים</div>
+                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
+                  <div className="text-2xl font-bold text-field-600">{selectedPlayer.stats.consistency}</div>
+                  <div className="text-sm text-stadium-600">ימים רצופים</div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{selectedPlayer.stats.improvement}%</div>
-                  <div className="text-sm text-gray-600">שיפור</div>
+                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
+                  <div className="text-2xl font-bold text-secondary-600">{selectedPlayer.stats.improvement}%</div>
+                  <div className="text-sm text-stadium-600">שיפור</div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{selectedPlayer.stats.ranking}</div>
-                  <div className="text-sm text-gray-600">דירוג</div>
+                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
+                  <div className="text-2xl font-bold text-accent-600">{selectedPlayer.stats.ranking}</div>
+                  <div className="text-sm text-stadium-600">דירוג</div>
                 </div>
               </div>
             </div>
@@ -525,7 +525,7 @@ export default function LeaderboardsPage() {
             <div className="flex justify-end">
               <button
                 onClick={() => handleContactPlayer(selectedPlayer)}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-field-gradient text-white px-6 py-2 rounded-lg hover:shadow-stadium-glow transition-all duration-300 font-medium"
               >
                 צור קשר
               </button>

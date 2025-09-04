@@ -7,9 +7,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_TYPES, UserType } from '@/lib/firebase'
-import { RegisterData } from '@/types/user'
+import { RegisterData, UserType } from '@/types/user'
 import { showMessage } from '../MessageContainer'
+
+// Define user types locally to avoid Firebase import issues
+const USER_TYPES = {
+  PLAYER: 'player',
+  SCOUT: 'scout',
+  ADMIN: 'admin'
+} as const
 
 interface RegistrationModalProps {
   isOpen: boolean
@@ -127,29 +133,36 @@ export default function RegistrationModal({
   if (!isOpen) return null
 
   const renderUserTypeStep = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-center mb-6">בחר את סוג החשבון שלך</h3>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-xl font-display font-bold text-stadium-900 mb-2">בחר את סוג החשבון שלך</h3>
+        <p className="text-stadium-600">איך תרצה להשתמש בפלטפורמה?</p>
+      </div>
       
       <div className="grid grid-cols-1 gap-4">
         <button
           onClick={() => handleUserTypeSelect(USER_TYPES.PLAYER)}
-          className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+          className="football-card p-8 border-2 border-field-200 rounded-2xl hover:border-field-500 hover:bg-field-50 transition-all duration-300 text-center group shadow-stadium"
         >
-          <i className="fas fa-running text-3xl text-blue-600 mb-3"></i>
-          <h4 className="text-lg font-semibold">שחקן</h4>
-          <p className="text-sm text-gray-600 mt-2">
-            אני שחקן כדורגל המעוניין להתפתח ולהתחבר עם סקאוטים
+          <div className="w-16 h-16 bg-field-gradient rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-stadium-glow">
+            <i className="fas fa-running text-2xl text-white"></i>
+          </div>
+          <h4 className="text-xl font-display font-bold text-stadium-900 mb-3">⚽ שחקן</h4>
+          <p className="text-sm text-stadium-600 leading-relaxed">
+            אני שחקן כדורגל המעוניין להתפתח, לשפר את היכולות שלי ולהתחבר עם סקאוטים מקצועיים
           </p>
         </button>
 
         <button
           onClick={() => handleUserTypeSelect(USER_TYPES.SCOUT)}
-          className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors text-center"
+          className="football-card p-8 border-2 border-accent-200 rounded-2xl hover:border-accent-500 hover:bg-accent-50 transition-all duration-300 text-center group shadow-stadium"
         >
-          <i className="fas fa-search text-3xl text-green-600 mb-3"></i>
-          <h4 className="text-lg font-semibold">סקאוט</h4>
-          <p className="text-sm text-gray-600 mt-2">
-            אני סקאוט המעוניין לגלות כישרונות חדשים
+          <div className="w-16 h-16 bg-gradient-to-br from-accent-500 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-stadium-glow">
+            <i className="fas fa-search text-2xl text-white"></i>
+          </div>
+          <h4 className="text-xl font-display font-bold text-stadium-900 mb-3">🔍 סקאוט</h4>
+          <p className="text-sm text-stadium-600 leading-relaxed">
+            אני סקאוט המעוניין לגלות כישרונות חדשים ולחבר בין שחקנים מוכשרים לקבוצות
           </p>
         </button>
       </div>
@@ -157,11 +170,15 @@ export default function RegistrationModal({
   )
 
   const renderBasicInfoStep = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-center mb-6">פרטים בסיסיים</h3>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-xl font-display font-bold text-stadium-900 mb-2">פרטים בסיסיים</h3>
+        <p className="text-stadium-600">בואו נתחיל עם הבסיס</p>
+      </div>
       
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="name" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+          <i className="fas fa-user ml-2 text-field-500"></i>
           שם מלא *
         </label>
         <input
@@ -171,13 +188,14 @@ export default function RegistrationModal({
           value={formData.name}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
           placeholder="הזן את שמך המלא"
         />
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+          <i className="fas fa-envelope ml-2 text-field-500"></i>
           אימייל *
         </label>
         <input
@@ -187,13 +205,14 @@ export default function RegistrationModal({
           value={formData.email}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
           placeholder="הזן כתובת אימייל"
         />
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="password" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+          <i className="fas fa-lock ml-2 text-field-500"></i>
           סיסמה *
         </label>
         <input
@@ -203,7 +222,7 @@ export default function RegistrationModal({
           value={formData.password}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
           placeholder="בחר סיסמה חזקה"
         />
       </div>
@@ -356,30 +375,50 @@ export default function RegistrationModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" dir="rtl">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-stadium border border-field-200/50" dir="rtl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">הרשמה</h2>
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="w-10 h-10 bg-field-gradient rounded-full flex items-center justify-center shadow-stadium-glow">
+              <i className="fas fa-user-plus text-white"></i>
+            </div>
+            <h2 className="text-2xl font-display font-bold text-stadium-900">הרשמה</h2>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+            className="w-10 h-10 rounded-full bg-stadium-100 hover:bg-stadium-200 text-stadium-600 hover:text-stadium-800 transition-all duration-300 flex items-center justify-center"
             aria-label="סגור"
           >
-            ×
+            <i className="fas fa-times"></i>
           </button>
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex justify-center mb-6">
-          {[0, 1, 2, 3].map((step) => (
-            <div
-              key={step}
-              className={`w-3 h-3 rounded-full mx-1 ${
-                step <= currentStep ? 'bg-blue-600' : 'bg-gray-300'
-              }`}
-            />
-          ))}
+        <div className="flex justify-center mb-8">
+          <div className="flex items-center space-x-2 space-x-reverse">
+            {[0, 1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                    step <= currentStep 
+                      ? 'bg-field-gradient text-white shadow-stadium-glow' 
+                      : 'bg-stadium-200 text-stadium-500'
+                  }`}
+                >
+                  {step === 0 && <i className="fas fa-user-tag"></i>}
+                  {step === 1 && <i className="fas fa-id-card"></i>}
+                  {step === 2 && <i className="fas fa-cog"></i>}
+                  {step === 3 && <i className="fas fa-check"></i>}
+                </div>
+                {step < 3 && (
+                  <div className={`w-8 h-1 mx-2 transition-all duration-300 ${
+                    step < currentStep ? 'bg-field-500' : 'bg-stadium-200'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Step Content */}
@@ -388,22 +427,33 @@ export default function RegistrationModal({
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center mt-8">
           <button
             onClick={handleBack}
             disabled={currentStep === STEPS.USER_TYPE}
-            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 text-stadium-600 bg-stadium-100 rounded-xl hover:bg-stadium-200 disabled:opacity-50 disabled:cursor-not-allowed font-display font-semibold transition-all duration-300 flex items-center space-x-2 space-x-reverse"
           >
-            חזור
+            <i className="fas fa-chevron-right"></i>
+            <span>חזור</span>
           </button>
 
           {currentStep === STEPS.CONFIRMATION ? (
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="btn-primary px-8 py-3 font-display font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"
             >
-              {isLoading ? 'נרשם...' : 'השלם הרשמה'}
+              {isLoading ? (
+                <>
+                  <i className="fas fa-spinner animate-spin"></i>
+                  <span>נרשם...</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-rocket"></i>
+                  <span>השלם הרשמה</span>
+                </>
+              )}
             </button>
           ) : (
             <button
@@ -412,20 +462,21 @@ export default function RegistrationModal({
                 (currentStep === STEPS.BASIC_INFO && (!formData.name || !formData.email || !formData.password)) ||
                 (currentStep === STEPS.USER_TYPE && !userType)
               }
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="btn-primary px-8 py-3 font-display font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"
             >
-              המשך
+              <span>המשך</span>
+              <i className="fas fa-chevron-left"></i>
             </button>
           )}
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+        <div className="mt-8 text-center border-t border-field-200 pt-6">
+          <p className="text-sm text-stadium-600">
             כבר יש לך חשבון?{' '}
             <button
               onClick={onSwitchToLogin}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-field-600 hover:text-field-700 font-bold transition-colors"
             >
               התחבר כאן
             </button>

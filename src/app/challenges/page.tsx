@@ -123,10 +123,10 @@ export default function ChallengesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <section className="bg-orange-600 text-white py-12">
+      <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">אתגרים</h1>
-          <p className="text-xl text-orange-100">
+          <h1 className="text-4xl font-bold mb-4 text-with-shadow">אתגרים</h1>
+          <p className="text-xl text-white/90 text-with-shadow">
             {user 
               ? `שלום ${user.name}, השלם אתגרים וזכה בנקודות!`
               : 'השלם אתגרים וזכה בנקודות והישגים'
@@ -141,16 +141,16 @@ export default function ChallengesPage() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600">{completedCount}</div>
-                <div className="text-sm text-gray-600">אתגרים הושלמו</div>
+                <div className="text-3xl font-bold text-field-600">{completedCount}</div>
+                <div className="text-sm text-stadium-600">אתגרים הושלמו</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">{totalPoints}</div>
-                <div className="text-sm text-gray-600">נקודות שנצברו</div>
+                <div className="text-3xl font-bold text-secondary-600">{totalPoints}</div>
+                <div className="text-sm text-stadium-600">נקודות שנצברו</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{challenges.length - completedCount}</div>
-                <div className="text-sm text-gray-600">אתגרים זמינים</div>
+                <div className="text-3xl font-bold text-accent-600">{challenges.length - completedCount}</div>
+                <div className="text-sm text-stadium-600">אתגרים זמינים</div>
               </div>
             </div>
           </div>
@@ -161,15 +161,15 @@ export default function ChallengesPage() {
       <section className="py-8">
         <div className="container mx-auto px-4">
           <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-1 shadow-sm">
+            <div className="bg-white rounded-lg p-1 shadow-stadium border border-field-200">
               {categories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
                     activeCategory === category.id
-                      ? 'bg-orange-600 text-white'
-                      : 'text-gray-600 hover:text-orange-600'
+                      ? 'bg-field-gradient text-white shadow-stadium-glow'
+                      : 'text-stadium-600 hover:text-field-600 hover:bg-field-50'
                   }`}
                 >
                   {category.label}
@@ -190,7 +190,7 @@ export default function ChallengesPage() {
                 {/* Challenge Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center">
-                    <i className={`${getCategoryIcon(challenge.category)} text-orange-600 text-xl ml-3`}></i>
+                    <i className={`${getCategoryIcon(challenge.category)} text-field-600 text-xl ml-3`}></i>
                     <div>
                       <h3 className="text-lg font-bold">{challenge.title}</h3>
                       <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
@@ -218,10 +218,10 @@ export default function ChallengesPage() {
                 <button
                   onClick={() => handleStartChallenge(challenge)}
                   disabled={challenge.completed}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
                     challenge.completed
-                      ? 'bg-green-100 text-green-600 cursor-not-allowed'
-                      : 'bg-orange-600 text-white hover:bg-orange-700'
+                      ? 'bg-secondary-100 text-secondary-600 cursor-not-allowed'
+                      : 'bg-field-gradient text-white hover:shadow-stadium-glow hover:scale-105'
                   }`}
                 >
                   {challenge.completed ? 'הושלם' : 'התחל אתגר'}

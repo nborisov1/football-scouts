@@ -1,26 +1,576 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Football-themed color palette */
+  --primary-green: #1a7f37;
+  --secondary-green: #22c55e;
+  --accent-gold: #fbbf24;
+  --background: #fafafa;
+  --background-dark: #0f172a;
+  --foreground: #1e293b;
+  --foreground-light: #64748b;
+  --surface: #ffffff;
+  --surface-dark: #1e293b;
+  --pitch-green: #2d5b3d;
+  --stadium-gray: #374151;
+  
+  /* Football field gradient */
+  --field-gradient: linear-gradient(135deg, #1a7f37 0%, #22c55e 50%, #16a34a 100%);
+  --stadium-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  
+  /* Typography */
+  --font-display: 'Oswald', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary-green);
+  --color-secondary: var(--secondary-green);
+  --color-accent: var(--accent-gold);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--background-dark);
+    --foreground: #e2e8f0;
+    --surface: var(--surface-dark);
   }
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* Typography hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Enhanced heading styles for football theme */
+.display-heading {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--stadium-900);
+}
+
+.section-heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--stadium-800);
+  margin-bottom: 1.5rem;
+}
+
+.card-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--stadium-900);
+}
+
+/* Football-specific utility classes */
+.text-gradient-field {
+  background: var(--field-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-field-gradient {
+  background: var(--field-gradient);
+}
+
+.bg-stadium-gradient {
+  background: var(--stadium-gradient);
+}
+
+.bg-field-pattern {
+  background: var(--field-gradient);
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 20px,
+      rgba(255, 255, 255, 0.1) 20px,
+      rgba(255, 255, 255, 0.1) 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 60px,
+      rgba(255, 255, 255, 0.1) 60px,
+      rgba(255, 255, 255, 0.1) 62px
+    );
+}
+
+/* Stadium-style shadows and lighting */
+.stadium-shadow {
+  box-shadow: 
+    0 10px 25px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.stadium-glow {
+  box-shadow: 
+    0 0 20px rgba(34, 197, 94, 0.3),
+    0 0 40px rgba(34, 197, 94, 0.1);
+}
+
+/* Football card animations */
+.football-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.football-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(34, 197, 94, 0.2),
+    0 10px 20px rgba(0, 0, 0, 0.1);
+  border-color: var(--secondary-green);
+}
+
+/* Button styles */
+.btn-primary {
+  background: var(--field-gradient);
+  color: white !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+  color: white !important;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-green) !important;
+  border: 2px solid var(--primary-green);
+  font-family: var(--font-display);
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: var(--primary-green);
+  color: white !important;
+  transform: translateY(-2px);
+}
+
+/* Navigation styles */
+.nav-link {
+  position: relative;
+  color: var(--foreground-light);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary-green);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--field-gradient);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  h2 {
+    font-size: 2rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Loading animations */
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-green {
+  animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-green);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-green);
+}
+
+/* Text color improvements for better contrast */
+.text-on-dark {
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.text-on-light {
+  color: var(--stadium-900) !important;
+}
+
+.text-readable {
+  color: var(--foreground) !important;
+}
+
+/* Enhanced text readability */
+.hero-text {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: white !important;
+}
+
+.contrast-text {
+  color: var(--stadium-900) !important;
+}
+
+.contrast-text-light {
+  color: var(--stadium-100) !important;
+}
+
+.field-text {
+  color: var(--stadium-800) !important;
+}
+
+.field-text-light {
+  color: var(--stadium-200) !important;
+}
+
+/* Better visibility on background patterns */
+.text-with-shadow {
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.8),
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.9);
+  color: white !important;
+}
+
+/* Enhanced football-specific components */
+.football-gradient-text {
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 50%, var(--accent-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+.stadium-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(34, 197, 94, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.field-divider {
+  height: 2px;
+  background: var(--field-gradient);
+  margin: 2rem 0;
+  border-radius: 1px;
+}
+
+/* Improved button hover states */
+.btn-primary:focus,
+.btn-secondary:focus {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+/* Enhanced link styles */
+a {
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/* Improved form styling */
+input,
+select,
+textarea {
+  background-color: white;
+  color: var(--stadium-900);
+  border: 1px solid var(--stadium-300);
+  transition: all 0.3s ease;
+}
+
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: var(--stadium-500);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--primary-green);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 
+    0 0 0 2px var(--primary-green),
+    0 4px 8px rgba(34, 197, 94, 0.1);
+  border-color: var(--primary-green);
+  outline: none;
+}
+
+/* Ensure contrast for form elements */
+.form-input {
+  background-color: white !important;
+  color: var(--stadium-900) !important;
+  border: 1px solid var(--stadium-300) !important;
+}
+
+.form-input:focus {
+  border-color: var(--primary-green) !important;
+  box-shadow: 0 0 0 2px rgba(26, 127, 55, 0.2) !important;
+}
+
+/* Better contrast for dropdowns and selects */
+select option {
+  background-color: white;
+  color: var(--stadium-900);
+}
+
+/* Enhanced visual hierarchy */
+.page-title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.subsection-title {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 0.75rem;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+/* Consistent spacing utilities */
+.section-spacing {
+  padding: 5rem 0;
+}
+
+.section-spacing-sm {
+  padding: 3rem 0;
+}
+
+.section-spacing-lg {
+  padding: 8rem 0;
+}
+
+.content-spacing {
+  margin-bottom: 2rem;
+}
+
+.content-spacing-sm {
+  margin-bottom: 1rem;
+}
+
+.content-spacing-lg {
+  margin-bottom: 3rem;
+}
+
+/* Enhanced card styling */
+.enhanced-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 
+    0 8px 32px rgba(34, 197, 94, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.enhanced-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 40px rgba(34, 197, 94, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Improved focus states for accessibility */
+.focus-ring:focus {
+  outline: 2px solid var(--accent-400);
+  outline-offset: 2px;
+}
+
+/* Enhanced button variants */
+.btn-gradient {
+  background: var(--field-gradient);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.875rem 2rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(34, 197, 94, 0.4);
+}
+
+.btn-gradient:active {
+  transform: translateY(0);
+}
+
+/* Consistent text hierarchies */
+.text-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--stadium-700);
+}
+
+.text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--stadium-600);
+}
+
+.text-caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--stadium-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Status indicators */
+.status-success {
+  color: var(--secondary-600);
+  background-color: var(--secondary-50);
+  border: 1px solid var(--secondary-200);
+}
+
+.status-warning {
+  color: var(--accent-600);
+  background-color: var(--accent-50);
+  border: 1px solid var(--accent-200);
+}
+
+.status-error {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
 }

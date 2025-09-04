@@ -32,19 +32,32 @@
 - **Pending Items**: Items requiring admin attention
 - **Export Reports**: Download data reports (coming soon)
 
-### 🎥 Video Management (`/admin/videos`)
-**Purpose**: Approve or reject player-uploaded videos
+### 📹 Exercise Video Upload (`/admin/videos/upload`)
+**Purpose**: Create and upload professional exercise demonstration videos
 
 **Features**:
-- **Video Queue**: View all uploaded videos by status
-- **Filter Options**: All, Pending, Approved, Rejected
-- **Video Preview**: Watch videos before making decisions
-- **Approval Actions**: 
-  - ✅ Approve videos
-  - ❌ Reject videos
-  - 👁️ Preview with detailed view
-- **Player Information**: See who uploaded each video
-- **Bulk Actions**: Handle multiple videos efficiently
+- **Video Upload Interface**: Professional-grade upload form with comprehensive metadata
+- **Exercise Classification**:
+  - Skill level (Beginner, Intermediate, Advanced)
+  - Exercise type (Dribbling, Passing, Shooting, Fitness, Technique, Tactics, Goalkeeping)
+  - Target audience (Youth, Amateur, Professional)
+- **Detailed Metadata**:
+  - Exercise title and description
+  - Step-by-step instructions
+  - Required equipment
+  - Performance criteria
+- **Video Management**: Edit, update, and organize exercise library
+- **Usage Analytics**: Track which exercises are most popular and effective
+
+### 🎥 Player Video Oversight (`/admin/videos`)
+**Purpose**: Monitor AI analysis and provide additional guidance for player videos
+
+**Features**:
+- **AI Analysis Review**: Monitor AI feedback accuracy and intervene when needed
+- **Quality Control**: Ensure player videos meet platform standards
+- **Content Moderation**: Review flagged or inappropriate content
+- **Manual Feedback**: Provide additional human insights beyond AI analysis
+- **Performance Tracking**: Monitor player progress and improvement trends
 
 ### 👥 User Management (Coming Soon)
 **Purpose**: Manage all platform users

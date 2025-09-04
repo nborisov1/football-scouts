@@ -64,46 +64,50 @@ Implementation of the most advanced features discussed, which will significantly
 
 ## Week 2: MVP - Video Uploads, Basic Admin, Player Discovery - (7 Days)
 
-### Day 8-10: Player Video Uploads
+### Day 8-10: Admin Exercise Video Upload System
 **Tasks:**
-- [ ] Design and implement a dedicated HTML section or page for players to select and upload video files
-- [ ] Develop client-side JavaScript to handle file input and display selected file information
-- [ ] Implement JavaScript logic to upload video files to Firebase Storage (create `js/video-upload.js`)
-- [ ] Update the player's Firestore profile (users collection) with the video's URL and initial metadata (pending_review status)
-- [ ] Display upload progress and status feedback to the user during the upload process
-- [ ] Implement video compression and format validation
+- [ ] Create admin exercise video upload interface with comprehensive metadata form
+- [ ] Implement Firebase Storage integration for admin video uploads
+- [ ] Design Firestore schema for exercise videos with classification fields
+- [ ] Develop video categorization system (skill level, exercise type, target audience)
+- [ ] Create exercise video library browsing interface for players
+- [ ] Implement video upload progress tracking and validation
 
 **Deliverables:**
-- Video upload interface for players
-- Firebase Storage integration
-- Video metadata management in Firestore
-- Upload progress indicators
+- Admin exercise video upload system
+- Exercise video classification and metadata management
+- Player-facing exercise library browser
+- Firebase Storage integration for admin content
 
-### Day 11-12: Basic Admin User Management & Video Moderation
+### Day 11-12: Player AI-Enhanced Video Upload System
 **Tasks:**
-- [ ] Develop `admin/dashboard.html` to display a list of registered players and scouts
-- [ ] Implement JavaScript to fetch user data from Firestore and populate the admin dashboard
-- [ ] Develop `admin/videos.html` to display a list of uploaded videos with pending_review status
-- [ ] Implement JavaScript to fetch video data from Firestore for admin review
-- [ ] Create video approval/rejection workflow
-- [ ] Implement user management controls (activate/deactivate, edit profiles)
+- [ ] Design player video upload interface linked to specific exercise videos
+- [ ] Implement AI analysis integration for uploaded player videos
+- [ ] Create AI feedback and scoring system
+- [ ] Develop exercise completion tracking and status management
+- [ ] Implement player dashboard for viewing AI feedback and scores
+- [ ] Create "mark as completed" functionality for exercises
 
 **Deliverables:**
-- Admin dashboard with user management
-- Video moderation interface
-- User status management system
+- Player video upload system with AI integration
+- AI feedback and scoring pipeline
+- Exercise completion tracking system
+- Player performance dashboard
 
-### Day 13-14: Basic Player Discovery Interface for Scouts
+### Day 13-14: Video-Enhanced Scout Discovery Interface
 **Tasks:**
-- [ ] Enhance `pages/discover.html` to fetch and display a paginated list of registered players from Firestore
-- [ ] Design and implement basic "player cards" or list items in `pages/discover.html` to show essential player information (e.g., name, position, age)
-- [ ] Implement client-side JavaScript to handle clicking on a player card to view a basic player profile (can be a modal or navigate to `pages/profile.html` with player ID)
-- [ ] Add basic filtering capabilities (position, age range)
+- [ ] Develop advanced player discovery system with video-based filtering
+- [ ] Implement search by AI performance scores and exercise completion rates
+- [ ] Create filtering by exercise type proficiency and skill demonstration
+- [ ] Add video preview integration in search results
+- [ ] Implement sorting by improvement trends and video engagement metrics
+- [ ] Design scout-specific player profile views with video performance analytics
 
 **Deliverables:**
-- Player discovery interface for scouts
-- Player profile viewing for scouts
-- Basic search and filter functionality
+- Video-enhanced player discovery interface
+- Advanced filtering by video performance metrics
+- Scout analytics dashboard for player assessment
+- Video-integrated search and discovery tools
 
 ---
 

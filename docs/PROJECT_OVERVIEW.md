@@ -47,9 +47,14 @@ This data will serve as the basis for tailoring training programs and providing 
   - **"Expert Tips" in Video/Text**: Integration of short video clips from "virtual coaches" demonstrating correct techniques, emphasizing the importance of the exercise, and providing mental guidance
   - **Interactive Tactical Scenarios**: Video exercises simulating real game situations, challenging the player to make quick and correct tactical decisions
 
-#### Completion of Challenges and Uploading Performance Videos
-- A variety of predefined challenges for skill development
-- An easy and convenient mechanism for uploading videos of challenge performances or game clips, stored in Firebase Storage
+#### Exercise Video Training and AI-Powered Performance Analysis
+- **Admin-Created Exercise Library**: Players access a comprehensive library of exercise videos uploaded by admins, each classified by skill level (beginner, intermediate, advanced) and exercise type (dribbling, passing, shooting, etc.)
+- **Player Video Response System**: For each admin exercise video, players can upload their own performance video attempting the same exercise
+- **AI-Powered Analysis & Scoring**: Player-uploaded videos are automatically analyzed by AI to provide:
+  - Technical performance feedback
+  - Objective scoring based on exercise criteria
+  - Areas for improvement and technique suggestions
+- **Exercise Completion Tracking**: Players can mark exercises as "completed" after receiving AI feedback and achieving satisfactory scores
 
 #### Comprehensive Progress Tracking and Visual Dashboard
 - **Advanced Personal Dashboard**: Displays clear visual progress to the player:
@@ -67,9 +72,13 @@ This data will serve as the basis for tailoring training programs and providing 
 - Dedicated registration process for scouts and clubs, with verification using Firebase Authentication
 - Scout profile displaying areas of expertise, previous experience, and relevant clubs
 
-#### Advanced Player Discovery System and Leaderboards
-- Rich leaderboards that allow advanced filtering and sorting (by age, position, geographical area, specific skills, mental/tactical score, etc.)
-- Smart search and filtering tools enabling scouts to find players meeting precise criteria, all based on Firestore Database data
+#### Advanced Player Discovery System with Video-Based Filtering
+- **Video-Enhanced Player Search**: Advanced filtering system that allows scouts to search for players based on:
+  - Traditional criteria (age, position, geographical area, skills)
+  - Video performance metrics (AI scores, exercise completion rates)
+  - Specific exercise types and skill demonstrations
+  - Performance improvement trends over time
+- **Smart Video Discovery**: Scouts can filter player videos by exercise type, skill level demonstrated, and AI performance scores to find players who excel in specific areas they're scouting for
 
 #### Extended and Data-Rich Player Profiles
 - Comprehensive display of the player's profile, combining all collected data:
@@ -89,14 +98,25 @@ This data will serve as the basis for tailoring training programs and providing 
 - Easy option to add players to a personal watchlist, with notifications about updates to watched profiles
 - Secure internal messaging system (via Firebase Functions and Firestore) for initial and discreet contact between scouts and players (or their representatives)
 
-### 2.3. System Administrator Experience: Management and Quality Control
+### 2.3. System Administrator Experience: Content Creation and Quality Control
+
+#### Exercise Video Upload and Classification System
+- **Professional Exercise Video Creation**: Admins can upload high-quality exercise demonstration videos with comprehensive metadata:
+  - Exercise title and detailed description
+  - Skill level classification (beginner, intermediate, advanced)
+  - Exercise type categorization (dribbling, passing, shooting, fitness, technique, tactics, etc.)
+  - Target audience specification
+  - Required equipment listing
+  - Step-by-step execution instructions
+- **Video Organization and Management**: Systematic organization of exercise library with search, filter, and categorization capabilities
+
+#### Player Video Moderation and Quality Assurance
+- **AI-Assisted Moderation**: Review player-uploaded videos that may require manual oversight beyond AI analysis
+- **Content Quality Control**: Ensure player videos meet platform standards for content and quality
+- **Feedback System**: Provide additional human feedback when AI analysis needs supplementation
 
 #### Full User Management Interface
 - Tool for managing player and scout accounts (approval, editing, blocking), based on Firebase Authentication and Firestore
-
-#### Video Approval/Rejection Interface with Feedback
-- Efficient interface for viewing and approving uploaded videos, with statuses and a workflow queue
-- Option to send targeted feedback to the player in case of video rejection (e.g., "video quality needs improvement," "exercise not fully performed," "show your face")
 
 #### Training Program and Leaderboard Management
 - Tools for updating, creating, and editing training programs and leaderboard parameters, all stored in Firestore

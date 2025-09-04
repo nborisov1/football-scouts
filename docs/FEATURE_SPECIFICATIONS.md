@@ -45,37 +45,44 @@ This document provides detailed specifications for all features in the Football 
   - Profile picture
   - Brief bio/description
 
-#### Challenge System (Basic)
-- **Feature**: Pre-defined football challenges for skill assessment
-- **Implementation**: Firestore collection with challenge metadata
+#### Exercise Video Training System
+- **Feature**: Access to admin-created exercise videos with AI-powered performance analysis
+- **Implementation**: Integration with admin exercise library and AI analysis service
 - **Requirements**:
-  - Challenge library (beginner, intermediate, advanced)
-  - Challenge descriptions with video examples
-  - Submission system for challenge videos
-  - Basic scoring system
-  - Progress tracking
+  - Browse exercise videos by category, skill level, and type
+  - View detailed exercise instructions and requirements
+  - Upload response videos attempting the demonstrated exercise
+  - Receive AI-generated feedback and scoring
+  - Track exercise completion status
+  - Mark exercises as "completed" after satisfactory performance
 
-#### Video Upload System
-- **Feature**: Video upload for challenges and free training
-- **Implementation**: Firebase Storage with metadata in Firestore
+#### AI-Enhanced Video Upload System
+- **Feature**: Intelligent video upload with automatic analysis and feedback
+- **Implementation**: Firebase Storage integrated with AI analysis pipeline
 - **Requirements**:
   - Video file validation (format, size, duration)
-  - Upload progress indicator
-  - Video compression/optimization
-  - Thumbnail generation
-  - Metadata storage (title, description, challenge ID)
+  - Upload progress indicator with real-time status
+  - Automatic AI analysis upon upload completion
+  - AI feedback generation (technique, form, suggestions)
+  - Performance scoring based on exercise criteria
+  - Metadata storage (exercise reference, AI scores, feedback text)
+  - Completion status tracking
 
 ### 1.3 Basic Scout Features
 
-#### Player Discovery Interface
-- **Feature**: Search and browse player profiles
-- **Implementation**: Firestore queries with filtering
+#### Video-Enhanced Player Discovery Interface
+- **Feature**: Advanced player search with video performance filtering
+- **Implementation**: Firestore queries with video metadata and AI score filtering
 - **Requirements**:
-  - Player list with basic info cards
-  - Search by name, position, age, location
-  - Filter options (position, age range, skill level)
-  - Pagination for large result sets
-  - Sort options (newest, rating, etc.)
+  - Player list with performance metrics and video highlights
+  - Search by traditional criteria (name, position, age, location)
+  - Advanced video-based filters:
+    - Exercise type proficiency (dribbling, passing, shooting, etc.)
+    - AI performance score ranges
+    - Exercise completion rates and consistency
+    - Skill level demonstrated in videos
+  - Sort by AI scores, improvement trends, and video engagement
+  - Video preview integration in search results
 
 #### Player Profile Viewing
 - **Feature**: Detailed view of player profiles for scouts
@@ -88,6 +95,32 @@ This document provides detailed specifications for all features in the Football 
 
 ### 1.4 Basic Admin Features
 
+#### Exercise Video Upload and Management System
+- **Feature**: Professional exercise video creation and classification
+- **Implementation**: Firebase Storage with comprehensive metadata management
+- **Requirements**:
+  - Multi-format video upload support (MP4, MOV, AVI)
+  - Comprehensive metadata form:
+    - Exercise title and detailed description
+    - Skill level classification (beginner, intermediate, advanced)
+    - Exercise type categorization (dribbling, passing, shooting, fitness, technique, tactics, goalkeeping, etc.)
+    - Target audience specification (youth, amateur, professional)
+    - Required equipment listing
+    - Step-by-step execution instructions
+  - Video organization and library management
+  - Exercise video editing and updating capabilities
+  - Usage analytics and performance tracking
+
+#### Player Video Oversight and Quality Control
+- **Feature**: Monitor and manage player-uploaded videos
+- **Implementation**: Integration with AI analysis system and manual review
+- **Requirements**:
+  - Review AI analysis results for accuracy
+  - Manual intervention for edge cases
+  - Content quality assurance
+  - Inappropriate content detection and removal
+  - Feedback system for players needing additional guidance
+
 #### User Management Dashboard
 - **Feature**: Admin interface for user management
 - **Implementation**: Admin-only pages with Firestore operations
@@ -97,15 +130,6 @@ This document provides detailed specifications for all features in the Football 
   - Account activation/deactivation
   - Basic user statistics
   - User type modification
-
-#### Video Moderation System
-- **Feature**: Approve/reject uploaded videos
-- **Requirements**:
-  - Pending videos queue
-  - Video preview with playback controls
-  - Approve/reject buttons with feedback
-  - Moderation history tracking
-  - Bulk actions for multiple videos
 
 ### 1.5 Basic Communication System
 

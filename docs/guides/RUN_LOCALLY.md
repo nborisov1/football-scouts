@@ -1,153 +1,326 @@
-# הפעלת האתר באופן מקומי - פוטבול סקאוטינג
+# Local Development Setup Guide
 
-מסמך זה מפרט את האפשרויות השונות להפעלת האתר באופן מקומי לצורכי פיתוח ובדיקה.
+**Hebrew**: מדריך הגדרת סביבת פיתוח מקומית
 
-## אפשרות 1: שימוש ב-VS Code Live Server
+This guide explains how to set up and run the Football Scouting Platform React application locally for development.
 
-אם אתם משתמשים ב-Visual Studio Code, זוהי הדרך הפשוטה ביותר:
+## 🎯 Prerequisites
 
-1. התקינו את התוסף [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer):
-   - לחצו על אייקון התוספים בסרגל הצד (או הקישו `Ctrl+Shift+X` / `Cmd+Shift+X`)
-   - חפשו "Live Server"
-   - לחצו על "Install"
+### Required Software
+- **Node.js** 18.0.0 or higher
+- **npm** 9.0.0 or higher (comes with Node.js)
+- **Git** (for cloning the repository)
+- **Modern web browser** (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 
-2. הפעילו את השרת:
-   - פתחו את קובץ `index.html`
-   - לחצו על "Go Live" בפינה הימנית התחתונה של VS Code
-   - או לחצו קליק ימני על הקובץ ובחרו "Open with Live Server"
+### Check Your Environment
+```bash
+# Check Node.js version
+node --version  # Should be 18+
 
-3. הדפדפן ייפתח אוטומטית עם האתר בכתובת `http://127.0.0.1:5500/index.html` (או פורט דומה)
+# Check npm version
+npm --version   # Should be 9+
 
-יתרונות:
-- רענון אוטומטי של הדף בכל שינוי בקבצים
-- קל להגדרה ושימוש
-- תמיכה ב-CORS
+# Check Git version
+git --version
+```
 
-## אפשרות 2: שימוש ב-Python SimpleHTTPServer
+## 📦 Installation
 
-אם Python מותקן במחשב שלכם:
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/football-scouts.git
+cd football-scouts
+```
 
-1. פתחו טרמינל/command prompt
+### 2. Install Dependencies
+```bash
+# Install all project dependencies
+npm install
 
-2. נווטו לתיקיית הפרויקט:
-   ```bash
-   cd /path/to/football-scouting
-   ```
+# This will install:
+# - React 19 & Next.js 15
+# - TypeScript & type definitions
+# - Tailwind CSS for styling
+# - Firebase SDK v12
+# - Testing libraries (Jest, Testing Library)
+# - Development tools (ESLint, etc.)
+```
 
-3. הפעילו את השרת:
-   
-   עבור Python 3:
-   ```bash
-   python -m http.server
-   ```
-   
-   עבור Python 2:
-   ```bash
-   python -m SimpleHTTPServer
-   ```
+## 🚀 Development Server
 
-4. גשו לאתר בדפדפן בכתובת `http://localhost:8000`
+### Start the Development Server
+```bash
+# Start the Next.js development server
+npm run dev
 
-יתרונות:
-- לא נדרשת התקנה של תוכנות נוספות אם Python כבר מותקן
-- עובד בכל מערכת הפעלה
+# The server will start on http://localhost:3000
+# Hot reloading is enabled for instant updates
+```
 
-## אפשרות 3: שימוש ב-Node.js http-server
+### Available Scripts
+```bash
+# Development server with hot reloading
+npm run dev
 
-אם Node.js מותקן במחשב שלכם:
+# Build production version
+npm run build
 
-1. התקינו את http-server באופן גלובלי:
-   ```bash
-   npm install -g http-server
-   ```
+# Start production server (requires build first)
+npm start
 
-2. נווטו לתיקיית הפרויקט:
-   ```bash
-   cd /path/to/football-scouting
-   ```
+# Run tests
+npm test
 
-3. הפעילו את השרת:
-   ```bash
-   http-server -p 8080
-   ```
+# Run tests in watch mode
+npm run test:watch
 
-4. גשו לאתר בדפדפן בכתובת `http://localhost:8080`
+# Generate test coverage report
+npm run test:coverage
 
-יתרונות:
-- מהיר וקל לשימוש
-- אפשרויות הגדרה רבות
-- תמיכה ב-CORS ו-caching
+# Run linting
+npm run lint
 
-## אפשרות 4: שימוש ב-PHP Built-in Server
+# Fix linting issues automatically
+npm run lint:fix
+```
 
-אם PHP מותקן במחשב שלכם:
+## 🏠 Accessing the Application
 
-1. נווטו לתיקיית הפרויקט:
-   ```bash
-   cd /path/to/football-scouting
-   ```
+### Main Application
+- **URL**: http://localhost:3000
+- **Features**: Full React application with all pages
 
-2. הפעילו את השרת:
-   ```bash
-   php -S localhost:8000
-   ```
+### Available Pages
+- **Homepage**: `/` - Landing page with auth
+- **Leaderboards**: `/leaderboards` - Player rankings
+- **Training**: `/training` - Training programs
+- **Challenges**: `/challenges` - User challenges
+- **Profile**: `/profile` - User profile management
+- **Discover**: `/discover` - Player discovery
+- **Watchlist**: `/watchlist` - Scout watchlist
+- **Admin Dashboard**: `/admin` - Admin control panel
+- **Video Management**: `/admin/videos` - Video approval
 
-3. גשו לאתר בדפדפן בכתובת `http://localhost:8000`
+### Demo Accounts
+```bash
+# Admin Account
+Email: admin@example.com
+Password: admin123
 
-יתרונות:
-- שימושי אם אתם מתכננים להוסיף קוד PHP בעתיד
-- לא נדרשת התקנה של תוכנות נוספות אם PHP כבר מותקן
+# Create new accounts through registration
+# Choose Player or Scout role
+```
 
-## אפשרות 5: פתיחה ישירה של הקובץ בדפדפן
+## 🔧 Development Tools
 
-הדרך הפשוטה ביותר (אך עם מגבלות):
+### TypeScript Support
+- Full TypeScript integration
+- Type checking on build and in editor
+- Custom types in `src/types/`
 
-1. נווטו לתיקיית הפרויקט בסייר הקבצים/Finder
+### Tailwind CSS
+- Utility-first CSS framework
+- Responsive design built-in
+- RTL support for Hebrew
 
-2. לחצו פעמיים על קובץ `index.html` כדי לפתוח אותו בדפדפן ברירת המחדל
+### Firebase Integration
+- Authentication with Firebase Auth v9+
+- Firestore database integration
+- Real-time data updates
 
-3. האתר ייפתח עם פרוטוקול `file://` במקום `http://`
+### Testing Environment
+```bash
+# Run specific test suites
+npm run test:unit         # Unit tests only
+npm run test:integration  # Integration tests only
 
-מגבלות:
-- חלק מהפונקציונליות עלולה לא לעבוד בגלל מגבלות אבטחה של דפדפנים
-- בעיות CORS עם קבצי JavaScript מודולריים
-- localStorage עלול לא לעבוד כראוי בחלק מהדפדפנים
+# Test with specific pattern
+npm test -- --testNamePattern="auth"
 
-## הערות חשובות
+# Generate coverage and open report
+npm run test:coverage
+open coverage/lcov-report/index.html
+```
 
-### חשבונות לדוגמה
+## 📁 Project Structure
 
-האתר מגיע עם חשבון מנהל מערכת מוגדר מראש:
+### Key Directories
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── admin/             # Admin pages
+│   ├── (other-pages)/     # All other routes
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Homepage
+├── components/            # Reusable components
+│   ├── modals/           # Modal components
+│   └── *.tsx             # Other components
+├── contexts/             # React Context providers
+├── lib/                  # Utility libraries
+└── types/                # TypeScript definitions
+```
 
-- **אימייל**: admin@example.com
-- **סיסמה**: admin123
+### Configuration Files
+- `next.config.ts` - Next.js configuration
+- `tailwind.config.ts` - Tailwind CSS configuration
+- `tsconfig.json` - TypeScript configuration
+- `eslint.config.mjs` - ESLint configuration
+- `babel.config.js` - Babel configuration (for Jest)
 
-בנוסף, ניתן ליצור חשבונות חדשים (שחקן או סקאוט) דרך דף ההרשמה.
+## 🐛 Troubleshooting
 
-### תמונות
+### Common Issues
 
-שימו לב שהאתר משתמש בקישורים זמניים לתמונות. כדי לראות את האתר עם תמונות אמיתיות, יש להוסיף תמונות לתיקיית `images/` בהתאם להנחיות ב-`images/placeholder.md`.
+#### Port Already in Use
+```bash
+# If port 3000 is busy, Next.js will automatically use 3001
+# Or specify a different port:
+npm run dev -- -p 3001
+```
 
-### אחסון נתונים
+#### Node Version Issues
+```bash
+# If you have Node version conflicts, use nvm:
+nvm install 18
+nvm use 18
+npm install
+```
 
-האתר משתמש ב-localStorage לאחסון נתונים, כך שכל הנתונים נשמרים באופן מקומי בדפדפן שלכם. אם תנקו את נתוני הדפדפן או תשתמשו בדפדפן אחר, הנתונים לא יהיו זמינים.
+#### Firebase Connection Issues
+```bash
+# Check if Firebase config is correct in src/lib/firebase.ts
+# Verify your internet connection
+# Check browser console for error messages
+```
 
-## פתרון בעיות נפוצות
+#### TypeScript Errors
+```bash
+# Clear Next.js cache
+rm -rf .next
 
-### בעיות CORS
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
 
-אם אתם נתקלים בשגיאות CORS בקונסולת הדפדפן, ודאו שאתם משתמשים בשרת מקומי (אפשרויות 1-4) ולא פותחים את הקובץ ישירות (אפשרות 5).
+# Restart TypeScript server in your editor
+```
 
-### בעיות טעינת קבצים
+#### Build Issues
+```bash
+# Clear all caches
+npm run clean  # If available
+rm -rf .next node_modules
+npm install
+npm run build
+```
 
-אם חלק מהקבצים לא נטענים:
-1. בדקו שכל הנתיבים נכונים ותואמים את מבנה התיקיות
-2. ודאו שאתם מפעילים את השרת מתיקיית השורש של הפרויקט
-3. בדקו שגיאות בקונסולת הדפדפן (F12 -> Console)
+### Development Tips
 
-### בעיות localStorage
+#### Hot Reloading
+- Changes to React components update instantly
+- TypeScript errors show in browser overlay
+- Tailwind classes update in real-time
 
-אם הנתונים לא נשמרים:
-1. ודאו שהדפדפן תומך ב-localStorage
-2. בדקו שאין הגבלות אחסון בדפדפן
-3. נסו להפעיל את האתר בדפדפן אחר
+#### Debugging
+```bash
+# Enable detailed error messages
+NEXT_DEBUG=1 npm run dev
+
+# Check bundle analyzer (if configured)
+npm run analyze
+```
+
+#### Database Development
+- Uses live Firebase project
+- Changes persist across sessions
+- Admin account created automatically in development
+
+## 🔍 Code Quality
+
+### Linting
+```bash
+# Check code style
+npm run lint
+
+# Fix auto-fixable issues
+npm run lint:fix
+
+# Lint specific files
+npx eslint src/components/Header.tsx
+```
+
+### Type Checking
+```bash
+# TypeScript type checking
+npx tsc --noEmit
+
+# Watch mode for continuous checking
+npx tsc --noEmit --watch
+```
+
+## 📱 Browser Testing
+
+### Supported Browsers
+- Chrome 90+ (recommended)
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+### Mobile Testing
+```bash
+# Access from mobile devices on same network
+# Use your computer's IP address:
+http://[YOUR-IP]:3000
+
+# Example:
+http://192.168.1.100:3000
+```
+
+## 🚀 Building for Production
+
+### Production Build
+```bash
+# Create optimized production build
+npm run build
+
+# Verify build output
+npm start
+
+# Build will be in .next/ directory
+```
+
+### Performance Analysis
+```bash
+# Analyze bundle size (if configured)
+npm run analyze
+
+# Check build performance
+npm run build -- --profile
+```
+
+## 📞 Getting Help
+
+### Resources
+- **Next.js Docs**: https://nextjs.org/docs
+- **React Docs**: https://react.dev
+- **Tailwind Docs**: https://tailwindcss.com/docs
+- **Firebase Docs**: https://firebase.google.com/docs
+
+### Common Commands Reference
+```bash
+# Quick start
+npm install && npm run dev
+
+# Clean restart
+rm -rf node_modules .next && npm install && npm run dev
+
+# Full test run
+npm run lint && npm test && npm run build
+
+# Development with specific port
+npm run dev -- -p 3001
+```
+
+---
+
+**Happy coding! 🚀**

@@ -106,7 +106,7 @@ export default function Header() {
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
                     className="flex items-center space-x-3 space-x-reverse bg-white/80 backdrop-blur-sm border border-field-200 rounded-xl px-6 py-3 text-sm font-medium text-stadium-700 hover:bg-field-50 hover:border-field-300 focus:outline-none focus:ring-2 focus:ring-field-500 transition-all duration-300 shadow-stadium"
                   >
-                    <span className="font-display font-semibold">{user.name || 'החשבון שלי'}</span>
+                    <span className="font-display font-semibold">{user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'החשבון שלי'}</span>
                     <div className="w-8 h-8 bg-field-gradient rounded-full flex items-center justify-center">
                       <i className="fas fa-user text-white text-sm"></i>
                     </div>
@@ -116,7 +116,7 @@ export default function Header() {
                   {showUserDropdown && (
                     <div className="absolute left-0 mt-3 w-56 bg-white/95 backdrop-blur-lg rounded-xl shadow-stadium border border-field-200/50 py-2 z-50 overflow-hidden">
                       <div className="px-4 py-3 border-b border-field-100">
-                        <p className="text-sm font-medium text-stadium-900">{user.name}</p>
+                        <p className="text-sm font-medium text-stadium-900">{user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim()}</p>
                         <p className="text-xs text-field-600 capitalize">
                           {user.type === USER_TYPES.PLAYER && '⚽ שחקן'}
                           {user.type === USER_TYPES.SCOUT && '🔍 סקאוט'}

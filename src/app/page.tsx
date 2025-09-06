@@ -15,28 +15,18 @@ import LoginModal from '@/components/modals/LoginModal'
 
 import { USER_TYPES } from '@/lib/firebase'
 
-// Mock data for demonstration (same as original)
-const mockLeaderboardData = {
-  consistent: [
-    { name: 'דני לוי', score: 28, position: 'חלוץ', age: 17 },
-    { name: 'יוסי כהן', score: 26, position: 'קשר', age: 18 },
-    { name: 'אבי גולן', score: 24, position: 'מגן', age: 16 },
-  ],
-  improved: [
-    { name: 'רועי שמש', score: 85, position: 'קשר', age: 16 },
-    { name: 'אלון דגן', score: 78, position: 'מגן', age: 18 },
-    { name: 'גיא לוי', score: 72, position: 'חלוץ', age: 17 },
-  ],
-  ranked: [
-    { name: 'אורי מלכה', score: 95, position: 'חלוץ', age: 18 },
-    { name: 'יובל שמעון', score: 92, position: 'קשר', age: 17 },
-    { name: 'איתי לוי', score: 90, position: 'מגן', age: 19 },
-  ]
-}
+// Mock data for demonstration - single ranking leaderboard
+const mockLeaderboardData = [
+  { name: 'אורי מלכה', score: 95, position: 'חלוץ', age: 18 },
+  { name: 'יובל שמעון', score: 92, position: 'קשר', age: 17 },
+  { name: 'איתי לוי', score: 90, position: 'מגן', age: 19 },
+  { name: 'יוסי כהן', score: 88, position: 'קשר', age: 18 },
+  { name: 'דני לוי', score: 85, position: 'חלוץ', age: 17 },
+  { name: 'אבי גולן', score: 82, position: 'מגן', age: 16 },
+]
 
 export default function HomePage() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'consistent' | 'improved' | 'ranked'>('consistent')
   const [testimonialIndex, setTestimonialIndex] = useState(0)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
@@ -83,7 +73,7 @@ export default function HomePage() {
           <h1 className="text-4xl font-bold mb-4 text-with-shadow">
             גלה את הפוטנציאל שלך בכדורגל
           </h1>
-          <p className="text-xl text-white/90 text-with-shadow max-w-3xl mx-auto">
+          <p className="text-xl text-white text-with-shadow max-w-3xl mx-auto">
             הפלטפורמה המובילה המחברת בין שחקני כדורגל מוכשרים לסקאוטים מקצועיים
           </p>
           
@@ -114,9 +104,9 @@ export default function HomePage() {
       <div className="container mx-auto px-4">
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold mb-4 text-with-shadow">
-            שלום {user?.name || 'חבר'}! 👋
+            שלום {user?.displayName || user?.firstName || 'חבר'}! 👋
           </h1>
-          <p className="text-xl text-white/90 text-with-shadow">
+          <p className="text-xl text-white text-with-shadow">
             {user?.type === USER_TYPES.PLAYER && '⚽ ממשיך להתפתח ולהשתפר בכדורגל'}
             {user?.type === USER_TYPES.SCOUT && '🔍 מגלה כישרונות חדשים מדי יום'}
             {user?.type === USER_TYPES.ADMIN && '👑 מנהל את הפלטפורמה בצורה מקצועית'}
@@ -223,43 +213,18 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-stadium-900">
-              🏆 טבלאות מובילים
+              🏆 טבלת מובילים
             </h2>
             <p className="text-lg text-stadium-600 max-w-2xl mx-auto">
-              עקוב אחר השחקנים הטובים ביותר והשתלב בקהילת האליטה
+              עקוב אחר השחקנים הטובים ביותר לפי נקודות דירוג
             </p>
-          </div>
-          
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-1 shadow-stadium border border-field-200">
-              {[
-                { key: 'consistent' as const, label: 'הכי עקביים', icon: 'fas fa-calendar-check' },
-                { key: 'improved' as const, label: 'השיפור הגדול', icon: 'fas fa-chart-line' },
-                { key: 'ranked' as const, label: 'דירוג גבוה', icon: 'fas fa-crown' }
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-3 rounded-md font-medium transition-all duration-300 ${
-                    activeTab === tab.key
-                      ? 'bg-field-gradient text-white shadow-stadium-glow'
-                      : 'text-stadium-600 hover:text-field-600 hover:bg-field-50'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Leaderboard Table */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="bg-gray-50 p-4">
               <h3 className="text-lg font-semibold text-stadium-900">
-                {activeTab === 'consistent' && 'השחקנים הכי עקביים'}
-                {activeTab === 'improved' && 'השיפור הגדול ביותר'}
-                {activeTab === 'ranked' && 'הדירוג הגבוה ביותר'}
+                דירוג השחקנים הטובים ביותר
               </h3>
             </div>
             
@@ -271,15 +236,11 @@ export default function HomePage() {
                     <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">שחקן</th>
                     <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">עמדה</th>
                     <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">גיל</th>
-                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                      {activeTab === 'consistent' && 'ימים רצופים'}
-                      {activeTab === 'improved' && 'אחוז שיפור'}
-                      {activeTab === 'ranked' && 'נקודות'}
-                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">נקודות דירוג</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {mockLeaderboardData[activeTab].map((player, index) => (
+                  {mockLeaderboardData.map((player, index) => (
                     <tr key={index} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-5 text-sm font-bold">
                         <div className="flex items-center">
@@ -306,7 +267,6 @@ export default function HomePage() {
                       <td className="px-6 py-5 text-sm text-gray-600">{player.age}</td>
                       <td className="px-6 py-5 text-sm">
                         <span className="font-bold text-field-600 text-lg">{player.score}</span>
-                        {activeTab === 'improved' && <span className="text-gray-500 text-xs">%</span>}
                       </td>
                     </tr>
                   ))}
@@ -413,7 +373,7 @@ export default function HomePage() {
                 <h2 className="text-4xl font-bold mb-4 text-with-shadow leading-tight">
                   מוכן להתחיל את המסע שלך?
                 </h2>
-                <p className="text-xl text-white/90 text-with-shadow max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xl text-white text-with-shadow max-w-2xl mx-auto leading-relaxed">
                   הצטרף עכשיו לקהילת הכדורגל הגדולה בישראל וקח את הקריירה שלך לשלב הבא
                 </p>
               </div>

@@ -36,14 +36,17 @@ export default function RegistrationModal({
   const [currentStep, setCurrentStep] = useState(STEPS.USER_TYPE)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<RegisterData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     age: 18,
     position: '',
     dominantFoot: 'right',
     level: 'beginner',
-    organization: ''
+    organization: '',
+    team: '',
+    type: 'player'
   })
   const [userType, setUserType] = useState<UserType | null>(null)
 
@@ -68,6 +71,7 @@ export default function RegistrationModal({
 
   const handleUserTypeSelect = (type: UserType) => {
     setUserType(type)
+    setFormData(prev => ({ ...prev, type }))
     setCurrentStep(STEPS.BASIC_INFO)
   }
 
@@ -89,7 +93,7 @@ export default function RegistrationModal({
       return
     }
 
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       showMessage('נא למלא את כל השדות הנדרשים', 'error')
       return
     }
@@ -98,21 +102,24 @@ export default function RegistrationModal({
 
     try {
       showMessage('יוצר חשבון...', 'info')
-      await register(formData, userType)
+      await register(formData)
       
       const userTypeHebrew = userType === USER_TYPES.PLAYER ? 'שחקן' : 'סקאוט'
       showMessage(`ברוך הבא! נרשמת בהצלחה כ${userTypeHebrew}`, 'success')
       
       // Reset form and close modal
       setFormData({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         password: '',
         age: 18,
         position: '',
         dominantFoot: 'right',
         level: 'beginner',
-        organization: ''
+        organization: '',
+        team: '',
+        type: 'player'
       })
       setCurrentStep(STEPS.USER_TYPE)
       setUserType(null)
@@ -171,21 +178,40 @@ export default function RegistrationModal({
         <p className="text-stadium-600">בואו נתחיל עם הבסיס</p>
       </div>
       
-      <div>
-        <label htmlFor="name" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
-          <i className="fas fa-user ml-2 text-field-500"></i>
-          שם מלא *
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          required
-          className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
-          placeholder="הזן את שמך המלא"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+            <i className="fas fa-user ml-2 text-field-500"></i>
+            שם פרטי *
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleInputChange}
+            required
+            className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+            placeholder="הזן שם פרטי"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-display font-semibold text-stadium-700 mb-2">
+            <i className="fas fa-user ml-2 text-field-500"></i>
+            שם משפחה *
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleInputChange}
+            required
+            className="w-full px-4 py-3 border-2 border-field-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-field-500 focus:border-field-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+            placeholder="הזן שם משפחה"
+          />
+        </div>
       </div>
 
       <div>
@@ -329,7 +355,7 @@ export default function RegistrationModal({
       
       <div className="bg-gray-50 p-4 rounded-lg space-y-2">
         <p><strong>סוג חשבון:</strong> {userType === USER_TYPES.PLAYER ? 'שחקן' : 'סקאוט'}</p>
-        <p><strong>שם:</strong> {formData.name}</p>
+        <p><strong>שם:</strong> {formData.firstName} {formData.lastName}</p>
         <p><strong>אימייל:</strong> {formData.email}</p>
         
         {userType === USER_TYPES.PLAYER && (
@@ -454,7 +480,7 @@ export default function RegistrationModal({
             <button
               onClick={handleNext}
               disabled={
-                (currentStep === STEPS.BASIC_INFO && (!formData.name || !formData.email || !formData.password)) ||
+                (currentStep === STEPS.BASIC_INFO && (!formData.firstName || !formData.lastName || !formData.email || !formData.password)) ||
                 (currentStep === STEPS.USER_TYPE && !userType)
               }
               className="btn-primary px-8 py-3 font-display font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"

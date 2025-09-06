@@ -128,9 +128,9 @@ export default function ChallengesPage() {
       <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4 text-with-shadow">אתגרים</h1>
-          <p className="text-xl text-white/90 text-with-shadow">
+          <p className="text-xl text-white text-with-shadow">
             {user 
-              ? `שלום ${user.name}, השלם אתגרים וזכה בנקודות!`
+              ? `שלום ${user.displayName || user.firstName}, השלם אתגרים וזכה בנקודות!`
               : 'השלם אתגרים וזכה בנקודות והישגים'
             }
           </p>

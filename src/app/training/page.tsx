@@ -53,9 +53,9 @@ export default function TrainingPage() {
       <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4 text-with-shadow">תוכניות אימון</h1>
-          <p className="text-xl text-white/90 text-with-shadow">
+          <p className="text-xl text-white text-with-shadow">
             {user 
-              ? `שלום ${user.name}, בחר תוכנית אימון מותאמת לרמה שלך`
+              ? `שלום ${user.displayName || user.firstName}, בחר תוכנית אימון מותאמת לרמה שלך`
               : 'תוכניות אימון מותאמות לכל רמה'
             }
           </p>

@@ -110,9 +110,6 @@ const MOCK_PLAYERS: Player[] = [
   }
 ]
 
-type LeaderboardType = 'consistent' | 'improved' | 'ranked'
-type StatKey = 'consistency' | 'improvement' | 'ranking'
-
 interface Filters {
   age: string
   position: string
@@ -121,25 +118,13 @@ interface Filters {
 
 export default function LeaderboardsPage() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<LeaderboardType>('consistent')
   const [filters, setFilters] = useState<Filters>({ age: '', position: '', level: '' })
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [showModal, setShowModal] = useState(false)
 
-  const getStatKey = (type: LeaderboardType): StatKey => {
-    switch (type) {
-      case 'consistent': return 'consistency'
-      case 'improved': return 'improvement'
-      case 'ranked': return 'ranking'
-    }
-  }
-
-  const getStatLabel = (type: LeaderboardType): string => {
-    switch (type) {
-      case 'consistent': return 'ימים רצופים'
-      case 'improved': return 'אחוז שיפור'
-      case 'ranked': return 'נקודות'
-    }
+  // Single ranking-based leaderboard
+  const getStatLabel = (): string => {
+    return 'נקודות דירוג'
   }
 
   const getHebrewPosition = (position: string): string => {
@@ -196,13 +181,12 @@ export default function LeaderboardsPage() {
     })
   }
 
-  const getSortedPlayers = (type: LeaderboardType): Player[] => {
-    const statKey = getStatKey(type)
-    return [...MOCK_PLAYERS].sort((a, b) => b.stats[statKey] - a.stats[statKey])
+  const getSortedPlayers = (): Player[] => {
+    return [...MOCK_PLAYERS].sort((a, b) => b.stats.ranking - a.stats.ranking)
   }
 
-  const getFilteredAndSortedPlayers = (type: LeaderboardType): Player[] => {
-    const sortedPlayers = getSortedPlayers(type)
+  const getFilteredAndSortedPlayers = (): Player[] => {
+    const sortedPlayers = getSortedPlayers()
     return filterPlayers(sortedPlayers)
   }
 
@@ -230,14 +214,7 @@ export default function LeaderboardsPage() {
     return date.toLocaleDateString('he-IL')
   }
 
-  const tabs = [
-    { key: 'consistent' as const, label: 'הכי עקביים', description: 'שחקנים אלה מתאמנים באופן קבוע ומשלימים את האתגרים שלהם בזמן' },
-    { key: 'improved' as const, label: 'השיפור הגדול ביותר', description: 'שחקנים אלה הראו את השיפור הגדול ביותר בביצועים שלהם לאורך זמן' },
-    { key: 'ranked' as const, label: 'דירוג הגבוה ביותר', description: 'שחקנים אלה צברו את הדירוג הגבוה ביותר במערכת' }
-  ]
-
-  const currentPlayers = getFilteredAndSortedPlayers(activeTab)
-  const currentTab = tabs.find(tab => tab.key === activeTab)!
+  const currentPlayers = getFilteredAndSortedPlayers()
 
   return (
     <ProtectedRoute>
@@ -245,37 +222,18 @@ export default function LeaderboardsPage() {
       {/* Header Section */}
       <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4 text-with-shadow">טבלאות מובילים</h1>
-          <p className="text-xl text-white/90 text-with-shadow">גלה את השחקנים המובילים בקטגוריות שונות</p>
+          <h1 className="text-4xl font-bold mb-4 text-with-shadow">טבלת מובילים</h1>
+          <p className="text-xl text-white text-with-shadow">דירוג השחקנים הטובים ביותר לפי נקודות דירוג</p>
         </div>
       </section>
 
       {/* Main Content */}
       <section className="py-8">
         <div className="container mx-auto px-4">
-          {/* Tabs */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-1 shadow-stadium border border-field-200">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-3 rounded-md font-medium transition-all duration-300 ${
-                    activeTab === tab.key
-                      ? 'bg-field-gradient text-white shadow-stadium-glow'
-                      : 'text-stadium-600 hover:text-field-600 hover:bg-field-50'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Current Tab Header */}
+          {/* Leaderboard Header */}
           <div className="bg-white rounded-lg p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-2">{currentTab.label}</h2>
-            <p className="text-gray-600">{currentTab.description}</p>
+            <h2 className="text-2xl font-bold mb-2">דירוג שחקנים</h2>
+            <p className="text-gray-600">השחקנים מדורגים לפי הנקודות שצברו במערכת</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -291,7 +249,7 @@ export default function LeaderboardsPage() {
                       <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">עמדה</th>
                       <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">רמה</th>
                       <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                        {getStatLabel(activeTab)}
+                        {getStatLabel()}
                       </th>
                       <th className="px-6 py-3 text-right text-sm font-medium text-gray-500"></th>
                     </tr>
@@ -306,7 +264,6 @@ export default function LeaderboardsPage() {
                     ) : (
                       currentPlayers.map((player, index) => {
                         const rank = index + 1
-                        const statKey = getStatKey(activeTab)
                         return (
                           <tr key={player.id} className="hover:bg-gray-50">
                             <td className={`px-6 py-4 text-sm font-bold ${
@@ -333,8 +290,7 @@ export default function LeaderboardsPage() {
                               {getHebrewLevel(player.level)}
                             </td>
                             <td className="px-6 py-4 text-sm font-semibold text-field-600">
-                              {player.stats[statKey]}
-                              {activeTab === 'improved' && '%'}
+                              {player.stats.ranking}
                             </td>
                             <td className="px-6 py-4">
                               <button

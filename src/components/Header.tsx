@@ -87,14 +87,6 @@ export default function Header() {
                   </Link>
                 </>
               )}
-              <Link href="/about" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
-                <i className="fas fa-info-circle ml-2 text-field-500"></i>
-                אודות
-              </Link>
-              <Link href="/contact" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
-                <i className="fas fa-envelope ml-2 text-field-500"></i>
-                צור קשר
-              </Link>
             </nav>
 
             {/* Auth Buttons / User Menu */}

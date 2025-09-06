@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
 import RegistrationModal from '@/components/modals/RegistrationModal'
 import LoginModal from '@/components/modals/LoginModal'
+import { useRankings } from '@/hooks/useRankings'
 
 import { USER_TYPES } from '@/lib/firebase'
 
@@ -31,6 +32,10 @@ export default function HomePage() {
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
   const [registrationType, setRegistrationType] = useState<'player' | 'scout' | null>(null)
+  
+  // Get top 5 players for homepage preview
+  const { filteredRankings: allRankings, loading: rankingsLoading } = useRankings()
+  const topPlayers = allRankings.slice(0, 5)
 
   const testimonials = [
     {
@@ -240,36 +245,56 @@ export default function HomePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {mockLeaderboardData.map((player, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors group">
-                      <td className="px-6 py-5 text-sm font-bold">
-                        <div className="flex items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs ${
-                            index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-yellow-600' : 'bg-gray-500'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          {index < 3 && (
-                            <i className={`fas fa-medal ml-2 ${
-                              index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-yellow-600'
-                            }`}></i>
-                          )}
+                  {rankingsLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mr-2"></div>
+                          טוען דירוגים...
                         </div>
                       </td>
-                      <td className="px-6 py-5 text-sm font-semibold text-gray-900">
-                        {player.name}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-gray-600">
-                        <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-700">
-                          {player.position}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5 text-sm text-gray-600">{player.age}</td>
-                      <td className="px-6 py-5 text-sm">
-                        <span className="font-bold text-field-600 text-lg">{player.score}</span>
+                    </tr>
+                  ) : topPlayers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        אין שחקנים זמינים כרגע
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    topPlayers.map((player, index) => (
+                      <tr key={player.playerId} className="hover:bg-gray-50 transition-colors group">
+                        <td className="px-6 py-5 text-sm font-bold">
+                          <div className="flex items-center">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs ${
+                              index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-yellow-600' : 'bg-gray-500'
+                            }`}>
+                              {player.rank}
+                            </div>
+                            {index < 3 && (
+                              <i className={`fas fa-medal ml-2 ${
+                                index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-yellow-600'
+                              }`}></i>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-sm font-semibold text-gray-900">
+                          {player.playerName}
+                        </td>
+                        <td className="px-6 py-5 text-sm text-gray-600">
+                          <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-700">
+                            {player.position === 'goalkeeper' ? 'שוער' :
+                             player.position === 'defender' ? 'מגן' :
+                             player.position === 'midfielder' ? 'קשר' :
+                             player.position === 'forward' ? 'חלוץ' : player.position}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-sm text-gray-600">{player.age}</td>
+                        <td className="px-6 py-5 text-sm">
+                          <span className="font-bold text-field-600 text-lg">{player.totalPoints}</span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

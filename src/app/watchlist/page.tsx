@@ -16,7 +16,7 @@ export default function WatchlistPage() {
   const { user } = useAuth()
 
 
-  if (user.type !== USER_TYPES.SCOUT) {
+  if (user?.type !== USER_TYPES.SCOUT) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

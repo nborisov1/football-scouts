@@ -1,114 +1,15 @@
 'use client'
 
 /**
- * Leaderboards Page - Shows player rankings in different categories
- * Preserves exact functionality from pages/leaderboards.html + js/leaderboards.js
+ * Leaderboards Page - Shows player rankings with real-time data
+ * Uses the new ranking system with comprehensive player statistics
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
 import ProtectedRoute from '@/components/ProtectedRoute'
-
-// Mock data (same as original)
-interface Player {
-  id: number
-  name: string
-  email: string
-  age: number
-  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward'
-  level: 'beginner' | 'intermediate' | 'advanced'
-  dominantFoot: 'right' | 'left' | 'both'
-  club: string
-  profileImage: string
-  stats: {
-    consistency: number
-    improvement: number
-    ranking: number
-  }
-  videos: Array<{
-    id: number
-    title: string
-    date: string
-    thumbnail: string
-  }>
-}
-
-const MOCK_PLAYERS: Player[] = [
-  {
-    id: 1,
-    name: 'דני לוי',
-    email: 'danny@example.com',
-    age: 17,
-    position: 'forward',
-    level: 'intermediate',
-    dominantFoot: 'right',
-    club: 'מכבי תל אביב נוער',
-    profileImage: '/images/player1.jpg',
-    stats: { consistency: 28, improvement: 65, ranking: 85 },
-    videos: [
-      { id: 1, title: 'אתגר 1: שליטה בכדור', date: '2025-01-15', thumbnail: '/images/video-thumbnail-1.jpg' },
-      { id: 2, title: 'אתגר 2: כדרור', date: '2025-01-20', thumbnail: '/images/video-thumbnail-2.jpg' },
-      { id: 3, title: 'אתגר 3: בעיטות', date: '2025-01-25', thumbnail: '/images/video-thumbnail-3.jpg' }
-    ]
-  },
-  {
-    id: 2,
-    name: 'יוסי כהן',
-    email: 'yossi@example.com',
-    age: 18,
-    position: 'midfielder',
-    level: 'advanced',
-    dominantFoot: 'left',
-    club: 'הפועל חיפה נוער',
-    profileImage: '/images/player2.jpg',
-    stats: { consistency: 26, improvement: 78, ranking: 92 },
-    videos: [
-      { id: 4, title: 'אתגר 1: שליטה בכדור', date: '2025-01-10', thumbnail: '/images/video-thumbnail-2.jpg' },
-      { id: 5, title: 'אתגר 2: כדרור', date: '2025-01-15', thumbnail: '/images/video-thumbnail-3.jpg' }
-    ]
-  },
-  // Additional players can be added here...
-  {
-    id: 3,
-    name: 'אבי גולן',
-    email: 'avi@example.com',
-    age: 16,
-    position: 'defender',
-    level: 'intermediate',
-    dominantFoot: 'right',
-    club: 'בית"ר ירושלים נוער',
-    profileImage: '/images/player3.jpg',
-    stats: { consistency: 24, improvement: 72, ranking: 90 },
-    videos: []
-  },
-  {
-    id: 4,
-    name: 'רועי שמש',
-    email: 'roi@example.com',
-    age: 16,
-    position: 'midfielder',
-    level: 'intermediate',
-    dominantFoot: 'right',
-    club: 'בני יהודה נוער',
-    profileImage: '/images/player4.jpg',
-    stats: { consistency: 18, improvement: 85, ranking: 80 },
-    videos: []
-  },
-  {
-    id: 5,
-    name: 'אלון דגן',
-    email: 'alon@example.com',
-    age: 18,
-    position: 'defender',
-    level: 'advanced',
-    dominantFoot: 'right',
-    club: 'מכבי חיפה נוער',
-    profileImage: '/images/player5.jpg',
-    stats: { consistency: 16, improvement: 78, ranking: 75 },
-    videos: []
-  }
-]
+import { useRankings } from '@/hooks/useRankings'
 
 interface Filters {
   age: string
@@ -118,13 +19,23 @@ interface Filters {
 
 export default function LeaderboardsPage() {
   const { user } = useAuth()
-  const [filters, setFilters] = useState<Filters>({ age: '', position: '', level: '' })
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
+  const [filters, setFilters] = useState<Filters>({ age: '', position: '', level: '' })
+  
+  const {
+    filteredRankings: rankings,
+    loading,
+    error,
+    stats,
+    setFilters: updateFilters
+  } = useRankings()
 
-  // Single ranking-based leaderboard
-  const getStatLabel = (): string => {
-    return 'נקודות דירוג'
+  // Handle filter changes
+  const handleFilterChange = (newFilters: Partial<Filters>) => {
+    const updatedFilters = { ...filters, ...newFilters }
+    setFilters(updatedFilters)
+    updateFilters(updatedFilters)
   }
 
   const getHebrewPosition = (position: string): string => {
@@ -146,139 +57,207 @@ export default function LeaderboardsPage() {
     }
   }
 
-  const getHebrewFoot = (foot: string): string => {
-    switch (foot) {
-      case 'right': return 'ימין'
-      case 'left': return 'שמאל'
-      case 'both': return 'שתיהן'
-      default: return foot
-    }
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">טוען דירוגים...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    )
   }
 
-  const filterPlayers = (players: Player[]): Player[] => {
-    return players.filter(player => {
-      // Filter by age
-      if (filters.age) {
-        if (filters.age === '20+') {
-          if (player.age < 20) return false
-        } else {
-          const [minAge, maxAge] = filters.age.split('-').map(Number)
-          if (player.age < minAge || player.age > maxAge) return false
-        }
-      }
-
-      // Filter by position
-      if (filters.position && player.position !== filters.position) {
-        return false
-      }
-
-      // Filter by level
-      if (filters.level && player.level !== filters.level) {
-        return false
-      }
-
-      return true
-    })
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">שגיאה בטעינת הדירוגים</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              נסה שוב
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
+    )
   }
-
-  const getSortedPlayers = (): Player[] => {
-    return [...MOCK_PLAYERS].sort((a, b) => b.stats.ranking - a.stats.ranking)
-  }
-
-  const getFilteredAndSortedPlayers = (): Player[] => {
-    const sortedPlayers = getSortedPlayers()
-    return filterPlayers(sortedPlayers)
-  }
-
-  const handleViewProfile = (player: Player) => {
-    setSelectedPlayer(player)
-    setShowModal(true)
-  }
-
-  const handleContactPlayer = (player: Player) => {
-    showMessage(`נשלחה בקשת יצירת קשר עם ${player.name}`, 'success')
-    setShowModal(false)
-  }
-
-  const handleFilterSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Filters are already applied via state
-  }
-
-  const handleFilterReset = () => {
-    setFilters({ age: '', position: '', level: '' })
-  }
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('he-IL')
-  }
-
-  const currentPlayers = getFilteredAndSortedPlayers()
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <section className="bg-field-gradient text-white py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4 text-with-shadow">טבלת מובילים</h1>
-          <p className="text-xl text-white text-with-shadow">דירוג השחקנים הטובים ביותר לפי נקודות דירוג</p>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          {/* Leaderboard Header */}
-          <div className="bg-white rounded-lg p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-2">דירוג שחקנים</h2>
-            <p className="text-gray-600">השחקנים מדורגים לפי הנקודות שצברו במערכת</p>
+        {/* Header Section */}
+        <section className="bg-indigo-600 text-white py-12">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl font-bold mb-4">טבלת המובילים</h1>
+            <p className="text-xl text-indigo-100">
+              דירוג שחקנים לפי ביצועים והתקדמות
+            </p>
+            
+            {/* Stats Overview */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl font-bold">{stats.totalPlayers}</div>
+                <div className="text-indigo-100">סה"כ שחקנים</div>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl font-bold">{stats.averagePoints}</div>
+                <div className="text-indigo-100">נקודות ממוצעות</div>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl font-bold">{stats.topScore}</div>
+                <div className="text-indigo-100">הציון הגבוה ביותר</div>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl font-bold">
+                  {stats.levelDistribution.advanced || 0}
+                </div>
+                <div className="text-indigo-100">שחקנים מתקדמים</div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Leaderboard */}
-            <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <table className="w-full">
+        {/* Filters */}
+        <section className="bg-white border-b py-6">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Age Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  גיל
+                </label>
+                <select
+                  value={filters.age}
+                  onChange={(e) => handleFilterChange({ age: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                >
+                  <option value="">כל הגילאים</option>
+                  <option value="16-18">16-18</option>
+                  <option value="19-21">19-21</option>
+                  <option value="22+">22+</option>
+                </select>
+              </div>
+
+              {/* Position Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  עמדה
+                </label>
+                <select
+                  value={filters.position}
+                  onChange={(e) => handleFilterChange({ position: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                >
+                  <option value="">כל העמדות</option>
+                  <option value="goalkeeper">שוער</option>
+                  <option value="defender">מגן</option>
+                  <option value="midfielder">קשר</option>
+                  <option value="forward">חלוץ</option>
+                </select>
+              </div>
+
+              {/* Level Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  רמה
+                </label>
+                <select
+                  value={filters.level}
+                  onChange={(e) => handleFilterChange({ level: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                >
+                  <option value="">כל הרמות</option>
+                  <option value="beginner">מתחיל</option>
+                  <option value="intermediate">בינוני</option>
+                  <option value="advanced">מתקדם</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Leaderboard Table */}
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">דירוג</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">שחקן</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">גיל</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">עמדה</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">רמה</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                        {getStatLabel()}
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        דירוג
                       </th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-500"></th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        שחקן
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        גיל
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        עמדה
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        רמה
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        נקודות
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        סרטונים הושלמו
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ציון ממוצע
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        פעולות
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {currentPlayers.length === 0 ? (
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {rankings.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                           לא נמצאו שחקנים התואמים את הסינון
                         </td>
                       </tr>
                     ) : (
-                      currentPlayers.map((player, index) => {
-                        const rank = index + 1
+                      rankings.map((player, index) => {
+                        const rank = player.rank
                         return (
-                          <tr key={player.id} className="hover:bg-gray-50">
+                          <tr key={player.playerId} className="hover:bg-gray-50">
                             <td className={`px-6 py-4 text-sm font-bold ${
                               rank <= 3 ? 'text-yellow-600' : 'text-gray-900'
                             }`}>
-                              {rank <= 3 && <i className="fas fa-medal mr-1"></i>}
-                              {rank}
+                              <div className="flex items-center">
+                                {rank <= 3 && (
+                                  <i className={`fas fa-medal mr-2 ${
+                                    rank === 1 ? 'text-yellow-500' : 
+                                    rank === 2 ? 'text-gray-400' : 'text-yellow-600'
+                                  }`}></i>
+                                )}
+                                {rank}
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center">
                                 <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center ml-3">
                                   <i className="fas fa-user text-gray-500"></i>
                                 </div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {player.name}
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {player.playerName}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {player.playerEmail}
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -287,15 +266,32 @@ export default function LeaderboardsPage() {
                               {getHebrewPosition(player.position)}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-600">
-                              {getHebrewLevel(player.level)}
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                player.level === 'advanced' ? 'bg-green-100 text-green-800' :
+                                player.level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-blue-100 text-blue-800'
+                              }`}>
+                                {getHebrewLevel(player.level)}
+                              </span>
                             </td>
-                            <td className="px-6 py-4 text-sm font-semibold text-field-600">
-                              {player.stats.ranking}
+                            <td className="px-6 py-4 text-sm">
+                              <span className="font-bold text-indigo-600 text-lg">
+                                {player.totalPoints}
+                              </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {player.completedVideos}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {player.averageScore > 0 ? player.averageScore.toFixed(1) : '-'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
                               <button
-                                onClick={() => handleViewProfile(player)}
-                                className="text-field-600 hover:text-field-800 text-sm font-medium transition-colors"
+                                onClick={() => {
+                                  setSelectedPlayer(player)
+                                  setShowModal(true)
+                                }}
+                                className="text-indigo-600 hover:text-indigo-900 font-medium"
                               >
                                 צפה בפרופיל
                               </button>
@@ -308,189 +304,126 @@ export default function LeaderboardsPage() {
                 </table>
               </div>
             </div>
-
-            {/* Filters */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">סינון</h3>
-                <form onSubmit={handleFilterSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="age-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                      גיל
-                    </label>
-                    <select
-                      id="age-filter"
-                      value={filters.age}
-                      onChange={(e) => setFilters(prev => ({ ...prev, age: e.target.value }))}
-                      className="w-full px-3 py-2 border border-stadium-300 rounded-md focus:outline-none focus:ring-2 focus:ring-field-500 bg-white text-stadium-900 hover:border-field-400 transition-colors"
-                    >
-                      <option value="">הכל</option>
-                      <option value="8-12">8-12</option>
-                      <option value="13-16">13-16</option>
-                      <option value="17-19">17-19</option>
-                      <option value="20+">20+</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="position-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                      עמדה
-                    </label>
-                    <select
-                      id="position-filter"
-                      value={filters.position}
-                      onChange={(e) => setFilters(prev => ({ ...prev, position: e.target.value }))}
-                      className="w-full px-3 py-2 border border-stadium-300 rounded-md focus:outline-none focus:ring-2 focus:ring-field-500 bg-white text-stadium-900 hover:border-field-400 transition-colors"
-                    >
-                      <option value="">הכל</option>
-                      <option value="goalkeeper">שוער</option>
-                      <option value="defender">מגן</option>
-                      <option value="midfielder">קשר</option>
-                      <option value="forward">חלוץ</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="level-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                      רמה
-                    </label>
-                    <select
-                      id="level-filter"
-                      value={filters.level}
-                      onChange={(e) => setFilters(prev => ({ ...prev, level: e.target.value }))}
-                      className="w-full px-3 py-2 border border-stadium-300 rounded-md focus:outline-none focus:ring-2 focus:ring-field-500 bg-white text-stadium-900 hover:border-field-400 transition-colors"
-                    >
-                      <option value="">הכל</option>
-                      <option value="beginner">מתחיל</option>
-                      <option value="intermediate">בינוני</option>
-                      <option value="advanced">מתקדם</option>
-                    </select>
-                  </div>
-
-                  <div className="flex space-x-2 space-x-reverse">
-                    <button
-                      type="submit"
-                      className="flex-1 bg-field-gradient text-white py-2 px-4 rounded-md hover:shadow-stadium-glow transition-all duration-300 font-medium"
-                    >
-                      סנן
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleFilterReset}
-                      className="flex-1 bg-stadium-200 text-stadium-700 py-2 px-4 rounded-md hover:bg-stadium-300 transition-all duration-300 font-medium"
-                    >
-                      נקה
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Player Profile Modal */}
-      {showModal && selectedPlayer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" dir="rtl">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">פרופיל שחקן</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-              >
-                ×
-              </button>
-            </div>
+        {/* Player Details Modal */}
+        {showModal && selectedPlayer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {selectedPlayer.playerName}
+                  </h3>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <i className="fas fa-times text-xl"></i>
+                  </button>
+                </div>
 
-            {/* Profile Header */}
-            <div className="flex items-center mb-6 pb-6 border-b">
-              <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center ml-4">
-                <i className="fas fa-user text-gray-500 text-2xl"></i>
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold">{selectedPlayer.name}</h3>
-                <p className="text-gray-600">{getHebrewPosition(selectedPlayer.position)}, {selectedPlayer.age}</p>
-              </div>
-            </div>
-
-            {/* Profile Details */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold mb-4">פרטים אישיים</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm text-gray-500">גיל</div>
-                  <div className="font-medium">{selectedPlayer.age}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">עמדה</div>
-                  <div className="font-medium">{getHebrewPosition(selectedPlayer.position)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">רמה</div>
-                  <div className="font-medium">{getHebrewLevel(selectedPlayer.level)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">רגל דומיננטית</div>
-                  <div className="font-medium">{getHebrewFoot(selectedPlayer.dominantFoot)}</div>
-                </div>
-                <div className="col-span-2">
-                  <div className="text-sm text-gray-500">מועדון נוכחי</div>
-                  <div className="font-medium">{selectedPlayer.club || 'לא צוין'}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Statistics */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold mb-4">סטטיסטיקות</h4>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
-                  <div className="text-2xl font-bold text-field-600">{selectedPlayer.stats.consistency}</div>
-                  <div className="text-sm text-stadium-600">ימים רצופים</div>
-                </div>
-                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
-                  <div className="text-2xl font-bold text-secondary-600">{selectedPlayer.stats.improvement}%</div>
-                  <div className="text-sm text-stadium-600">שיפור</div>
-                </div>
-                <div className="text-center p-4 bg-field-50 rounded-lg border border-field-200">
-                  <div className="text-2xl font-bold text-accent-600">{selectedPlayer.stats.ranking}</div>
-                  <div className="text-sm text-stadium-600">דירוג</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Videos */}
-            {selectedPlayer.videos.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-4">סרטונים אחרונים</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {selectedPlayer.videos.map((video) => (
-                    <div key={video.id} className="border rounded-lg p-3">
-                      <div className="w-full h-24 bg-gray-200 rounded mb-2 flex items-center justify-center">
-                        <i className="fas fa-play text-gray-500"></i>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">פרטים אישיים</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-medium text-gray-700">דירוג:</span>
+                        <span className="mr-2 text-indigo-600 font-bold">#{selectedPlayer.rank}</span>
                       </div>
-                      <div className="text-sm font-medium">{video.title}</div>
-                      <div className="text-xs text-gray-500">{formatDate(video.date)}</div>
+                      <div>
+                        <span className="font-medium text-gray-700">גיל:</span>
+                        <span className="mr-2">{selectedPlayer.age}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">עמדה:</span>
+                        <span className="mr-2">{getHebrewPosition(selectedPlayer.position)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">רמה:</span>
+                        <span className="mr-2">{getHebrewLevel(selectedPlayer.level)}</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">סטטיסטיקות</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-medium text-gray-700">נקודות כולל:</span>
+                        <span className="mr-2 text-indigo-600 font-bold">{selectedPlayer.totalPoints}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">סרטונים הושלמו:</span>
+                        <span className="mr-2">{selectedPlayer.completedVideos}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">סדרות הושלמו:</span>
+                        <span className="mr-2">{selectedPlayer.completedSeries}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">ציון ממוצע:</span>
+                        <span className="mr-2">{selectedPlayer.averageScore > 0 ? selectedPlayer.averageScore.toFixed(1) : '-'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">הישגים:</span>
+                        <span className="mr-2">{selectedPlayer.achievements}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">ביצועים</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">עקביות</span>
+                        <span className="text-sm text-gray-900">{selectedPlayer.consistency}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-green-600 h-2 rounded-full" 
+                          style={{ width: `${selectedPlayer.consistency}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">שיפור</span>
+                        <span className="text-sm text-gray-900">{selectedPlayer.improvement}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full" 
+                          style={{ width: `${selectedPlayer.improvement}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3 space-x-reverse">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    סגור
+                  </button>
+                  <button
+                    onClick={() => {
+                      showMessage('פונקציונליות יצירת קשר תגיע בקרוב', 'info')
+                    }}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    צור קשר
+                  </button>
                 </div>
               </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => handleContactPlayer(selectedPlayer)}
-                className="bg-field-gradient text-white px-6 py-2 rounded-lg hover:shadow-stadium-glow transition-all duration-300 font-medium"
-              >
-                צור קשר
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </ProtectedRoute>
   )

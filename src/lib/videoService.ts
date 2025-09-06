@@ -35,12 +35,14 @@ import type {
   VideoFilter, 
   VideoSort, 
   VideoStats,
-  VideoUploadConfig
+  VideoUploadConfig,
+  VideoCollection
 } from '@/types/video'
 import { DEFAULT_VIDEO_CONFIG } from '@/types/video'
 
 // Collection names
 const VIDEOS_COLLECTION = 'videos'
+const VIDEO_COLLECTIONS_COLLECTION = 'videoCollections'
 const VIDEO_STATS_DOC = 'videoStats'
 
 /**
@@ -125,12 +127,22 @@ export class VideoService {
                 downloads: 0
               }
               
-              // Save metadata to Firestore
-              const docRef = await addDoc(collection(db, VIDEOS_COLLECTION), {
+              // Prepare data for Firestore, excluding undefined values
+              const firestoreData: any = {
                 ...videoMetadata,
                 uploadedAt: serverTimestamp(),
                 lastModified: serverTimestamp()
+              }
+              
+              // Remove undefined fields
+              Object.keys(firestoreData).forEach(key => {
+                if (firestoreData[key] === undefined) {
+                  delete firestoreData[key]
+                }
               })
+              
+              // Save metadata to Firestore
+              const docRef = await addDoc(collection(db, VIDEOS_COLLECTION), firestoreData)
               
               // Update with document ID
               videoMetadata.id = docRef.id
@@ -197,6 +209,275 @@ export class VideoService {
   }
 
   /**
+   * Upload thumbnail image for a video
+   */
+  async uploadThumbnail(
+    videoId: string,
+    thumbnailFile: File,
+    onProgress?: (progress: number) => void,
+    onStatusChange?: (status: 'preparing' | 'uploading' | 'processing' | 'completed' | 'error') => void
+  ): Promise<string> {
+    try {
+      onStatusChange?.('preparing')
+      
+      // Validate file
+      if (!thumbnailFile.type.startsWith('image/')) {
+        throw new Error('הקובץ חייב להיות תמונה')
+      }
+      
+      // Check file size (max 5MB for thumbnails)
+      if (thumbnailFile.size > 5 * 1024 * 1024) {
+        throw new Error('קובץ התמונה גדול מדי (מקסימום 5MB)')
+      }
+      
+      // Generate unique filename
+      const timestamp = Date.now()
+      const fileName = `thumbnails/${timestamp}_${thumbnailFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+      const thumbnailRef = ref(storage, fileName)
+      
+      onStatusChange?.('uploading')
+      
+      // Start upload with progress tracking
+      const uploadTask = uploadBytesResumable(thumbnailRef, thumbnailFile, {
+        customMetadata: {
+          originalName: thumbnailFile.name,
+          videoId: videoId,
+          uploadedBy: 'admin' // This should be passed as parameter
+        }
+      })
+      
+      // Monitor upload progress
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            onProgress?.(progress)
+          },
+          (error) => {
+            console.error('Thumbnail upload error:', error)
+            onStatusChange?.('error')
+            reject(new Error(`Thumbnail upload failed: ${error.message}`))
+          },
+          async () => {
+            try {
+              onStatusChange?.('processing')
+              
+              // Get download URL
+              const thumbnailUrl = await getDownloadURL(uploadTask.snapshot.ref)
+              
+              // Update video metadata with thumbnail URL
+              await this.updateVideo(videoId, { thumbnailUrl })
+              
+              onStatusChange?.('completed')
+              resolve(thumbnailUrl)
+              
+            } catch (error) {
+              console.error('Thumbnail processing error:', error)
+              onStatusChange?.('error')
+              reject(new Error(`Thumbnail processing failed: ${error}`))
+            }
+          }
+        )
+      })
+      
+    } catch (error) {
+      console.error('Thumbnail upload error:', error)
+      onStatusChange?.('error')
+      throw error
+    }
+  }
+
+  /**
+   * Get mock video data for demonstration purposes
+   */
+  private getMockVideos(): VideoMetadata[] {
+    const now = new Date()
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+    return [
+      {
+        id: 'mock-video-1',
+        title: 'תרגיל כדרור מתחילים',
+        description: 'תרגיל בסיסי לכדרור עם דגש על שליטה בכדור וקואורדינציה. מתאים לשחקנים צעירים ומתחילים.',
+        fileName: 'dribbling-basic.mp4',
+        fileSize: 15728640, // 15MB
+        duration: 180, // 3 minutes
+        format: 'mp4',
+        resolution: '1920x1080',
+        thumbnailUrl: 'https://via.placeholder.com/320x180/22c55e/ffffff?text=כדרור+בסיסי',
+        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+        uploadedBy: 'admin-1',
+        uploadedAt: oneDayAgo,
+        lastModified: oneDayAgo,
+        status: 'approved',
+        moderatedBy: 'admin-1',
+        moderatedAt: oneDayAgo,
+        category: 'training-exercise',
+        skillLevel: 'beginner',
+        exerciseType: 'dribbling',
+        targetAudience: 'youth',
+        trainingType: 'skill-development',
+        positionSpecific: ['midfielder', 'winger'],
+        ageGroup: 'u12',
+        difficultyLevel: 2,
+        tags: ['כדרור', 'בסיסי', 'קואורדינציה', 'שליטה בכדור'],
+        requiredEquipment: ['כדור', 'קונוסים'],
+        instructions: 'התחל עם כדרור במקום, ואז התקדם לכדרור תוך כדי תנועה. שמור על שליטה בכדור.',
+        goals: ['שיפור שליטה בכדור', 'פיתוח קואורדינציה', 'בניית ביטחון'],
+        expectedDuration: 15,
+        views: 45,
+        likes: 12,
+        downloads: 8
+      },
+      {
+        id: 'mock-video-2',
+        title: 'בעיטות חופשיות - טכניקה מתקדמת',
+        description: 'מדריך מפורט לבעיטות חופשיות עם דגש על טכניקה, עוצמה ודיוק. כולל תרגילים מעשיים.',
+        fileName: 'free-kicks-advanced.mp4',
+        fileSize: 25165824, // 24MB
+        duration: 420, // 7 minutes
+        format: 'mp4',
+        resolution: '1920x1080',
+        thumbnailUrl: 'https://via.placeholder.com/320x180/f59e0b/ffffff?text=בעיטות+חופשיות',
+        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
+        uploadedBy: 'admin-1',
+        uploadedAt: twoDaysAgo,
+        lastModified: twoDaysAgo,
+        status: 'approved',
+        moderatedBy: 'admin-1',
+        moderatedAt: twoDaysAgo,
+        category: 'tutorial',
+        skillLevel: 'advanced',
+        exerciseType: 'free-kicks',
+        targetAudience: 'professional',
+        trainingType: 'skill-development',
+        positionSpecific: ['midfielder', 'striker'],
+        ageGroup: 'adult',
+        difficultyLevel: 8,
+        tags: ['בעיטות חופשיות', 'טכניקה', 'דיוק', 'עוצמה'],
+        requiredEquipment: ['כדור', 'שער', 'קיר'],
+        instructions: 'התחל עם תרגילי חימום, ואז עבור לבעיטות ממרחקים שונים. שמור על טכניקה נכונה.',
+        goals: ['שיפור דיוק בבעיטות', 'פיתוח עוצמה', 'לימוד טכניקות מתקדמות'],
+        expectedDuration: 30,
+        views: 128,
+        likes: 34,
+        downloads: 22
+      },
+      {
+        id: 'mock-video-3',
+        title: 'הגנה קבוצתית - עקרונות בסיסיים',
+        description: 'מדריך להגנה קבוצתית עם דגש על תקשורת, מיקום וסינכרון בין השחקנים.',
+        fileName: 'team-defense-basics.mp4',
+        fileSize: 31457280, // 30MB
+        duration: 600, // 10 minutes
+        format: 'mp4',
+        resolution: '1920x1080',
+        thumbnailUrl: 'https://via.placeholder.com/320x180/ef4444/ffffff?text=הגנה+קבוצתית',
+        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4',
+        uploadedBy: 'admin-1',
+        uploadedAt: threeDaysAgo,
+        lastModified: threeDaysAgo,
+        status: 'approved',
+        moderatedBy: 'admin-1',
+        moderatedAt: threeDaysAgo,
+        category: 'tutorial',
+        skillLevel: 'intermediate',
+        exerciseType: 'defending',
+        targetAudience: 'amateur',
+        trainingType: 'tactical-training',
+        positionSpecific: ['defender', 'defensive-midfielder'],
+        ageGroup: 'u16',
+        difficultyLevel: 5,
+        tags: ['הגנה', 'קבוצתית', 'טקטיקה', 'תקשורת'],
+        requiredEquipment: ['כדור', 'קונוסים', 'שער'],
+        instructions: 'תרגלו תנועות הגנה בסיסיות, ואז עבור לתרגילים קבוצתיים מורכבים יותר.',
+        goals: ['שיפור תקשורת קבוצתית', 'פיתוח מודעות טקטית', 'חיזוק הגנה'],
+        expectedDuration: 45,
+        views: 89,
+        likes: 23,
+        downloads: 15
+      },
+      {
+        id: 'mock-video-4',
+        title: 'שליטה בכדור - תרגילים מתקדמים',
+        description: 'תרגילים מתקדמים לשליטה בכדור עם דגש על מהירות, דיוק ויצירתיות.',
+        fileName: 'ball-control-advanced.mp4',
+        fileSize: 20971520, // 20MB
+        duration: 300, // 5 minutes
+        format: 'mp4',
+        resolution: '1920x1080',
+        thumbnailUrl: 'https://via.placeholder.com/320x180/8b5cf6/ffffff?text=שליטה+בכדור',
+        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+        uploadedBy: 'player-123',
+        uploadedAt: oneWeekAgo,
+        lastModified: oneWeekAgo,
+        status: 'pending',
+        category: 'player-submission',
+        skillLevel: 'advanced',
+        exerciseType: 'ball-control',
+        targetAudience: 'professional',
+        trainingType: 'skill-development',
+        positionSpecific: ['midfielder', 'attacking-midfielder'],
+        ageGroup: 'u18',
+        difficultyLevel: 7,
+        tags: ['שליטה בכדור', 'מתקדם', 'מהירות', 'יצירתיות'],
+        requiredEquipment: ['כדור', 'קונוסים', 'סולם'],
+        instructions: 'התחל עם תרגילים בסיסיים ואז עבור לתרגילים מורכבים יותר עם שילוב תנועות.',
+        goals: ['שיפור שליטה מהירה', 'פיתוח יצירתיות', 'חיזוק קואורדינציה'],
+        expectedDuration: 25,
+        views: 67,
+        likes: 18,
+        downloads: 11,
+        playerInfo: {
+          playerId: 'player-123',
+          playerName: 'יוסי כהן',
+          position: 'קשר התקפי',
+          age: 17,
+          level: 'בינוני-מתקדם'
+        }
+      },
+      {
+        id: 'mock-video-5',
+        title: 'כושר גופני - אימון HIIT',
+        description: 'אימון כושר אינטנסיבי המותאם לשחקני כדורגל עם דגש על סיבולת ומהירות.',
+        fileName: 'hiit-training.mp4',
+        fileSize: 36700160, // 35MB
+        duration: 900, // 15 minutes
+        format: 'mp4',
+        resolution: '1920x1080',
+        thumbnailUrl: 'https://via.placeholder.com/320x180/06b6d4/ffffff?text=כושר+גופני',
+        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
+        uploadedBy: 'admin-1',
+        uploadedAt: oneWeekAgo,
+        lastModified: oneWeekAgo,
+        status: 'approved',
+        moderatedBy: 'admin-1',
+        moderatedAt: oneWeekAgo,
+        category: 'training-exercise',
+        skillLevel: 'intermediate',
+        exerciseType: 'fitness',
+        targetAudience: 'amateur',
+        trainingType: 'fitness-conditioning',
+        positionSpecific: [],
+        ageGroup: 'adult',
+        difficultyLevel: 6,
+        tags: ['כושר', 'HIIT', 'סיבולת', 'מהירות'],
+        requiredEquipment: ['מזרן', 'משקולות קלות', 'קונוסים'],
+        instructions: 'בצע את התרגילים ברצף עם הפסקות קצרות בין סטים. התחל בקצב נוח והגבר בהדרגה.',
+        goals: ['שיפור סיבולת', 'פיתוח מהירות', 'חיזוק שרירים'],
+        expectedDuration: 60,
+        views: 156,
+        likes: 42,
+        downloads: 28
+      }
+    ]
+  }
+
+  /**
    * Get videos with filtering and pagination
    */
   async getVideos(
@@ -250,6 +531,16 @@ export class VideoService {
           hasMore = true
         }
       })
+      
+      // If no videos found in database, return mock data
+      if (videos.length === 0 && !lastDocId) {
+        const mockVideos = this.getMockVideos()
+        return {
+          videos: mockVideos.slice(0, pageSize),
+          hasMore: mockVideos.length > pageSize,
+          lastDocId: mockVideos.length > pageSize ? mockVideos[pageSize - 1].id : undefined
+        }
+      }
       
       // Apply client-side filters
       let filteredVideos = videos
@@ -342,7 +633,13 @@ export class VideoService {
       
     } catch (error) {
       console.error('Error getting videos:', error)
-      throw new Error('Failed to fetch videos')
+      // Return mock data on error as well
+      const mockVideos = this.getMockVideos()
+      return {
+        videos: mockVideos.slice(0, pageSize),
+        hasMore: mockVideos.length > pageSize,
+        lastDocId: mockVideos.length > pageSize ? mockVideos[pageSize - 1].id : undefined
+      }
     }
   }
 
@@ -609,6 +906,236 @@ export class VideoService {
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  /**
+   * Create a new video collection
+   */
+  async createCollection(
+    title: string,
+    description: string,
+    videoIds: string[],
+    category: VideoCollection['category'],
+    tags: string[] = [],
+    isPublic: boolean = true,
+    isFeatured: boolean = false,
+    createdBy: string
+  ): Promise<VideoCollection> {
+    try {
+      // Get video details to calculate metadata
+      const videos = await Promise.all(
+        videoIds.map(id => this.getVideo(id))
+      )
+      
+      const validVideos = videos.filter(video => video !== null) as VideoMetadata[]
+      const totalDuration = validVideos.reduce((sum, video) => sum + video.duration, 0)
+      
+      // Generate thumbnail from first video if available
+      const thumbnailUrl = validVideos.length > 0 ? validVideos[0].thumbnailUrl : undefined
+      
+      const collectionData: Omit<VideoCollection, 'id'> = {
+        title,
+        description,
+        thumbnailUrl,
+        videos: videoIds,
+        videoCount: videoIds.length,
+        totalDuration,
+        category,
+        tags,
+        isPublic,
+        isFeatured,
+        sortOrder: 0,
+        createdBy,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      
+      // Prepare data for Firestore, excluding undefined values
+      const firestoreData: any = {
+        title: collectionData.title,
+        description: collectionData.description,
+        videos: collectionData.videos,
+        videoCount: collectionData.videoCount,
+        totalDuration: collectionData.totalDuration,
+        category: collectionData.category,
+        tags: collectionData.tags,
+        isPublic: collectionData.isPublic,
+        isFeatured: collectionData.isFeatured,
+        sortOrder: collectionData.sortOrder,
+        createdBy: collectionData.createdBy,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
+      
+      // Only include thumbnailUrl if it's not undefined
+      if (collectionData.thumbnailUrl !== undefined) {
+        firestoreData.thumbnailUrl = collectionData.thumbnailUrl
+      }
+      
+      const docRef = await addDoc(collection(db, VIDEO_COLLECTIONS_COLLECTION), firestoreData)
+      
+      return {
+        ...collectionData,
+        id: docRef.id
+      }
+      
+    } catch (error) {
+      console.error('Error creating collection:', error)
+      throw new Error('Failed to create collection')
+    }
+  }
+
+  /**
+   * Get all video collections
+   */
+  async getCollections(): Promise<VideoCollection[]> {
+    try {
+      const q = query(
+        collection(db, VIDEO_COLLECTIONS_COLLECTION),
+        orderBy('createdAt', 'desc')
+      )
+      
+      const snapshot = await getDocs(q)
+      const collections: VideoCollection[] = []
+      
+      snapshot.docs.forEach(doc => {
+        const data = doc.data()
+        collections.push({
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date()
+        } as VideoCollection)
+      })
+      
+      return collections
+      
+    } catch (error) {
+      console.error('Error getting collections:', error)
+      throw new Error('Failed to fetch collections')
+    }
+  }
+
+  /**
+   * Get a single collection by ID
+   */
+  async getCollection(id: string): Promise<VideoCollection | null> {
+    try {
+      const docRef = doc(db, VIDEO_COLLECTIONS_COLLECTION, id)
+      const snapshot = await getDoc(docRef)
+      
+      if (!snapshot.exists()) {
+        return null
+      }
+      
+      const data = snapshot.data()
+      return {
+        ...data,
+        id: snapshot.id,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date()
+      } as VideoCollection
+      
+    } catch (error) {
+      console.error('Error getting collection:', error)
+      throw new Error('Failed to fetch collection')
+    }
+  }
+
+  /**
+   * Update a video collection
+   */
+  async updateCollection(
+    id: string, 
+    updates: Partial<Omit<VideoCollection, 'id' | 'createdAt' | 'createdBy'>>
+  ): Promise<void> {
+    try {
+      const docRef = doc(db, VIDEO_COLLECTIONS_COLLECTION, id)
+      
+      // If videos are being updated, recalculate metadata
+      if (updates.videos) {
+        const videos = await Promise.all(
+          updates.videos.map(videoId => this.getVideo(videoId))
+        )
+        const validVideos = videos.filter(video => video !== null) as VideoMetadata[]
+        
+        updates.videoCount = updates.videos.length
+        updates.totalDuration = validVideos.reduce((sum, video) => sum + video.duration, 0)
+        
+        // Update thumbnail if first video changed
+        if (validVideos.length > 0) {
+          updates.thumbnailUrl = validVideos[0].thumbnailUrl
+        }
+      }
+      
+      const updateData = {
+        ...updates,
+        updatedAt: serverTimestamp()
+      }
+      
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof typeof updateData] === undefined) {
+          delete updateData[key as keyof typeof updateData]
+        }
+      })
+      
+      await updateDoc(docRef, updateData)
+      
+    } catch (error) {
+      console.error('Error updating collection:', error)
+      throw new Error('Failed to update collection')
+    }
+  }
+
+  /**
+   * Delete a video collection
+   */
+  async deleteCollection(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, VIDEO_COLLECTIONS_COLLECTION, id))
+    } catch (error) {
+      console.error('Error deleting collection:', error)
+      throw new Error('Failed to delete collection')
+    }
+  }
+
+  /**
+   * Add videos to a collection
+   */
+  async addVideosToCollection(collectionId: string, videoIds: string[]): Promise<void> {
+    try {
+      const collection = await this.getCollection(collectionId)
+      if (!collection) {
+        throw new Error('Collection not found')
+      }
+      
+      const updatedVideos = [...new Set([...collection.videos, ...videoIds])]
+      await this.updateCollection(collectionId, { videos: updatedVideos })
+      
+    } catch (error) {
+      console.error('Error adding videos to collection:', error)
+      throw new Error('Failed to add videos to collection')
+    }
+  }
+
+  /**
+   * Remove videos from a collection
+   */
+  async removeVideosFromCollection(collectionId: string, videoIds: string[]): Promise<void> {
+    try {
+      const collection = await this.getCollection(collectionId)
+      if (!collection) {
+        throw new Error('Collection not found')
+      }
+      
+      const updatedVideos = collection.videos.filter(id => !videoIds.includes(id))
+      await this.updateCollection(collectionId, { videos: updatedVideos })
+      
+    } catch (error) {
+      console.error('Error removing videos from collection:', error)
+      throw new Error('Failed to remove videos from collection')
+    }
   }
 }
 

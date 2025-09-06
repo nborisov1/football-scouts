@@ -28,17 +28,27 @@ export interface VideoMetadata {
   moderatedAt?: Date
   moderationNotes?: string
   
-  // Categorization
+  // Enhanced Categorization for Training System
   category: VideoCategory
   skillLevel: 'beginner' | 'intermediate' | 'advanced'
   exerciseType: ExerciseType
   targetAudience: 'youth' | 'amateur' | 'professional'
+  
+  // Training System Specific Fields
+  trainingType: TrainingType
+  positionSpecific: Position[]
+  ageGroup: AgeGroup
+  difficultyLevel: number // 1-10 scale
+  seriesId?: string // Links to training series
+  seriesOrder?: number // Order within the series
+  prerequisites?: string[] // Required completed videos/exercises
   
   // Additional metadata
   tags: string[]
   requiredEquipment: string[]
   instructions: string
   goals: string[]
+  expectedDuration: number // Expected time to complete exercise
   
   // Analytics
   views: number
@@ -117,6 +127,107 @@ export type ExerciseType =
   | 'game-intelligence'
   | 'mental-training'
 
+// New Training System Types
+export type TrainingType = 
+  | 'general-training'
+  | 'power-training'
+  | 'position-specific'
+  | 'skill-development'
+  | 'tactical-training'
+  | 'fitness-conditioning'
+  | 'mental-preparation'
+
+export type Position = 
+  | 'goalkeeper'
+  | 'defender'
+  | 'midfielder'
+  | 'striker'
+  | 'winger'
+  | 'fullback'
+  | 'center-back'
+  | 'defensive-midfielder'
+  | 'attacking-midfielder'
+  | 'center-forward'
+
+export type AgeGroup = 
+  | 'u8' | 'u10' | 'u12' | 'u14' | 'u16' | 'u18' | 'u21' | 'adult'
+
+// Video Collections for organizing videos
+export interface VideoCollection {
+  id: string
+  title: string
+  description: string
+  thumbnailUrl?: string
+  videos: string[] // Video IDs in order
+  videoCount: number
+  totalDuration: number // Total duration in seconds
+  category: VideoCategory
+  tags: string[]
+  isPublic: boolean
+  isFeatured: boolean
+  sortOrder: number
+  createdBy: string // Admin user ID
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Training Series and Progression
+export interface TrainingSeries {
+  id: string
+  title: string
+  description: string
+  trainingType: TrainingType
+  skillLevel: 'beginner' | 'intermediate' | 'advanced'
+  positionSpecific: Position[]
+  ageGroup: AgeGroup
+  difficultyLevel: number
+  videos: string[] // Video IDs in order
+  prerequisites: string[] // Required completed series
+  estimatedDuration: number // Total time in minutes
+  isActive: boolean
+  createdBy: string // Admin user ID
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface PlayerProgress {
+  playerId: string
+  completedSeries: string[] // Series IDs
+  completedVideos: string[] // Video IDs
+  currentSeries?: string // Currently working on
+  currentVideoIndex?: number // Position in current series
+  totalPoints: number
+  rank: number
+  lastActivity: Date
+  achievements: Achievement[]
+}
+
+export interface Achievement {
+  id: string
+  title: string
+  description: string
+  type: 'series-completion' | 'video-completion' | 'milestone' | 'challenge'
+  earnedAt: Date
+  points: number
+}
+
+export interface PlayerVideoSubmission {
+  id: string
+  playerId: string
+  videoId: string // Reference to training video
+  seriesId: string
+  videoUrl: string
+  thumbnailUrl?: string
+  submittedAt: Date
+  status: 'pending' | 'approved' | 'rejected' | 'needs-improvement'
+  adminFeedback?: string
+  adminScore?: number // 1-10 scale
+  reviewedBy?: string // Admin user ID
+  reviewedAt?: Date
+  resubmissionCount: number
+  maxResubmissions: number
+}
+
 export interface VideoStats {
   total: number
   pending: number
@@ -184,4 +295,41 @@ export const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
   tactics: 'טקטיקה',
   'game-intelligence': 'אינטליגנציה משחקית',
   'mental-training': 'אימון מנטלי'
+}
+
+// Training type translations for Hebrew UI
+export const TRAINING_TYPE_LABELS: Record<TrainingType, string> = {
+  'general-training': 'אימון כללי',
+  'power-training': 'אימון כוח',
+  'position-specific': 'אימון ספציפי לעמדה',
+  'skill-development': 'פיתוח מיומנויות',
+  'tactical-training': 'אימון טקטי',
+  'fitness-conditioning': 'כושר גופני',
+  'mental-preparation': 'הכנה מנטלית'
+}
+
+// Position translations for Hebrew UI
+export const POSITION_LABELS: Record<Position, string> = {
+  goalkeeper: 'שוער',
+  defender: 'מגן',
+  midfielder: 'קשר',
+  striker: 'חלוץ',
+  winger: 'כנף',
+  'fullback': 'מגן צדדי',
+  'center-back': 'מגן מרכזי',
+  'defensive-midfielder': 'קשר הגנתי',
+  'attacking-midfielder': 'קשר התקפי',
+  'center-forward': 'חלוץ מרכזי'
+}
+
+// Age group translations for Hebrew UI
+export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
+  u8: 'עד גיל 8',
+  u10: 'עד גיל 10',
+  u12: 'עד גיל 12',
+  u14: 'עד גיל 14',
+  u16: 'עד גיל 16',
+  u18: 'עד גיל 18',
+  u21: 'עד גיל 21',
+  adult: 'בוגרים'
 }

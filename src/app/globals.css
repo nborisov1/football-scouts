@@ -9,7 +9,7 @@
   --background: #fafafa;
   --background-dark: #0f172a;
   --foreground: #1e293b;
-  --foreground-light: #64748b;
+  --foreground-light: #1e293b;
   --surface: #ffffff;
   --surface-dark: #1e293b;
   --pitch-green: #2d5b3d;
@@ -53,7 +53,7 @@ html {
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: #1e293b !important;
   font-family: var(--font-body);
   line-height: 1.6;
   font-weight: 400;
@@ -324,6 +324,50 @@ h3 {
   color: var(--stadium-200) !important;
 }
 
+/* Force readable text colors - override grey text */
+.text-stadium-600,
+.text-gray-600,
+.text-gray-500,
+.text-gray-400 {
+  color: #1e293b !important;
+}
+
+.text-stadium-700,
+.text-gray-700 {
+  color: #0f172a !important;
+}
+
+.text-stadium-800,
+.text-gray-800 {
+  color: #000000 !important;
+}
+
+/* Ensure all body text is readable */
+p, span, div, td, th {
+  color: #1e293b !important;
+}
+
+/* Override specific grey classes */
+.text-gray-500 {
+  color: #1e293b !important;
+}
+
+.text-gray-600 {
+  color: #1e293b !important;
+}
+
+.text-gray-700 {
+  color: #0f172a !important;
+}
+
+.text-gray-800 {
+  color: #000000 !important;
+}
+
+.text-gray-900 {
+  color: #000000 !important;
+}
+
 /* Better visibility on background patterns */
 .text-with-shadow {
   text-shadow: 
@@ -539,19 +583,19 @@ select option {
 .text-body {
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--stadium-700);
+  color: #1e293b !important;
 }
 
 .text-body-sm {
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--stadium-600);
+  color: #1e293b !important;
 }
 
 .text-caption {
   font-size: 0.75rem;
   line-height: 1.4;
-  color: var(--stadium-500);
+  color: #1e293b !important;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

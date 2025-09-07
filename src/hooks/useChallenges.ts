@@ -53,8 +53,7 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
   // Load challenges
   useEffect(() => {
     const challengesQuery = query(
-      collection(db, 'challenges'),
-      orderBy('level', 'asc')
+      collection(db, 'challenges')
     )
 
     const unsubscribeChallenges = onSnapshot(
@@ -69,11 +68,17 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
             updatedAt: data.updatedAt?.toDate() || new Date()
           } as Challenge)
         })
+        
+        // Sort client-side to avoid composite index requirements
+        challengesData.sort((a, b) => a.level - b.level)
+        
         setChallenges(challengesData)
+        setLoading(false) // Set loading to false when data is loaded (even if empty)
       },
       (err) => {
         console.error('Error loading challenges:', err)
         setError('Failed to load challenges')
+        setLoading(false) // Set loading to false even on error
       }
     )
 
@@ -82,10 +87,10 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
 
   // Load challenge series
   useEffect(() => {
+    // Simplified query to avoid index requirements
     const seriesQuery = query(
       collection(db, 'challengeSeries'),
-      where('isActive', '==', true),
-      orderBy('createdAt', 'desc')
+      where('isActive', '==', true)
     )
 
     const unsubscribeSeries = onSnapshot(
@@ -100,6 +105,9 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
             updatedAt: data.updatedAt?.toDate() || new Date()
           } as ChallengeSeries)
         })
+        
+        // Sort by createdAt on the client side to avoid index requirements
+        seriesData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         setChallengeSeries(seriesData)
       },
       (err) => {
@@ -121,8 +129,7 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
 
     const progressQuery = query(
       collection(db, 'playerChallengeProgress'),
-      where('playerId', '==', player.uid),
-      orderBy('updatedAt', 'desc')
+      where('playerId', '==', player.uid)
     )
 
     const unsubscribeProgress = onSnapshot(
@@ -140,6 +147,9 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
             updatedAt: data.updatedAt?.toDate() || new Date()
           } as PlayerChallengeProgress)
         })
+        
+        // Sort by updatedAt on the client side to avoid index requirements
+        progressData.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
         setPlayerProgress(progressData)
       },
       (err) => {
@@ -198,8 +208,7 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
 
     const submissionsQuery = query(
       collection(db, 'challengeSubmissions'),
-      where('playerId', '==', player.uid),
-      orderBy('submittedAt', 'desc')
+      where('playerId', '==', player.uid)
     )
 
     const unsubscribeSubmissions = onSnapshot(
@@ -214,6 +223,9 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
             reviewedAt: data.reviewedAt?.toDate()
           } as ChallengeSubmission)
         })
+        
+        // Sort by submittedAt on the client side to avoid index requirements
+        submissionsData.sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime())
         setSubmissions(submissionsData)
       },
       (err) => {
@@ -265,10 +277,7 @@ export function useChallenges(player?: UserData): UseChallengesReturn {
     setAvailableSeries(available)
   }, [player, challengeSeries, playerStats])
 
-  // Set loading state
-  useEffect(() => {
-    setLoading(challenges.length === 0)
-  }, [challenges])
+  // Loading state is now managed in the individual useEffect hooks
 
   const startChallenge = useCallback(async (challengeId: string) => {
     if (!player) throw new Error('No player logged in')

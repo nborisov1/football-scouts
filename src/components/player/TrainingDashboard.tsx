@@ -20,10 +20,10 @@ import {
 import { USER_TYPES } from '@/lib/firebase'
 
 interface TrainingDashboardProps {
-  // Props will be added as we integrate with backend
+  onContentAvailabilityChange?: (hasContent: boolean) => void
 }
 
-export default function TrainingDashboard({}: TrainingDashboardProps) {
+export default function TrainingDashboard({ onContentAvailabilityChange }: TrainingDashboardProps) {
   const { user } = useAuth()
   const [playerProgress, setPlayerProgress] = useState<PlayerProgress | null>(null)
   const [availableSeries, setAvailableSeries] = useState<TrainingSeries[]>([])
@@ -47,42 +47,14 @@ export default function TrainingDashboard({}: TrainingDashboardProps) {
       })
 
       // Mock available series based on player profile
-      setAvailableSeries([
-        {
-          id: 'series-1',
-          title: 'אימון בסיסי לחלוצים מתחילים',
-          description: 'סדרת אימונים בסיסית לחלוצים בגילאי 10-12',
-          trainingType: 'position-specific',
-          skillLevel: 'beginner',
-          positionSpecific: ['striker', 'center-forward'],
-          ageGroup: 'u12',
-          difficultyLevel: 2,
-          videos: ['video-1', 'video-2', 'video-3'],
-          prerequisites: [],
-          estimatedDuration: 45,
-          isActive: true,
-          createdBy: 'admin-1',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 'series-2',
-          title: 'אימון כוח כללי',
-          description: 'אימון כוח בסיסי לכל השחקנים',
-          trainingType: 'power-training',
-          skillLevel: 'beginner',
-          positionSpecific: [],
-          ageGroup: 'u12',
-          difficultyLevel: 1,
-          videos: ['video-4', 'video-5'],
-          prerequisites: [],
-          estimatedDuration: 30,
-          isActive: true,
-          createdBy: 'admin-1',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ])
+      // For now, we'll simulate no content to show Coming Soon page
+      const mockSeries: TrainingSeries[] = []
+      setAvailableSeries(mockSeries)
+      
+      // Notify parent about content availability
+      if (onContentAvailabilityChange) {
+        onContentAvailabilityChange(mockSeries.length > 0)
+      }
     }
   }, [user])
 

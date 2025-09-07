@@ -1,0 +1,66 @@
+# Firebase Storage Security Rules for Football Scouting Platform
+
+# Development rules (allows authenticated users to upload):
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users to upload challenge media
+    match /challenges/{challengeId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to upload video content
+    match /videos/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to upload thumbnails
+    match /thumbnails/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to upload test files
+    match /test/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Default rule for other files
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+# Production rules (more secure):
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Challenge media - read for all authenticated users, write for admins
+    match /challenges/{challengeId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.type == 'admin';
+    }
+    
+    // Video content - users can upload their own, admins can manage all
+    match /videos/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      (request.auth.uid == userId || 
+                       firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.type == 'admin');
+    }
+    
+    // Thumbnails - read for all authenticated users, write for admins
+    match /thumbnails/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.type == 'admin';
+    }
+  }
+}
+
+# Instructions:
+# 1. Go to Firebase Console > Storage > Rules
+# 2. Copy the development rules for testing
+# 3. Use production rules for live deployment
+# 4. Make sure to test the rules in the Firebase Console

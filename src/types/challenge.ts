@@ -7,6 +7,29 @@ export type ChallengeStatus = 'locked' | 'available' | 'in_progress' | 'complete
 export type ChallengeType = 'skill' | 'fitness' | 'tactical' | 'mental' | 'teamwork'
 export type ChallengeDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert'
 export type ChallengeCategory = 'dribbling' | 'passing' | 'shooting' | 'defending' | 'goalkeeping' | 'fitness' | 'tactics'
+export type AgeGroup = 'u8' | 'u10' | 'u12' | 'u14' | 'u16' | 'u18' | 'u21' | 'adult'
+export type Position = 'goalkeeper' | 'defender' | 'midfielder' | 'striker' | 'all'
+
+export interface ChallengeMetric {
+  id: string
+  name: string
+  unit: string // e.g., 'seconds', 'touches', 'meters', 'percentage'
+  type: 'numeric' | 'time' | 'count' | 'percentage'
+  required: boolean
+  description?: string
+}
+
+export interface ChallengeThreshold {
+  metricId: string
+  level: number // 1-5 (Beginner, Intermediate, Advanced, Expert, Elite)
+  thresholds: {
+    poor: number
+    fair: number
+    good: number
+    excellent: number
+    outstanding: number
+  }
+}
 
 export interface Challenge {
   id: string
@@ -15,13 +38,21 @@ export interface Challenge {
   type: ChallengeType
   category: ChallengeCategory
   difficulty: ChallengeDifficulty
-  level: number // 1-10, determines unlock order
+  level: number // 1-10, determines unlock order within age group
+  ageGroup: AgeGroup
+  positions: Position[] // Which positions this challenge applies to
   prerequisites: string[] // Challenge IDs that must be completed first
   requirements: ChallengeRequirements
   rewards: ChallengeRewards
   timeLimit?: number // in minutes, optional
   attempts: number // max attempts allowed
   status: ChallengeStatus
+  videoUrl?: string // Demo video for the challenge
+  thumbnailUrl?: string // Thumbnail image for the challenge
+  instructions: string // Detailed instructions for the player
+  metrics: ChallengeMetric[] // Configurable metrics to track
+  thresholds: ChallengeThreshold[] // Scoring thresholds for each metric
+  isMonthlyChallenge: boolean // Monthly challenges for level progression
   createdAt: Date
   updatedAt: Date
   createdBy: string // Admin user ID
@@ -69,6 +100,19 @@ export interface ChallengeSubmission {
   challengeId: string
   videoUrl: string
   description: string
+  metrics: {
+    [metricId: string]: number // Metric ID -> Value
+  }
+  scores: {
+    [metricId: string]: {
+      value: number
+      level: number // 1-5
+      rating: 'poor' | 'fair' | 'good' | 'excellent' | 'outstanding'
+      points: number
+    }
+  }
+  totalScore: number
+  overallRating: 'poor' | 'fair' | 'good' | 'excellent' | 'outstanding'
   submittedAt: Date
   status: 'pending' | 'approved' | 'rejected' | 'needs_improvement'
   adminFeedback?: string
@@ -147,4 +191,38 @@ export const CHALLENGE_STATUS_LABELS: Record<ChallengeStatus, string> = {
   in_progress: 'בתהליך',
   completed: 'הושלם',
   failed: 'נכשל'
+}
+
+export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
+  u8: 'עד גיל 8',
+  u10: 'עד גיל 10',
+  u12: 'עד גיל 12',
+  u14: 'עד גיל 14',
+  u16: 'עד גיל 16',
+  u18: 'עד גיל 18',
+  u21: 'עד גיל 21',
+  adult: 'בוגרים'
+}
+
+export const POSITION_LABELS: Record<Position, string> = {
+  goalkeeper: 'שוער',
+  defender: 'הגנה',
+  midfielder: 'קישור',
+  striker: 'התקפה',
+  all: 'כל התפקידים'
+}
+
+export const METRIC_TYPE_LABELS: Record<string, string> = {
+  numeric: 'מספר',
+  time: 'זמן',
+  count: 'מונה',
+  percentage: 'אחוז'
+}
+
+export const RATING_LABELS: Record<string, string> = {
+  poor: 'חלש',
+  fair: 'בינוני',
+  good: 'טוב',
+  excellent: 'מעולה',
+  outstanding: 'מצוין'
 }

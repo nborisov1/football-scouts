@@ -8,6 +8,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import ComingSoon from '@/components/ComingSoon'
 import TrainingDashboard from '@/components/player/TrainingDashboard'
 import VideoSubmission from '@/components/player/VideoSubmission'
 import { USER_TYPES } from '@/lib/firebase'
@@ -16,6 +17,7 @@ import { PlayerVideoSubmission } from '@/types/video'
 export default function TrainingPage() {
   const { user } = useAuth()
   const [showVideoSubmission, setShowVideoSubmission] = useState(false)
+  const [hasTrainingContent, setHasTrainingContent] = useState(true) // Will be updated based on actual data
   const [currentVideoSubmission, setCurrentVideoSubmission] = useState<{
     videoId: string
     seriesId: string
@@ -56,6 +58,30 @@ export default function TrainingPage() {
     )
   }
 
+  // Show Coming Soon page if no training content is available
+  if (!hasTrainingContent) {
+    return (
+      <ProtectedRoute>
+        <ComingSoon
+          title="תוכנית אימונים בקרוב"
+          description="אנחנו עובדים על תוכנית אימונים מתקדמת ומותאמת אישית שתעזור לכם לשפר את הכישורים שלכם. התוכנית תכלול תרגילים מותאמים לפי המיקום, הגיל והרמה שלכם, עם מעקב התקדמות מפורט."
+          icon="fas fa-dumbbell"
+          features={[
+            "תוכנית אימונים מותאמת אישית לפי המיקום שלכם",
+            "תרגילים מותאמים לגיל ולרמת הכישורים",
+            "מעקב התקדמות מפורט עם סטטיסטיקות",
+            "תרגילים אינטראקטיביים עם משוב מיידי",
+            "תוכנית שבועית וחודשית מותאמת",
+            "תרגילי כושר וטכניקה משולבים",
+            "מערכת ניקוד ותגמולים",
+            "שיתוף הישגים עם המאמן והחברים"
+          ]}
+          expectedDate="פברואר 2024"
+        />
+      </ProtectedRoute>
+    )
+  }
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
@@ -69,7 +95,7 @@ export default function TrainingPage() {
             onCancel={handleCancelSubmission}
           />
         ) : (
-          <TrainingDashboard />
+          <TrainingDashboard onContentAvailabilityChange={setHasTrainingContent} />
         )}
       </div>
     </ProtectedRoute>

@@ -28,6 +28,13 @@ export default function CollectionDetailPage({
   const [editing, setEditing] = useState(false)
   const [draggedVideoIndex, setDraggedVideoIndex] = useState<number | null>(null)
   
+  // Video search and filtering state
+  const [videoSearchTerm, setVideoSearchTerm] = useState('')
+  const [videoFilterCategory, setVideoFilterCategory] = useState<string>('all')
+  const [videoFilterSkillLevel, setVideoFilterSkillLevel] = useState<string>('all')
+  const [showVideoSearch, setShowVideoSearch] = useState(false)
+  const [selectedVideosToAdd, setSelectedVideosToAdd] = useState<string[]>([])
+  
   // Form state for editing
   const [formData, setFormData] = useState({
     title: '',
@@ -72,6 +79,72 @@ export default function CollectionDetailPage({
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = Math.floor(seconds % 60)
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  // Filter available videos based on search and filters
+  const getFilteredAvailableVideos = () => {
+    if (!collection) return []
+    
+    return safeVideos
+      .filter(video => !collection.videos.includes(video.id))
+      .filter(video => {
+        // Search term filter
+        if (videoSearchTerm) {
+          const searchLower = videoSearchTerm.toLowerCase()
+          const matchesTitle = video.title.toLowerCase().includes(searchLower)
+          const matchesDescription = video.description.toLowerCase().includes(searchLower)
+          const matchesTags = video.tags.some(tag => tag.toLowerCase().includes(searchLower))
+          if (!matchesTitle && !matchesDescription && !matchesTags) return false
+        }
+        
+        // Category filter
+        if (videoFilterCategory !== 'all' && video.category !== videoFilterCategory) {
+          return false
+        }
+        
+        // Skill level filter
+        if (videoFilterSkillLevel !== 'all' && video.skillLevel !== videoFilterSkillLevel) {
+          return false
+        }
+        
+        return true
+      })
+  }
+
+  const clearVideoFilters = () => {
+    setVideoSearchTerm('')
+    setVideoFilterCategory('all')
+    setVideoFilterSkillLevel('all')
+  }
+
+  const handleToggleVideoSelection = (videoId: string) => {
+    setSelectedVideosToAdd(prev => 
+      prev.includes(videoId) 
+        ? prev.filter(id => id !== videoId)
+        : [...prev, videoId]
+    )
+  }
+
+  const handleAddSelectedVideos = () => {
+    if (!collection || selectedVideosToAdd.length === 0) return
+    
+    const updatedCollection = {
+      ...collection,
+      videos: [...collection.videos, ...selectedVideosToAdd],
+      videoCount: collection.videoCount + selectedVideosToAdd.length
+    }
+    setCollection(updatedCollection)
+    setSelectedVideosToAdd([])
+    showMessage(`${selectedVideosToAdd.length} סרטונים נוספו לאוסף`, 'success')
+  }
+
+  const handleSelectAllVideos = () => {
+    const allVideoIds = getFilteredAvailableVideos().map(video => video.id)
+    setSelectedVideosToAdd(allVideoIds)
+  }
+
+  const handleDeselectAllVideos = () => {
+    setSelectedVideosToAdd([])
   }
 
   const handleEdit = () => {
@@ -226,6 +299,20 @@ export default function CollectionDetailPage({
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">טוען אוסף...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Ensure videos is always an array
+  const safeVideos = Array.isArray(videos) ? videos : []
+
+  if (!Array.isArray(videos)) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">טוען סרטונים...</p>
         </div>
       </div>
     )
@@ -479,17 +566,100 @@ export default function CollectionDetailPage({
               <h3 className="text-lg font-semibold text-gray-900">
                 ניהול סרטונים ({collection.videos.length})
               </h3>
-              {collection.videos.length > 0 && (
+              <div className="flex space-x-3 space-x-reverse">
                 <button
-                  onClick={handleSaveVideoOrder}
-                  disabled={loading}
-                  className="btn-primary disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  onClick={() => setShowVideoSearch(!showVideoSearch)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  <i className="fas fa-save ml-2"></i>
-                  שמור סדר
+                  <i className="fas fa-search ml-2"></i>
+                  {showVideoSearch ? 'סגור חיפוש' : 'חפש סרטונים'}
                 </button>
-              )}
+                {collection.videos.length > 0 && (
+                  <button
+                    onClick={handleSaveVideoOrder}
+                    disabled={loading}
+                    className="btn-primary disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    <i className="fas fa-save ml-2"></i>
+                    שמור סדר
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Video Search and Filters */}
+            {showVideoSearch && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="text-md font-medium text-gray-700 mb-4">חיפוש וסינון סרטונים</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  {/* Search Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      חיפוש
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={videoSearchTerm}
+                        onChange={(e) => setVideoSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="חפש לפי שם, תיאור או תגיות..."
+                      />
+                      <i className="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      קטגוריה
+                    </label>
+                    <select
+                      value={videoFilterCategory}
+                      onChange={(e) => setVideoFilterCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">כל הקטגוריות</option>
+                      {Object.entries(VIDEO_CATEGORY_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Skill Level Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      רמת קושי
+                    </label>
+                    <select
+                      value={videoFilterSkillLevel}
+                      onChange={(e) => setVideoFilterSkillLevel(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">כל הרמות</option>
+                      <option value="beginner">מתחיל</option>
+                      <option value="intermediate">בינוני</option>
+                      <option value="advanced">מתקדם</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Filter Actions */}
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500">
+                    נמצאו {getFilteredAvailableVideos().length} סרטונים
+                  </div>
+                  <button
+                    onClick={clearVideoFilters}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    <i className="fas fa-times ml-1"></i>
+                    נקה סינון
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Current Videos */}
             {collection.videos.length > 0 ? (
@@ -497,7 +667,7 @@ export default function CollectionDetailPage({
                 <h4 className="text-md font-medium text-gray-700">סרטונים באוסף (גרור לסידור מחדש)</h4>
                 <div className="space-y-2">
                   {collection.videos.map((videoId, index) => {
-                    const video = videos.find(v => v.id === videoId)
+                    const video = safeVideos.find(v => v.id === videoId)
                     if (!video) return null
                     
                     return (
@@ -568,13 +738,51 @@ export default function CollectionDetailPage({
 
             {/* Available Videos to Add */}
             <div>
-              <h4 className="text-md font-medium text-gray-700 mb-3">הוסף סרטונים נוספים</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-md font-medium text-gray-700">
+                  הוסף סרטונים נוספים ({getFilteredAvailableVideos().length})
+                </h4>
+                {getFilteredAvailableVideos().length > 0 && (
+                  <div className="flex space-x-2 space-x-reverse">
+                    <button
+                      onClick={handleSelectAllVideos}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      בחר הכל
+                    </button>
+                    <button
+                      onClick={handleDeselectAllVideos}
+                      className="text-gray-500 hover:text-gray-700 text-sm"
+                    >
+                      בטל בחירה
+                    </button>
+                    {selectedVideosToAdd.length > 0 && (
+                      <button
+                        onClick={handleAddSelectedVideos}
+                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                      >
+                        הוסף {selectedVideosToAdd.length} סרטונים
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                {videos
-                  .filter(video => !collection.videos.includes(video.id))
-                  .map(video => (
-                    <div key={video.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                {getFilteredAvailableVideos().length > 0 ? (
+                  getFilteredAvailableVideos().map(video => (
+                    <div 
+                      key={video.id} 
+                      className={`flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg ${
+                        selectedVideosToAdd.includes(video.id) ? 'bg-blue-50 border border-blue-200' : ''
+                      }`}
+                    >
                       <div className="flex items-center space-x-3 space-x-reverse flex-1 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedVideosToAdd.includes(video.id)}
+                          onChange={() => handleToggleVideoSelection(video.id)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
                         {video.thumbnailUrl && (
                           <img 
                             src={video.thumbnailUrl} 
@@ -584,18 +792,45 @@ export default function CollectionDetailPage({
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{video.title}</p>
-                          <p className="text-xs text-gray-500">{formatDuration(video.duration)} • {VIDEO_CATEGORY_LABELS[video.category]}</p>
+                          <div className="flex items-center space-x-2 space-x-reverse text-xs text-gray-500">
+                            <span>{formatDuration(video.duration)}</span>
+                            <span>•</span>
+                            <span>{VIDEO_CATEGORY_LABELS[video.category]}</span>
+                            <span>•</span>
+                            <span className={`px-2 py-1 rounded-full ${
+                              video.skillLevel === 'beginner' ? 'bg-green-100 text-green-800' :
+                              video.skillLevel === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {video.skillLevel === 'beginner' ? 'מתחיל' :
+                               video.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleAddVideo(video.id)}
-                        className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded"
-                        title="הוסף לאוסף"
-                      >
-                        <i className="fas fa-plus"></i>
-                      </button>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <button
+                          onClick={() => handleAddVideo(video.id)}
+                          className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded"
+                          title="הוסף לאוסף"
+                        >
+                          <i className="fas fa-plus"></i>
+                        </button>
+                      </div>
                     </div>
-                  ))}
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <i className="fas fa-search text-4xl mb-3"></i>
+                    <p>לא נמצאו סרטונים התואמים לסינון</p>
+                    <button
+                      onClick={clearVideoFilters}
+                      className="text-blue-600 hover:text-blue-800 text-sm mt-2"
+                    >
+                      נקה סינון
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { videoService } from '@/lib/videoService'
 import { showMessage } from '@/components/MessageContainer'
@@ -19,6 +20,7 @@ interface CollectionManagerProps {
 }
 
 export default function CollectionManager({ videos, onCollectionCreated, onClose }: CollectionManagerProps) {
+  const router = useRouter()
   const { user } = useAuth()
   const [collections, setCollections] = useState<VideoCollection[]>([])
   const [loading, setLoading] = useState(false)
@@ -145,6 +147,10 @@ export default function CollectionManager({ videos, onCollectionCreated, onClose
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
+  const handleViewCollection = (collection: VideoCollection) => {
+    router.push(`/admin/collections/${collection.id}`)
+  }
+
   const handleEditCollection = (collection: VideoCollection) => {
     setEditingCollection(collection)
     setSelectedVideos([...collection.videos])
@@ -261,80 +267,99 @@ export default function CollectionManager({ videos, onCollectionCreated, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-xl max-w-7xl w-full max-h-[95vh] overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+          <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">ניהול אוספי סרטונים</h2>
-              <p className="text-gray-600">צור וטפל באוספי סרטונים מאורגנים</p>
+              <h2 className="text-2xl font-bold">ניהול אוספי סרטונים</h2>
+              <p className="text-blue-100 mt-1">צור וטפל באוספי סרטונים מאורגנים</p>
             </div>
             <div className="flex space-x-3 space-x-reverse">
               <button
                 onClick={() => setShowCreateForm(!showCreateForm)}
-                className="btn-primary"
+                className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium"
               >
                 <i className="fas fa-plus ml-2"></i>
                 צור אוסף חדש
               </button>
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 p-2"
+                className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
               >
                 <i className="fas fa-times text-xl"></i>
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
 
           {/* Create Collection Form */}
           {showCreateForm && (
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold mb-4">צור אוסף חדש</h3>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 border border-blue-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <i className="fas fa-plus-circle text-blue-600 ml-2"></i>
+                  צור אוסף חדש
+                </h3>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="text-gray-500 hover:text-gray-700 p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    כותרת האוסף *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="לדוגמה: תרגילי כדרור למתחילים"
-                  />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      כותרת האוסף *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      placeholder="לדוגמה: תרגילי כדרור למתחילים"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      קטגוריה
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as VideoCategory }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                    >
+                      {Object.entries(VIDEO_CATEGORY_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    קטגוריה
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as VideoCategory }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  >
-                    {Object.entries(VIDEO_CATEGORY_LABELS).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
-                  </select>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      תיאור
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      placeholder="תאר את האוסף ואת מטרתו..."
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  תיאור
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="תאר את האוסף ואת מטרתו..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     תגיות (מופרדות בפסיקים)
@@ -343,75 +368,106 @@ export default function CollectionManager({ videos, onCollectionCreated, onClose
                     type="text"
                     value={formData.tags}
                     onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                     placeholder="כדרור, מתחילים, קואורדינציה"
                   />
                 </div>
                 
-                <div className="flex items-center space-x-6 space-x-reverse">
-                  <label className="flex items-center">
+                <div className="space-y-3">
+                  <label className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.isPublic}
                       onChange={(e) => setFormData(prev => ({ ...prev, isPublic: e.target.checked }))}
-                      className="ml-2"
+                      className="ml-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">ציבורי</span>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">אוסף ציבורי</span>
+                      <p className="text-xs text-gray-500">נראה לכל המשתמשים</p>
+                    </div>
                   </label>
                   
-                  <label className="flex items-center">
+                  <label className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.isFeatured}
                       onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                      className="ml-2"
+                      className="ml-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">מומלץ</span>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">אוסף מומלץ</span>
+                      <p className="text-xs text-gray-500">יוצג במיקום בולט</p>
+                    </div>
                   </label>
                 </div>
               </div>
 
               {/* Video Selection */}
               <div className="mb-6">
-                <h4 className="text-md font-medium text-gray-700 mb-3">
-                  בחר סרטונים ({selectedVideos.length} נבחרו) - אופציונלי
-                </h4>
-                <p className="text-sm text-gray-500 mb-3">
-                  ניתן ליצור אוסף ריק ולהוסיף סרטונים מאוחר יותר
-                </p>
-                <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {videos.map(video => (
-                      <label key={video.id} className="flex items-center space-x-3 space-x-reverse cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <input
-                          type="checkbox"
-                          checked={selectedVideos.includes(video.id)}
-                          onChange={() => handleVideoToggle(video.id)}
-                          className="ml-2"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{video.title}</p>
-                          <p className="text-xs text-gray-500">{formatDuration(video.duration)} • {VIDEO_CATEGORY_LABELS[video.category]}</p>
-                        </div>
-                      </label>
-                    ))}
+                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                  <h4 className="text-lg font-medium text-gray-800 mb-2 flex items-center">
+                    <i className="fas fa-video text-blue-600 ml-2"></i>
+                    בחר סרטונים ({selectedVideos.length} נבחרו) - אופציונלי
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    ניתן ליצור אוסף ריק ולהוסיף סרטונים מאוחר יותר
+                  </p>
+                  <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {videos.map(video => (
+                        <label 
+                          key={video.id} 
+                          className={`flex items-center space-x-3 space-x-reverse cursor-pointer p-3 rounded-lg border transition-colors ${
+                            selectedVideos.includes(video.id) 
+                              ? 'bg-blue-50 border-blue-200' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedVideos.includes(video.id)}
+                            onChange={() => handleVideoToggle(video.id)}
+                            className="ml-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{video.title}</p>
+                            <div className="flex items-center space-x-2 space-x-reverse text-xs text-gray-500 mt-1">
+                              <span>{formatDuration(video.duration)}</span>
+                              <span>•</span>
+                              <span>{VIDEO_CATEGORY_LABELS[video.category]}</span>
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 space-x-reverse">
+              <div className="flex justify-end space-x-3 space-x-reverse pt-4 border-t border-gray-200">
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                 >
+                  <i className="fas fa-times ml-2"></i>
                   ביטול
                 </button>
                 <button
                   onClick={handleCreateCollection}
                   disabled={loading || !formData.title.trim()}
-                  className="btn-primary disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center"
                 >
-                  {loading ? 'יוצר...' : 'צור אוסף'}
+                  {loading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin ml-2"></i>
+                      יוצר...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-plus ml-2"></i>
+                      צור אוסף
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -627,24 +683,40 @@ export default function CollectionManager({ videos, onCollectionCreated, onClose
           )}
 
           {/* Collections List */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">אוספים קיימים ({collections.length})</h3>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-gray-800 flex items-center">
+                <i className="fas fa-folder text-blue-600 ml-2"></i>
+                אוספים קיימים ({collections.length})
+              </h3>
+            </div>
             
             {loading && collections.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">טוען אוספים...</p>
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 text-lg">טוען אוספים...</p>
               </div>
             ) : collections.length === 0 ? (
-              <div className="text-center py-12">
-                <i className="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
-                <h4 className="text-lg font-semibold text-gray-600 mb-2">אין אוספים</h4>
-                <p className="text-gray-500">צור אוסף ראשון כדי לארגן את הסרטונים שלך</p>
+              <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <i className="fas fa-folder-open text-8xl text-gray-400 mb-6"></i>
+                <h4 className="text-xl font-semibold text-gray-600 mb-3">אין אוספים עדיין</h4>
+                <p className="text-gray-500 mb-6 text-lg">צור אוסף ראשון כדי לארגן את הסרטונים שלך</p>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+                >
+                  <i className="fas fa-plus ml-2"></i>
+                  צור אוסף ראשון
+                </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {collections.map(collection => (
-                  <div key={collection.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div 
+                    key={collection.id} 
+                    className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:border-blue-300"
+                    onClick={() => handleViewCollection(collection)}
+                  >
                     {/* Header with Title and Actions */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -691,7 +763,15 @@ export default function CollectionManager({ videos, onCollectionCreated, onClose
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="flex space-x-2 space-x-reverse ml-4">
+                      <div className="flex space-x-2 space-x-reverse ml-4" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleViewCollection(collection)}
+                          className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                          title="צפה בפרטים"
+                        >
+                          <i className="fas fa-eye ml-1"></i>
+                          פרטים
+                        </button>
                         <button
                           onClick={() => handleEditCollection(collection)}
                           className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"

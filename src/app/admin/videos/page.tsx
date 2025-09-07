@@ -14,7 +14,9 @@ import EnhancedVideoUpload from '@/components/admin/EnhancedVideoUpload'
 import MultiStageVideoUpload from '@/components/admin/MultiStageVideoUpload'
 import VideoReviewPanel from '@/components/admin/VideoReviewPanel'
 import CollectionManager from '@/components/admin/CollectionManager'
+import ChallengeManager from '@/components/admin/ChallengeManager'
 import { videoService, formatFileSize, formatDuration } from '@/lib/videoService'
+import { challengeService, ChallengeFilters } from '@/lib/challengeService'
 import { USER_TYPES } from '@/lib/firebase'
 import type { 
   VideoMetadata, 
@@ -28,6 +30,16 @@ import {
   VIDEO_CATEGORY_LABELS,
   EXERCISE_TYPE_LABELS
 } from '@/types/video'
+import { 
+  Challenge,
+  AgeGroup,
+  Position,
+  CHALLENGE_DIFFICULTY_LABELS, 
+  CHALLENGE_CATEGORY_LABELS,
+  CHALLENGE_STATUS_LABELS,
+  AGE_GROUP_LABELS,
+  POSITION_LABELS
+} from '@/types/challenge'
 
 export default function AdminVideos() {
   const { user } = useAuth()
@@ -45,9 +57,24 @@ export default function AdminVideos() {
   const [showModal, setShowModal] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showCollectionManager, setShowCollectionManager] = useState(false)
+  const [showChallengeManager, setShowChallengeManager] = useState(false)
   const [useEnhancedUpload, setUseEnhancedUpload] = useState(false)
+  
+  // Challenge state
+  const [challenges, setChallenges] = useState<Challenge[]>([])
+  const [challengesLoading, setChallengesLoading] = useState(false)
+  const [challengeFilters, setChallengeFilters] = useState<ChallengeFilters>({})
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
+  const [showChallengeModal, setShowChallengeModal] = useState(false)
+  const [editingChallenge, setEditingChallenge] = useState(false)
+  const [challengeFormData, setChallengeFormData] = useState<Partial<Challenge>>({})
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false)
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null)
+  const [selectedThumbnailFile, setSelectedThumbnailFile] = useState<File | null>(null)
+  const [uploadAbortController, setUploadAbortController] = useState<AbortController | null>(null)
   const [useMultiStageUpload, setUseMultiStageUpload] = useState(true)
-  const [activeTab, setActiveTab] = useState<'player-submissions' | 'admin-training' | 'collections' | 'submissions'>('player-submissions')
+  const [activeTab, setActiveTab] = useState<'player-submissions' | 'admin-training' | 'collections' | 'submissions' | 'challenges'>('player-submissions')
   const [playerSubmissions, setPlayerSubmissions] = useState<PlayerVideoSubmission[]>([
     {
       id: 'submission-1',
@@ -172,13 +199,28 @@ export default function AdminVideos() {
     }
   }, [])
 
+  // Load challenges
+  const loadChallenges = useCallback(async () => {
+    try {
+      setChallengesLoading(true)
+      const challengesData = await challengeService.getChallenges(challengeFilters)
+      setChallenges(challengesData)
+    } catch (error) {
+      console.error('Error loading challenges:', error)
+      showMessage('שגיאה בטעינת האתגרים', 'error')
+    } finally {
+      setChallengesLoading(false)
+    }
+  }, [challengeFilters])
+
   // Load initial data
   useEffect(() => {
     if (user && user.type === USER_TYPES.ADMIN) {
       loadVideos(true)
       loadCollections()
+      loadChallenges()
     }
-  }, [loadVideos, loadCollections, user])
+  }, [loadVideos, loadCollections, loadChallenges, user])
   
   // Reload when filters change
   useEffect(() => {
@@ -190,6 +232,213 @@ export default function AdminVideos() {
       return () => clearTimeout(timeoutId)
     }
   }, [filter, sort, searchQuery, user, loadVideos])
+
+  // Reload challenges when challenge filters change
+  useEffect(() => {
+    if (user && user.type === USER_TYPES.ADMIN && activeTab === 'challenges') {
+      loadChallenges()
+    }
+  }, [challengeFilters, loadChallenges, user, activeTab])
+
+  // Cleanup uploads on component unmount
+  useEffect(() => {
+    return () => {
+      if (uploadAbortController) {
+        console.log('Component unmounting, aborting uploads...')
+        uploadAbortController.abort()
+      }
+    }
+  }, [uploadAbortController])
+
+  // Challenge helper functions
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'bg-green-100 text-green-800'
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800'
+      case 'advanced': return 'bg-orange-100 text-orange-800'
+      case 'expert': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'available': return 'bg-blue-100 text-blue-800'
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800'
+      case 'completed': return 'bg-green-100 text-green-800'
+      case 'failed': return 'bg-red-100 text-red-800'
+      case 'locked': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  // Challenge editing functions
+  const handleEditChallenge = (challenge: Challenge) => {
+    setSelectedChallenge(challenge)
+    setChallengeFormData(challenge)
+    setEditingChallenge(true)
+    setShowChallengeModal(true)
+  }
+
+  const handleCancelEdit = () => {
+    // Abort any ongoing uploads
+    if (uploadAbortController) {
+      console.log('Cancelling ongoing uploads...')
+      uploadAbortController.abort()
+      setUploadAbortController(null)
+    }
+    
+    // Reset all states
+    setEditingChallenge(false)
+    setChallengeFormData({})
+    setSelectedChallenge(null)
+    setShowChallengeModal(false)
+    setSelectedVideoFile(null)
+    setSelectedThumbnailFile(null)
+    setUploadingVideo(false)
+    setUploadingThumbnail(false)
+    
+    console.log('Edit cancelled and uploads aborted')
+  }
+
+  const handleSaveChallenge = async () => {
+    if (!selectedChallenge) return
+
+    // Create abort controller for this upload session
+    const abortController = new AbortController()
+    setUploadAbortController(abortController)
+
+    try {
+      setUploadingVideo(true)
+      setUploadingThumbnail(true)
+      
+      let finalFormData = { ...challengeFormData }
+      
+      // Upload video if a new file was selected
+      if (selectedVideoFile) {
+        console.log('Uploading video file...')
+        // Check if upload was cancelled
+        if (abortController.signal.aborted) {
+          console.log('Upload cancelled by user')
+          return
+        }
+        const videoUrl = await challengeService.uploadChallengeVideo(selectedVideoFile, selectedChallenge.id)
+        finalFormData.videoUrl = videoUrl
+        console.log('Video uploaded successfully:', videoUrl)
+      }
+      
+      // Upload thumbnail if a new file was selected
+      if (selectedThumbnailFile) {
+        console.log('Uploading thumbnail file...')
+        // Check if upload was cancelled
+        if (abortController.signal.aborted) {
+          console.log('Upload cancelled by user')
+          return
+        }
+        const thumbnailUrl = await challengeService.uploadChallengeThumbnail(selectedThumbnailFile, selectedChallenge.id)
+        finalFormData.thumbnailUrl = thumbnailUrl
+        console.log('Thumbnail uploaded successfully:', thumbnailUrl)
+      }
+      
+      // Check if upload was cancelled before updating challenge
+      if (abortController.signal.aborted) {
+        console.log('Upload cancelled by user')
+        return
+      }
+      
+      // Update the challenge with all data
+      await challengeService.updateChallenge(selectedChallenge.id, finalFormData)
+      showMessage('האתגר עודכן בהצלחה!', 'success')
+      
+      // Clean up
+      setEditingChallenge(false)
+      setChallengeFormData({})
+      setSelectedVideoFile(null)
+      setSelectedThumbnailFile(null)
+      setUploadAbortController(null)
+      loadChallenges() // Reload challenges
+    } catch (error) {
+      console.error('Error updating challenge:', error)
+      if (abortController.signal.aborted) {
+        console.log('Upload was cancelled')
+        showMessage('העלאה בוטלה', 'info')
+      } else {
+        showMessage('שגיאה בעדכון האתגר', 'error')
+      }
+    } finally {
+      setUploadingVideo(false)
+      setUploadingThumbnail(false)
+      setUploadAbortController(null)
+    }
+  }
+
+  const handleVideoFileSelect = (file: File) => {
+    // Validate file size (max 100MB for videos)
+    if (file.size > 100 * 1024 * 1024) {
+      showMessage('הקובץ גדול מדי. גודל מקסימלי: 100MB', 'error')
+      return
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      showMessage('אנא בחר קובץ וידאו בלבד', 'error')
+      return
+    }
+    
+    setSelectedVideoFile(file)
+    
+    // Create preview URL for immediate display
+    const videoUrl = URL.createObjectURL(file)
+    setChallengeFormData(prev => ({ ...prev, videoUrl }))
+    showMessage('סרטון נבחר - יועלה בעת השמירה', 'success')
+  }
+
+  const handleThumbnailFileSelect = (file: File) => {
+    // Validate file size (max 5MB for images)
+    if (file.size > 5 * 1024 * 1024) {
+      showMessage('הקובץ גדול מדי. גודל מקסימלי: 5MB', 'error')
+      return
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showMessage('אנא בחר קובץ תמונה בלבד', 'error')
+      return
+    }
+    
+    setSelectedThumbnailFile(file)
+    
+    // Create preview URL for immediate display
+    const thumbnailUrl = URL.createObjectURL(file)
+    setChallengeFormData(prev => ({ ...prev, thumbnailUrl }))
+    showMessage('תמונה נבחרה - תועלה בעת השמירה', 'success')
+  }
+
+  // Test function to verify Firebase Storage is working
+  const testFirebaseStorage = async () => {
+    try {
+      console.log('Testing Firebase Storage...')
+      const { storage } = await import('@/lib/firebase')
+      const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
+      
+      // Create a simple test file
+      const testContent = 'test'
+      const testFile = new File([testContent], 'test.txt', { type: 'text/plain' })
+      
+      const testRef = ref(storage, 'test/test.txt')
+      console.log('Uploading test file...')
+      const snapshot = await uploadBytes(testRef, testFile)
+      console.log('Test upload successful:', snapshot)
+      
+      const downloadURL = await getDownloadURL(snapshot.ref)
+      console.log('Test download URL:', downloadURL)
+      
+      showMessage('Firebase Storage test successful!', 'success')
+    } catch (error) {
+      console.error('Firebase Storage test failed:', error)
+      showMessage('Firebase Storage test failed: ' + error, 'error')
+    }
+  }
 
   // Video actions
   const handleEditVideo = useCallback(async (
@@ -376,6 +625,17 @@ export default function AdminVideos() {
                     {collections.length}
                   </span>
                 )}
+              </button>
+              <button
+                onClick={() => setActiveTab('challenges')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'challenges'
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <i className="fas fa-trophy ml-2"></i>
+                אתגרים
               </button>
             </nav>
           </div>
@@ -1122,6 +1382,206 @@ export default function AdminVideos() {
                 </div>
               )}
             </div>
+          ) : activeTab === 'challenges' ? (
+            /* Challenges Tab */
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">ניהול אתגרים</h2>
+                  <p className="text-gray-600">צור וטפל באתגרים לפי קבוצות גיל ותפקידים</p>
+                </div>
+                <button
+                  onClick={() => setShowChallengeManager(true)}
+                  className="btn-primary"
+                >
+                  <i className="fas fa-plus ml-2"></i>
+                  צור אתגר חדש
+                </button>
+              </div>
+
+              {/* Challenge Filters */}
+              <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                <h4 className="font-medium text-gray-800 mb-3">סינון אתגרים</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">קבוצת גיל</label>
+                    <select
+                      value={challengeFilters.ageGroup || ''}
+                      onChange={(e) => setChallengeFilters(prev => ({ 
+                        ...prev, 
+                        ageGroup: e.target.value as AgeGroup || undefined 
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">כל הגילאים</option>
+                      {Object.entries(AGE_GROUP_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">קטגוריה</label>
+                    <select
+                      value={challengeFilters.category || ''}
+                      onChange={(e) => setChallengeFilters(prev => ({ 
+                        ...prev, 
+                        category: e.target.value || undefined 
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">כל הקטגוריות</option>
+                      {Object.entries(CHALLENGE_CATEGORY_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">רמת קושי</label>
+                    <select
+                      value={challengeFilters.difficulty || ''}
+                      onChange={(e) => setChallengeFilters(prev => ({ 
+                        ...prev, 
+                        difficulty: e.target.value || undefined 
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">כל הרמות</option>
+                      {Object.entries(CHALLENGE_DIFFICULTY_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">סוג אתגר</label>
+                    <select
+                      value={challengeFilters.isMonthlyChallenge === undefined ? '' : challengeFilters.isMonthlyChallenge.toString()}
+                      onChange={(e) => setChallengeFilters(prev => ({ 
+                        ...prev, 
+                        isMonthlyChallenge: e.target.value === '' ? undefined : e.target.value === 'true'
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">כל האתגרים</option>
+                      <option value="false">אתגרים רגילים</option>
+                      <option value="true">אתגרים חודשיים</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={() => setChallengeFilters({})}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                  >
+                    נקה סינון
+                  </button>
+                </div>
+              </div>
+
+              {/* Challenges List */}
+              {challengesLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 text-lg">טוען אתגרים...</p>
+                </div>
+              ) : challenges.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {challenges.map((challenge) => (
+                    <div key={challenge.id} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">{challenge.title}</h3>
+                        <div className="flex space-x-2 space-x-reverse">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
+                            {CHALLENGE_DIFFICULTY_LABELS[challenge.difficulty]}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(challenge.status)}`}>
+                            {CHALLENGE_STATUS_LABELS[challenge.status]}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 mb-4 line-clamp-3">{challenge.description}</p>
+
+                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">גיל:</span>
+                          <span className="mr-2">{AGE_GROUP_LABELS[challenge.ageGroup]}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">קטגוריה:</span>
+                          <span className="mr-2">{CHALLENGE_CATEGORY_LABELS[challenge.category]}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">רמה:</span>
+                          <span className="mr-2">{challenge.level}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">נקודות:</span>
+                          <span className="mr-2">{challenge.rewards.points}</span>
+                        </div>
+                      </div>
+
+                      {challenge.positions && challenge.positions.length > 0 && (
+                        <div className="mb-4">
+                          <span className="text-sm font-medium text-gray-700">עמדות:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {challenge.positions.map((position) => (
+                              <span key={position} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {POSITION_LABELS[position]}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {challenge.isMonthlyChallenge && (
+                        <div className="mb-4">
+                          <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
+                            <i className="fas fa-calendar-alt ml-1"></i>
+                            אתגר חודשי
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex space-x-2 space-x-reverse">
+                        <button
+                          onClick={() => {
+                            setSelectedChallenge(challenge)
+                            setShowChallengeModal(true)
+                          }}
+                          className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          <i className="fas fa-eye ml-1"></i>
+                          צפה בפרטים
+                        </button>
+                        <button
+                          onClick={() => handleEditChallenge(challenge)}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <i className="fas fa-trophy text-6xl text-gray-300 mb-4"></i>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">אין אתגרים זמינים</h3>
+                  <p className="text-gray-500 mb-4">צור אתגרים מותאמים אישית לפי קבוצות גיל ותפקידים</p>
+                  <button
+                    onClick={() => setShowChallengeManager(true)}
+                    className="btn-primary"
+                  >
+                    <i className="fas fa-plus ml-2"></i>
+                    צור אתגר ראשון
+                  </button>
+                </div>
+              )}
+            </div>
           ) : null}
         </div>
 
@@ -1360,6 +1820,403 @@ export default function AdminVideos() {
             }}
             onClose={() => setShowCollectionManager(false)}
           />
+        )}
+
+        {/* Challenge Manager Modal */}
+        {showChallengeManager && (
+          <ChallengeManager
+            onClose={() => setShowChallengeManager(false)}
+          />
+        )}
+
+        {/* Challenge Details/Edit Modal */}
+        {showChallengeModal && selectedChallenge && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {editingChallenge ? 'עריכת אתגר' : selectedChallenge.title}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      // Abort any ongoing uploads
+                      if (uploadAbortController) {
+                        console.log('Cancelling ongoing uploads...')
+                        uploadAbortController.abort()
+                        setUploadAbortController(null)
+                      }
+                      
+                      setShowChallengeModal(false)
+                      setEditingChallenge(false)
+                      setChallengeFormData({})
+                      setSelectedVideoFile(null)
+                      setSelectedThumbnailFile(null)
+                      setUploadingVideo(false)
+                      setUploadingThumbnail(false)
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <i className="fas fa-times text-xl"></i>
+                  </button>
+                </div>
+
+                {editingChallenge ? (
+                  /* Edit Mode */
+                  <div className="space-y-6">
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">כותרת</label>
+                        <input
+                          type="text"
+                          value={challengeFormData.title || ''}
+                          onChange={(e) => setChallengeFormData(prev => ({ ...prev, title: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">קטגוריה</label>
+                        <select
+                          value={challengeFormData.category || ''}
+                          onChange={(e) => setChallengeFormData(prev => ({ ...prev, category: e.target.value as any }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {Object.entries(CHALLENGE_CATEGORY_LABELS).map(([key, label]) => (
+                            <option key={key} value={key}>{label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">תיאור</label>
+                      <textarea
+                        value={challengeFormData.description || ''}
+                        onChange={(e) => setChallengeFormData(prev => ({ ...prev, description: e.target.value }))}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">הוראות</label>
+                      <textarea
+                        value={challengeFormData.instructions || ''}
+                        onChange={(e) => setChallengeFormData(prev => ({ ...prev, instructions: e.target.value }))}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="הוראות מפורטות לביצוע האתגר..."
+                      />
+                    </div>
+
+                    {/* Video and Thumbnail Upload */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">סרטון הדגמה</label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <input
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                handleVideoFileSelect(file)
+                                // Reset the input
+                                e.target.value = ''
+                              }
+                            }}
+                            className="hidden"
+                            id="video-upload"
+                            disabled={uploadingVideo}
+                          />
+                          <label htmlFor="video-upload" className="cursor-pointer">
+                            {uploadingVideo ? (
+                              <div className="flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                <span className="mr-2">מעלה סרטון...</span>
+                              </div>
+                            ) : selectedVideoFile ? (
+                              <div>
+                                <i className="fas fa-video text-2xl text-green-500 mb-2"></i>
+                                <p className="text-sm text-green-600">סרטון נבחר: {selectedVideoFile.name}</p>
+                                <p className="text-xs text-gray-500">יועלה בעת השמירה</p>
+                              </div>
+                            ) : (
+                              <div>
+                                <i className="fas fa-video text-2xl text-gray-400 mb-2"></i>
+                                <p className="text-sm text-gray-600">לחץ לבחירת סרטון</p>
+                              </div>
+                            )}
+                          </label>
+                          {challengeFormData.videoUrl && (
+                            <div className="mt-2">
+                              <a 
+                                href={challengeFormData.videoUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 text-sm"
+                              >
+                                <i className="fas fa-play ml-1"></i>
+                                צפה בסרטון הנוכחי
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">תמונת ממוזערת</label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                handleThumbnailFileSelect(file)
+                                // Reset the input
+                                e.target.value = ''
+                              }
+                            }}
+                            className="hidden"
+                            id="thumbnail-upload"
+                            disabled={uploadingThumbnail}
+                          />
+                          <label htmlFor="thumbnail-upload" className="cursor-pointer">
+                            {uploadingThumbnail ? (
+                              <div className="flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                <span className="mr-2">מעלה תמונה...</span>
+                              </div>
+                            ) : selectedThumbnailFile ? (
+                              <div>
+                                <i className="fas fa-image text-2xl text-green-500 mb-2"></i>
+                                <p className="text-sm text-green-600">תמונה נבחרה: {selectedThumbnailFile.name}</p>
+                                <p className="text-xs text-gray-500">תועלה בעת השמירה</p>
+                              </div>
+                            ) : (
+                              <div>
+                                <i className="fas fa-image text-2xl text-gray-400 mb-2"></i>
+                                <p className="text-sm text-gray-600">לחץ לבחירת תמונה</p>
+                              </div>
+                            )}
+                          </label>
+                          {challengeFormData.thumbnailUrl && (
+                            <div className="mt-2">
+                              <img 
+                                src={challengeFormData.thumbnailUrl} 
+                                alt="Thumbnail" 
+                                className="w-20 h-20 object-cover rounded mx-auto"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Additional Settings */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">רמת קושי</label>
+                        <select
+                          value={challengeFormData.difficulty || ''}
+                          onChange={(e) => setChallengeFormData(prev => ({ ...prev, difficulty: e.target.value as any }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {Object.entries(CHALLENGE_DIFFICULTY_LABELS).map(([key, label]) => (
+                            <option key={key} value={key}>{label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">רמה</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={challengeFormData.level || 1}
+                          onChange={(e) => setChallengeFormData(prev => ({ ...prev, level: parseInt(e.target.value) }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">נקודות</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={challengeFormData.rewards?.points || 100}
+                          onChange={(e) => setChallengeFormData(prev => ({ 
+                            ...prev, 
+                            rewards: { ...prev.rewards, points: parseInt(e.target.value) }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end space-x-3 space-x-reverse pt-6 border-t">
+                      <button
+                        onClick={testFirebaseStorage}
+                        className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                      >
+                        בדוק Firebase Storage
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        ביטול
+                      </button>
+                      <button
+                        onClick={handleSaveChallenge}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        שמור שינויים
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* View Mode */
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">תיאור</h4>
+                      <p className="text-gray-600">{selectedChallenge.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-3">פרטים כלליים</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">קטגוריה:</span>
+                            <span>{CHALLENGE_CATEGORY_LABELS[selectedChallenge.category]}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">רמת קושי:</span>
+                            <span>{CHALLENGE_DIFFICULTY_LABELS[selectedChallenge.difficulty]}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">רמה:</span>
+                            <span>{selectedChallenge.level}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">נקודות:</span>
+                            <span>{selectedChallenge.rewards.points}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">גיל:</span>
+                            <span>{AGE_GROUP_LABELS[selectedChallenge.ageGroup]}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">ניסיונות:</span>
+                            <span>{selectedChallenge.attempts}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-3">עמדות</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedChallenge.positions.map((position) => (
+                            <span key={position} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                              {POSITION_LABELS[position]}
+                            </span>
+                          ))}
+                        </div>
+
+                        {selectedChallenge.isMonthlyChallenge && (
+                          <div className="mt-4">
+                            <span className="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+                              <i className="fas fa-calendar-alt ml-1"></i>
+                              אתגר חודשי
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {selectedChallenge.instructions && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">הוראות</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <pre className="whitespace-pre-wrap text-sm text-gray-700">{selectedChallenge.instructions}</pre>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedChallenge.metrics && selectedChallenge.metrics.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-3">מדדים נמדדים</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedChallenge.metrics.map((metric) => (
+                            <div key={metric.id} className="bg-gray-50 p-3 rounded-lg">
+                              <div className="font-medium text-gray-900">{metric.name}</div>
+                              <div className="text-sm text-gray-600">
+                                יחידה: {metric.unit} | 
+                                סוג: {metric.type} | 
+                                {metric.required ? 'נדרש' : 'אופציונלי'}
+                              </div>
+                              {metric.description && (
+                                <div className="text-xs text-gray-500 mt-1">{metric.description}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedChallenge.videoUrl && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">סרטון הדגמה</h4>
+                        <div className="bg-gray-100 p-4 rounded-lg text-center">
+                          <a 
+                            href={selectedChallenge.videoUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            <i className="fas fa-play ml-1"></i>
+                            צפה בסרטון הדגמה
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedChallenge.thumbnailUrl && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">תמונת ממוזערת</h4>
+                        <div className="bg-gray-100 p-4 rounded-lg text-center">
+                          <img 
+                            src={selectedChallenge.thumbnailUrl} 
+                            alt="Challenge thumbnail" 
+                            className="max-w-full h-48 object-cover rounded mx-auto"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3 space-x-reverse pt-6 border-t">
+                      <button
+                        onClick={() => setShowChallengeModal(false)}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        סגור
+                      </button>
+                      <button
+                        onClick={() => handleEditChallenge(selectedChallenge)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <i className="fas fa-edit ml-1"></i>
+                        ערוך אתגר
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
       </div>

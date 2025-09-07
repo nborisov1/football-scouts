@@ -1,381 +1,634 @@
 /**
- * Challenge Service - Manages the challenge progression system
+ * Challenge Service - Firebase integration for challenge management
+ * Handles CRUD operations for challenges with efficient querying
  */
 
 import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs, 
+  getDoc,
+  query, 
+  where, 
+  orderBy, 
+  limit,
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore'
+import { 
+  ref, 
+  uploadBytes, 
+  getDownloadURL, 
+  deleteObject 
+} from 'firebase/storage'
+import { db, storage } from '@/lib/firebase'
+import { 
   Challenge, 
+  ChallengeSubmission,
   PlayerChallengeProgress, 
-  ChallengeSubmission, 
-  ChallengeSeries,
-  PlayerChallengeStats,
-  ChallengeStatus,
-  ChallengeDifficulty,
-  ChallengeType,
-  ChallengeCategory
+  AgeGroup,
+  Position,
+  ChallengeMetric,
+  ChallengeThreshold
 } from '@/types/challenge'
-import { UserData } from '@/types/user'
+
+// Collection names
+const CHALLENGES_COLLECTION = 'challenges'
+const CHALLENGE_SUBMISSIONS_COLLECTION = 'challengeSubmissions'
+const PLAYER_PROGRESS_COLLECTION = 'playerChallengeProgress'
 
 export interface ChallengeFilters {
-  type?: ChallengeType
-  category?: ChallengeCategory
-  difficulty?: ChallengeDifficulty
-  status?: ChallengeStatus
-  level?: number
+  ageGroup?: AgeGroup
+  position?: Position
+  category?: string
+  difficulty?: string
+  isMonthlyChallenge?: boolean
+  status?: string
+}
+
+export interface ChallengeQueryOptions {
+  limit?: number
+  orderBy?: string
+  orderDirection?: 'asc' | 'desc'
 }
 
 export class ChallengeService {
   /**
-   * Get available challenges for a player
+   * Upload challenge video to Firebase Storage
    */
-  static getAvailableChallenges(
-    player: UserData,
-    allChallenges: Challenge[],
-    playerProgress: PlayerChallengeProgress[],
-    playerStats: PlayerChallengeStats | null
-  ): Challenge[] {
-    if (!playerStats) return []
+  static async uploadChallengeVideo(file: File, challengeId: string): Promise<string> {
+    try {
+      const fileName = `challenges/${challengeId}/video_${Date.now()}.${file.name.split('.').pop()}`
+      const storageRef = ref(storage, fileName)
+      
+      const snapshot = await uploadBytes(storageRef, file)
+      const downloadURL = await getDownloadURL(snapshot.ref)
+      
+      return downloadURL
+    } catch (error) {
+      console.error('Error uploading challenge video:', error)
+      throw new Error('Failed to upload challenge video')
+    }
+  }
 
-    return allChallenges.filter(challenge => {
-      // Check if challenge is active
-      if (challenge.status !== 'available') return false
-
-      // Check age requirements
-      if (challenge.requirements.minAge && player.age && player.age < challenge.requirements.minAge) {
-        return false
+  /**
+   * Upload challenge thumbnail to Firebase Storage
+   */
+  static async uploadChallengeThumbnail(file: File, challengeId: string): Promise<string> {
+    try {
+      console.log('ChallengeService: Starting thumbnail upload for challenge:', challengeId)
+      console.log('ChallengeService: File details:', { name: file.name, size: file.size, type: file.type })
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size too large. Maximum size: 5MB')
       }
-      if (challenge.requirements.maxAge && player.age && player.age > challenge.requirements.maxAge) {
-        return false
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Invalid file type. Only images are allowed')
       }
-
-      // Check position requirements
-      if (challenge.requirements.positions && challenge.requirements.positions.length > 0) {
-        if (!player.position || !challenge.requirements.positions.includes(player.position)) {
-          return false
+      
+      const fileName = `challenges/${challengeId}/thumbnail_${Date.now()}.${file.name.split('.').pop()}`
+      console.log('ChallengeService: Generated fileName:', fileName)
+      
+      const storageRef = ref(storage, fileName)
+      console.log('ChallengeService: Created storage reference')
+      
+      console.log('ChallengeService: Starting uploadBytes...')
+      const snapshot = await uploadBytes(storageRef, file)
+      console.log('ChallengeService: Upload completed, getting download URL...')
+      
+      const downloadURL = await getDownloadURL(snapshot.ref)
+      console.log('ChallengeService: Got download URL:', downloadURL)
+      
+      return downloadURL
+    } catch (error) {
+      console.error('ChallengeService: Error uploading challenge thumbnail:', error)
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('storage/unauthorized')) {
+          throw new Error('Unauthorized: Check Firebase Storage rules')
+        } else if (error.message.includes('storage/object-not-found')) {
+          throw new Error('Storage object not found')
+        } else if (error.message.includes('storage/bucket-not-found')) {
+          throw new Error('Storage bucket not found')
+        } else if (error.message.includes('storage/project-not-found')) {
+          throw new Error('Firebase project not found')
+        } else if (error.message.includes('storage/quota-exceeded')) {
+          throw new Error('Storage quota exceeded')
+        } else if (error.message.includes('storage/unauthenticated')) {
+          throw new Error('User not authenticated')
+        } else {
+          throw new Error(`Upload failed: ${error.message}`)
         }
       }
+      
+      throw new Error('Failed to upload challenge thumbnail')
+    }
+  }
 
-      // Check level requirements
-      if (challenge.requirements.minLevel) {
-        const difficultyOrder = ['beginner', 'intermediate', 'advanced', 'expert']
-        const playerLevelIndex = difficultyOrder.indexOf(playerStats.currentLevel.toString())
-        const requiredLevelIndex = difficultyOrder.indexOf(challenge.requirements.minLevel)
-        if (playerLevelIndex < requiredLevelIndex) return false
+  /**
+   * Delete challenge video from Firebase Storage
+   */
+  static async deleteChallengeVideo(videoUrl: string): Promise<void> {
+    try {
+      const videoRef = ref(storage, videoUrl)
+      await deleteObject(videoRef)
+    } catch (error) {
+      console.error('Error deleting challenge video:', error)
+      // Don't throw error as the file might not exist
+    }
+  }
+
+  /**
+   * Delete challenge thumbnail from Firebase Storage
+   */
+  static async deleteChallengeThumbnail(thumbnailUrl: string): Promise<void> {
+    try {
+      const thumbnailRef = ref(storage, thumbnailUrl)
+      await deleteObject(thumbnailRef)
+    } catch (error) {
+      console.error('Error deleting challenge thumbnail:', error)
+      // Don't throw error as the file might not exist
+    }
+  }
+
+  /**
+   * Create a new challenge
+   */
+  static async createChallenge(challengeData: Omit<Challenge, 'id' | 'createdAt' | 'updatedAt'>): Promise<Challenge> {
+    try {
+      // Filter out undefined values to prevent Firebase errors
+      const cleanData = Object.fromEntries(
+        Object.entries(challengeData).filter(([_, value]) => value !== undefined)
+      )
+
+      const docRef = await addDoc(collection(db, CHALLENGES_COLLECTION), {
+        ...cleanData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+
+      // Get the created document to return with proper timestamps
+      const doc = await getDoc(docRef)
+      if (!doc.exists()) {
+        throw new Error('Failed to create challenge')
       }
 
-      // Check points requirements
-      if (challenge.requirements.minPoints && playerStats.totalPoints < challenge.requirements.minPoints) {
-        return false
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date()
+      } as Challenge
+    } catch (error) {
+      console.error('Error creating challenge:', error)
+      throw new Error('Failed to create challenge')
+    }
+  }
+
+  /**
+   * Update an existing challenge
+   */
+  static async updateChallenge(challengeId: string, updates: Partial<Challenge>): Promise<void> {
+    try {
+      // Filter out undefined values to prevent Firebase errors
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      )
+
+      const challengeRef = doc(db, CHALLENGES_COLLECTION, challengeId)
+      await updateDoc(challengeRef, {
+        ...cleanUpdates,
+        updatedAt: serverTimestamp()
+      })
+    } catch (error) {
+      console.error('Error updating challenge:', error)
+      throw new Error('Failed to update challenge')
+    }
+  }
+
+  /**
+   * Delete a challenge
+   */
+  static async deleteChallenge(challengeId: string): Promise<void> {
+    try {
+      // First get the challenge to delete associated files
+      const challenge = await this.getChallenge(challengeId)
+      
+      // Delete associated files if they exist
+      if (challenge) {
+        if (challenge.videoUrl) {
+          await this.deleteChallengeVideo(challenge.videoUrl)
+        }
+        if (challenge.thumbnailUrl) {
+          await this.deleteChallengeThumbnail(challenge.thumbnailUrl)
+        }
+      }
+      
+      // Delete the challenge document
+      const challengeRef = doc(db, CHALLENGES_COLLECTION, challengeId)
+      await deleteDoc(challengeRef)
+    } catch (error) {
+      console.error('Error deleting challenge:', error)
+      throw new Error('Failed to delete challenge')
+    }
+  }
+
+  /**
+   * Get a single challenge by ID
+   */
+  static async getChallenge(challengeId: string): Promise<Challenge | null> {
+    try {
+      const challengeRef = doc(db, CHALLENGES_COLLECTION, challengeId)
+      const challengeDoc = await getDoc(challengeRef)
+      
+      if (!challengeDoc.exists()) {
+        return null
       }
 
-      // Check prerequisite challenges
-      if (challenge.prerequisites && challenge.prerequisites.length > 0) {
-        const completedChallengeIds = playerProgress
-          .filter(progress => progress.status === 'completed')
-          .map(progress => progress.challengeId)
+      const data = challengeDoc.data()
+      return {
+        id: challengeDoc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date()
+      } as Challenge
+    } catch (error) {
+      console.error('Error getting challenge:', error)
+      throw new Error('Failed to get challenge')
+    }
+  }
+
+  /**
+   * Get challenges with filters and options
+   */
+  static async getChallenges(
+    filters: ChallengeFilters = {},
+    options: ChallengeQueryOptions = {}
+  ): Promise<Challenge[]> {
+    try {
+      let q = query(collection(db, CHALLENGES_COLLECTION))
+
+      // Apply filters
+      if (filters.ageGroup) {
+        q = query(q, where('ageGroup', '==', filters.ageGroup))
+      }
+      
+      if (filters.position && filters.position !== 'all') {
+        q = query(q, where('positions', 'array-contains', filters.position))
+      }
+      
+      if (filters.category) {
+        q = query(q, where('category', '==', filters.category))
+      }
+      
+      if (filters.difficulty) {
+        q = query(q, where('difficulty', '==', filters.difficulty))
+      }
+      
+      if (filters.isMonthlyChallenge !== undefined) {
+        q = query(q, where('isMonthlyChallenge', '==', filters.isMonthlyChallenge))
+      }
+      
+      if (filters.status) {
+        q = query(q, where('status', '==', filters.status))
+      }
+
+      // Apply limit (before ordering to avoid index issues)
+      if (options.limit) {
+        q = query(q, limit(options.limit * 2)) // Get more to allow for client-side filtering
+      }
+
+      const querySnapshot = await getDocs(q)
+      const challenges: Challenge[] = []
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        challenges.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date()
+        } as Challenge)
+      })
+
+      // Apply client-side sorting to avoid composite index requirements
+      const orderField = options.orderBy || 'level'
+      const orderDirection = options.orderDirection || 'asc'
+      
+      challenges.sort((a, b) => {
+        let aValue: any = a[orderField as keyof Challenge]
+        let bValue: any = b[orderField as keyof Challenge]
         
-        const hasAllPrerequisites = challenge.prerequisites.every(prereqId => 
-          completedChallengeIds.includes(prereqId)
-        )
-        if (!hasAllPrerequisites) return false
+        // Handle different data types
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
+        
+        if (aValue < bValue) {
+          return orderDirection === 'asc' ? -1 : 1
+        }
+        if (aValue > bValue) {
+          return orderDirection === 'asc' ? 1 : -1
+        }
+        return 0
+      })
+
+      // Apply final limit after sorting
+      if (options.limit) {
+        return challenges.slice(0, options.limit)
       }
 
-      // Check if player hasn't already completed this challenge
-      const existingProgress = playerProgress.find(progress => progress.challengeId === challenge.id)
-      if (existingProgress && existingProgress.status === 'completed') return false
-
-      return true
-    })
+      return challenges
+    } catch (error) {
+      console.error('Error getting challenges:', error)
+      throw new Error('Failed to get challenges')
+    }
   }
 
   /**
-   * Get locked challenges for a player
+   * Get challenges for a specific age group (optimized for players)
    */
-  static getLockedChallenges(
-    player: UserData,
-    allChallenges: Challenge[],
-    playerProgress: PlayerChallengeProgress[],
-    playerStats: PlayerChallengeStats | null
-  ): Challenge[] {
-    if (!playerStats) return allChallenges
-
-    return allChallenges.filter(challenge => {
-      // Check if already completed
-      const existingProgress = playerProgress.find(progress => progress.challengeId === challenge.id)
-      if (existingProgress && existingProgress.status === 'completed') return false
-
-      // Check if available (not locked)
-      const availableChallenges = this.getAvailableChallenges(player, allChallenges, playerProgress, playerStats)
-      if (availableChallenges.some(available => available.id === challenge.id)) return false
-
-      return true
-    })
+  static async getChallengesForAgeGroup(ageGroup: AgeGroup): Promise<Challenge[]> {
+    return this.getChallenges(
+      { ageGroup, status: 'available' },
+      { orderBy: 'level', orderDirection: 'asc' }
+    )
   }
 
   /**
-   * Start a challenge for a player
+   * Get challenges for a specific age group and position
    */
-  static startChallenge(
-    playerId: string,
-    challengeId: string,
-    existingProgress: PlayerChallengeProgress[]
-  ): PlayerChallengeProgress {
-    const existing = existingProgress.find(progress => progress.challengeId === challengeId)
-    
-    if (existing) {
-      // Update existing progress
+  static async getChallengesForPlayer(ageGroup: AgeGroup, position: Position): Promise<Challenge[]> {
+    const filters: ChallengeFilters = {
+      ageGroup,
+      status: 'available'
+    }
+
+    // Only filter by position if it's not 'all'
+    if (position !== 'all') {
+      filters.position = position
+    }
+
+    return this.getChallenges(filters, { orderBy: 'level', orderDirection: 'asc' })
+  }
+
+  /**
+   * Get all age groups that have challenges
+   */
+  static async getAvailableAgeGroups(): Promise<AgeGroup[]> {
+    try {
+      const q = query(
+        collection(db, CHALLENGES_COLLECTION),
+        where('status', '==', 'available')
+      )
+      
+      const querySnapshot = await getDocs(q)
+      const ageGroups = new Set<AgeGroup>()
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        if (data.ageGroup) {
+          ageGroups.add(data.ageGroup)
+        }
+      })
+      
+      return Array.from(ageGroups).sort()
+    } catch (error) {
+      console.error('Error getting available age groups:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get challenge statistics for admin dashboard
+   */
+  static async getChallengeStats(): Promise<{
+    total: number
+    byAgeGroup: Record<AgeGroup, number>
+    byCategory: Record<string, number>
+    byDifficulty: Record<string, number>
+    monthlyChallenges: number
+  }> {
+    try {
+      const challenges = await this.getChallenges()
+      
+      const stats = {
+        total: challenges.length,
+        byAgeGroup: {} as Record<AgeGroup, number>,
+        byCategory: {} as Record<string, number>,
+        byDifficulty: {} as Record<string, number>,
+        monthlyChallenges: 0
+      }
+      
+      challenges.forEach(challenge => {
+        // Age group stats
+        stats.byAgeGroup[challenge.ageGroup] = (stats.byAgeGroup[challenge.ageGroup] || 0) + 1
+        
+        // Category stats
+        stats.byCategory[challenge.category] = (stats.byCategory[challenge.category] || 0) + 1
+        
+        // Difficulty stats
+        stats.byDifficulty[challenge.difficulty] = (stats.byDifficulty[challenge.difficulty] || 0) + 1
+        
+        // Monthly challenges
+        if (challenge.isMonthlyChallenge) {
+          stats.monthlyChallenges++
+        }
+      })
+      
+      return stats
+    } catch (error) {
+      console.error('Error getting challenge stats:', error)
       return {
-        ...existing,
-        status: 'in_progress',
-        startedAt: new Date(),
-        updatedAt: new Date()
+        total: 0,
+        byAgeGroup: {} as Record<AgeGroup, number>,
+        byCategory: {} as Record<string, number>,
+        byDifficulty: {} as Record<string, number>,
+        monthlyChallenges: 0
       }
-    } else {
-      // Create new progress
+    }
+  }
+
+  /**
+   * Submit a challenge (create submission)
+   */
+  static async submitChallenge(
+    submission: Omit<ChallengeSubmission, 'id' | 'submittedAt' | 'videoUrl'>, 
+    videoFile?: File
+  ): Promise<ChallengeSubmission> {
+    try {
+      let videoUrl = submission.videoUrl || ''
+      
+      // Upload video if provided
+      if (videoFile) {
+        console.log('Uploading challenge submission video...')
+        videoUrl = await this.uploadChallengeVideo(videoFile, `submission_${Date.now()}`)
+        console.log('Video uploaded successfully:', videoUrl)
+      }
+
+      // Filter out undefined values to prevent Firebase errors
+      const cleanSubmission = Object.fromEntries(
+        Object.entries({
+          ...submission,
+          videoUrl
+        }).filter(([_, value]) => value !== undefined)
+      )
+
+      const docRef = await addDoc(collection(db, CHALLENGE_SUBMISSIONS_COLLECTION), {
+        ...cleanSubmission,
+        submittedAt: serverTimestamp()
+      })
+
+      const doc = await getDoc(docRef)
+      if (!doc.exists()) {
+        throw new Error('Failed to create submission')
+      }
+
+      const data = doc.data()
       return {
-        playerId,
-        challengeId,
-        status: 'in_progress',
-        attempts: 0,
-        startedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        id: doc.id,
+        ...data,
+        videoUrl,
+        submittedAt: data.submittedAt?.toDate() || new Date()
+      } as ChallengeSubmission
+    } catch (error) {
+      console.error('Error submitting challenge:', error)
+      throw new Error('Failed to submit challenge')
+    }
+  }
+
+  /**
+   * Get player's challenge submissions
+   */
+  static async getPlayerSubmissions(playerId: string): Promise<ChallengeSubmission[]> {
+    try {
+      const q = query(
+        collection(db, CHALLENGE_SUBMISSIONS_COLLECTION),
+        where('playerId', '==', playerId)
+      )
+
+      const querySnapshot = await getDocs(q)
+      const submissions: ChallengeSubmission[] = []
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        submissions.push({
+          id: doc.id,
+          ...data,
+          submittedAt: data.submittedAt?.toDate() || new Date(),
+          reviewedAt: data.reviewedAt?.toDate()
+        } as ChallengeSubmission)
+      })
+
+      // Sort client-side to avoid composite index requirements
+      submissions.sort((a, b) => {
+        return b.submittedAt.getTime() - a.submittedAt.getTime() // Descending order
+      })
+
+      return submissions
+    } catch (error) {
+      console.error('Error getting player submissions:', error)
+      throw new Error('Failed to get player submissions')
+    }
+  }
+
+  /**
+   * Get player's progress for a specific challenge
+   */
+  static async getPlayerProgress(playerId: string, challengeId: string): Promise<PlayerChallengeProgress | null> {
+    try {
+      const q = query(
+        collection(db, PLAYER_PROGRESS_COLLECTION),
+        where('playerId', '==', playerId),
+        where('challengeId', '==', challengeId)
+      )
+
+      const querySnapshot = await getDocs(q)
+      
+      if (querySnapshot.empty) {
+        return null
       }
+
+      const doc = querySnapshot.docs[0]
+      const data = doc.data()
+      
+      return {
+        id: doc.id,
+        ...data,
+        startedAt: data.startedAt?.toDate(),
+        completedAt: data.completedAt?.toDate(),
+        submittedAt: data.submittedAt?.toDate(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date()
+      } as PlayerChallengeProgress
+    } catch (error) {
+      console.error('Error getting player progress:', error)
+      throw new Error('Failed to get player progress')
     }
   }
 
   /**
-   * Submit a challenge
+   * Update player progress
    */
-  static submitChallenge(
-    playerId: string,
-    challengeId: string,
-    videoUrl: string,
-    description: string,
-    existingProgress: PlayerChallengeProgress[]
-  ): { progress: PlayerChallengeProgress; submission: ChallengeSubmission } {
-    const progress = existingProgress.find(p => p.challengeId === challengeId)
-    if (!progress) {
-      throw new Error('Challenge progress not found')
-    }
-
-    const updatedProgress: PlayerChallengeProgress = {
-      ...progress,
-      status: 'in_progress',
-      attempts: progress.attempts + 1,
-      submittedAt: new Date(),
-      videoSubmission: videoUrl,
-      updatedAt: new Date()
-    }
-
-    const submission: ChallengeSubmission = {
-      id: `${playerId}_${challengeId}_${Date.now()}`,
-      playerId,
-      challengeId,
-      videoUrl,
-      description,
-      submittedAt: new Date(),
-      status: 'pending'
-    }
-
-    return { progress: updatedProgress, submission }
-  }
-
-  /**
-   * Complete a challenge
-   */
-  static completeChallenge(
-    playerId: string,
-    challengeId: string,
-    score: number,
-    existingProgress: PlayerChallengeProgress[]
-  ): PlayerChallengeProgress {
-    const progress = existingProgress.find(p => p.challengeId === challengeId)
-    if (!progress) {
-      throw new Error('Challenge progress not found')
-    }
-
-    return {
-      ...progress,
-      status: 'completed',
-      bestScore: Math.max(progress.bestScore || 0, score),
-      currentScore: score,
-      completedAt: new Date(),
-      updatedAt: new Date()
+  static async updatePlayerProgress(progress: PlayerChallengeProgress): Promise<void> {
+    try {
+      const progressRef = doc(db, PLAYER_PROGRESS_COLLECTION, progress.id)
+      await updateDoc(progressRef, {
+        ...progress,
+        updatedAt: serverTimestamp()
+      })
+    } catch (error) {
+      console.error('Error updating player progress:', error)
+      throw new Error('Failed to update player progress')
     }
   }
 
   /**
-   * Fail a challenge
+   * Create initial player progress for a challenge
    */
-  static failChallenge(
-    playerId: string,
-    challengeId: string,
-    existingProgress: PlayerChallengeProgress[]
-  ): PlayerChallengeProgress {
-    const progress = existingProgress.find(p => p.challengeId === challengeId)
-    if (!progress) {
-      throw new Error('Challenge progress not found')
-    }
+  static async createPlayerProgress(progress: Omit<PlayerChallengeProgress, 'id' | 'createdAt' | 'updatedAt'>): Promise<PlayerChallengeProgress> {
+    try {
+      // Filter out undefined values to prevent Firebase errors
+      const cleanProgress = Object.fromEntries(
+        Object.entries(progress).filter(([_, value]) => value !== undefined)
+      )
 
-    return {
-      ...progress,
-      status: 'failed',
-      updatedAt: new Date()
-    }
-  }
+      const docRef = await addDoc(collection(db, PLAYER_PROGRESS_COLLECTION), {
+        ...cleanProgress,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
 
-  /**
-   * Calculate player challenge statistics
-   */
-  static calculatePlayerStats(
-    playerId: string,
-    allChallenges: Challenge[],
-    playerProgress: PlayerChallengeProgress[]
-  ): PlayerChallengeStats {
-    const playerChallenges = playerProgress.filter(p => p.playerId === playerId)
-    const completedChallenges = playerChallenges.filter(p => p.status === 'completed')
-    const failedChallenges = playerChallenges.filter(p => p.status === 'failed')
-    
-    const totalScore = completedChallenges.reduce((sum, p) => sum + (p.bestScore || 0), 0)
-    const averageScore = completedChallenges.length > 0 ? totalScore / completedChallenges.length : 0
-
-    // Calculate current level based on completed challenges
-    const currentLevel = this.calculatePlayerLevel(completedChallenges.length)
-
-    // Calculate streak
-    const sortedCompleted = completedChallenges
-      .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
-    
-    let streak = 0
-    let longestStreak = 0
-    let currentStreak = 0
-
-    for (let i = 0; i < sortedCompleted.length; i++) {
-      if (i === 0 || this.isConsecutiveDay(sortedCompleted[i-1].completedAt!, sortedCompleted[i].completedAt!)) {
-        currentStreak++
-        longestStreak = Math.max(longestStreak, currentStreak)
-      } else {
-        currentStreak = 1
+      const doc = await getDoc(docRef)
+      if (!doc.exists()) {
+        throw new Error('Failed to create player progress')
       }
-    }
 
-    streak = currentStreak
-
+      const data = doc.data()
     return {
-      playerId,
-      totalChallenges: allChallenges.length,
-      completedChallenges: completedChallenges.length,
-      failedChallenges: failedChallenges.length,
-      averageScore: Math.round(averageScore * 10) / 10,
-      totalPoints: completedChallenges.reduce((sum, p) => {
-        const challenge = allChallenges.find(c => c.id === p.challengeId)
-        return sum + (challenge?.rewards.points || 0)
-      }, 0),
-      currentLevel,
-      badges: [], // TODO: Implement badge system
-      titles: [], // TODO: Implement title system
-      streak,
-      longestStreak,
-      lastActivity: playerChallenges.length > 0 
-        ? new Date(Math.max(...playerChallenges.map(p => p.updatedAt.getTime())))
-        : new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  }
-
-  /**
-   * Calculate player level based on completed challenges
-   */
-  private static calculatePlayerLevel(completedCount: number): number {
-    if (completedCount >= 50) return 10 // Expert
-    if (completedCount >= 30) return 9
-    if (completedCount >= 20) return 8
-    if (completedCount >= 15) return 7
-    if (completedCount >= 10) return 6
-    if (completedCount >= 7) return 5
-    if (completedCount >= 5) return 4
-    if (completedCount >= 3) return 3
-    if (completedCount >= 2) return 2
-    if (completedCount >= 1) return 1
-    return 0
-  }
-
-  /**
-   * Check if two dates are consecutive days
-   */
-  private static isConsecutiveDay(date1: Date, date2: Date): boolean {
-    const day1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate())
-    const day2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate())
-    const diffTime = Math.abs(day2.getTime() - day1.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays === 1
-  }
-
-  /**
-   * Get challenge series for a player
-   */
-  static getAvailableSeries(
-    player: UserData,
-    allSeries: ChallengeSeries[],
-    playerStats: PlayerChallengeStats | null
-  ): ChallengeSeries[] {
-    if (!playerStats) return []
-
-    return allSeries.filter(series => {
-      if (!series.isActive) return false
-
-      // Check level requirements
-      const difficultyOrder = ['beginner', 'intermediate', 'advanced', 'expert']
-      const playerLevelIndex = difficultyOrder.indexOf(playerStats.currentLevel.toString())
-      const requiredLevelIndex = difficultyOrder.indexOf(series.unlockRequirements.minLevel)
-      if (playerLevelIndex < requiredLevelIndex) return false
-
-      // Check points requirements
-      if (playerStats.totalPoints < series.unlockRequirements.minPoints) return false
-
-      // Check completed challenges requirements
-      // TODO: Implement this check when we have the data structure
-
-      return true
-    })
-  }
-
-  /**
-   * Filter challenges based on criteria
-   */
-  static filterChallenges(challenges: Challenge[], filters: ChallengeFilters): Challenge[] {
-    return challenges.filter(challenge => {
-      if (filters.type && challenge.type !== filters.type) return false
-      if (filters.category && challenge.category !== filters.category) return false
-      if (filters.difficulty && challenge.difficulty !== filters.difficulty) return false
-      if (filters.status && challenge.status !== filters.status) return false
-      if (filters.level && challenge.level !== filters.level) return false
-      return true
-    })
-  }
-
-  /**
-   * Get challenge progress summary
-   */
-  static getProgressSummary(
-    playerId: string,
-    allChallenges: Challenge[],
-    playerProgress: PlayerChallengeProgress[]
-  ) {
-    const playerChallenges = playerProgress.filter(p => p.playerId === playerId)
-    const completed = playerChallenges.filter(p => p.status === 'completed')
-    const inProgress = playerChallenges.filter(p => p.status === 'in_progress')
-    const available = allChallenges.filter(c => c.status === 'available')
-    const locked = allChallenges.filter(c => c.status === 'locked')
-
-    return {
-      total: allChallenges.length,
-      completed: completed.length,
-      inProgress: inProgress.length,
-      available: available.length,
-      locked: locked.length,
-      completionRate: allChallenges.length > 0 ? (completed.length / allChallenges.length) * 100 : 0
+        id: doc.id,
+        ...data,
+        startedAt: data.startedAt?.toDate(),
+        completedAt: data.completedAt?.toDate(),
+        submittedAt: data.submittedAt?.toDate(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date()
+      } as PlayerChallengeProgress
+    } catch (error) {
+      console.error('Error creating player progress:', error)
+      throw new Error('Failed to create player progress')
     }
   }
 }
+
+// Export the class directly since all methods are static
+export { ChallengeService as challengeService }

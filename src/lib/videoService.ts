@@ -288,194 +288,6 @@ export class VideoService {
     }
   }
 
-  /**
-   * Get mock video data for demonstration purposes
-   */
-  private getMockVideos(): VideoMetadata[] {
-    const now = new Date()
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
-    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-    return [
-      {
-        id: 'mock-video-1',
-        title: 'תרגיל כדרור מתחילים',
-        description: 'תרגיל בסיסי לכדרור עם דגש על שליטה בכדור וקואורדינציה. מתאים לשחקנים צעירים ומתחילים.',
-        fileName: 'dribbling-basic.mp4',
-        fileSize: 15728640, // 15MB
-        duration: 180, // 3 minutes
-        format: 'mp4',
-        resolution: '1920x1080',
-        thumbnailUrl: 'https://via.placeholder.com/320x180/22c55e/ffffff?text=כדרור+בסיסי',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-        uploadedBy: 'admin-1',
-        uploadedAt: oneDayAgo,
-        lastModified: oneDayAgo,
-        status: 'approved',
-        moderatedBy: 'admin-1',
-        moderatedAt: oneDayAgo,
-        category: 'training-exercise',
-        skillLevel: 'beginner',
-        exerciseType: 'dribbling',
-        targetAudience: 'youth',
-        trainingType: 'skill-development',
-        positionSpecific: ['midfielder', 'winger'],
-        ageGroup: 'u12',
-        difficultyLevel: 2,
-        tags: ['כדרור', 'בסיסי', 'קואורדינציה', 'שליטה בכדור'],
-        requiredEquipment: ['כדור', 'קונוסים'],
-        instructions: 'התחל עם כדרור במקום, ואז התקדם לכדרור תוך כדי תנועה. שמור על שליטה בכדור.',
-        goals: ['שיפור שליטה בכדור', 'פיתוח קואורדינציה', 'בניית ביטחון'],
-        expectedDuration: 15,
-        views: 45,
-        likes: 12,
-        downloads: 8
-      },
-      {
-        id: 'mock-video-2',
-        title: 'בעיטות חופשיות - טכניקה מתקדמת',
-        description: 'מדריך מפורט לבעיטות חופשיות עם דגש על טכניקה, עוצמה ודיוק. כולל תרגילים מעשיים.',
-        fileName: 'free-kicks-advanced.mp4',
-        fileSize: 25165824, // 24MB
-        duration: 420, // 7 minutes
-        format: 'mp4',
-        resolution: '1920x1080',
-        thumbnailUrl: 'https://via.placeholder.com/320x180/f59e0b/ffffff?text=בעיטות+חופשיות',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
-        uploadedBy: 'admin-1',
-        uploadedAt: twoDaysAgo,
-        lastModified: twoDaysAgo,
-        status: 'approved',
-        moderatedBy: 'admin-1',
-        moderatedAt: twoDaysAgo,
-        category: 'tutorial',
-        skillLevel: 'advanced',
-        exerciseType: 'free-kicks',
-        targetAudience: 'professional',
-        trainingType: 'skill-development',
-        positionSpecific: ['midfielder', 'striker'],
-        ageGroup: 'adult',
-        difficultyLevel: 8,
-        tags: ['בעיטות חופשיות', 'טכניקה', 'דיוק', 'עוצמה'],
-        requiredEquipment: ['כדור', 'שער', 'קיר'],
-        instructions: 'התחל עם תרגילי חימום, ואז עבור לבעיטות ממרחקים שונים. שמור על טכניקה נכונה.',
-        goals: ['שיפור דיוק בבעיטות', 'פיתוח עוצמה', 'לימוד טכניקות מתקדמות'],
-        expectedDuration: 30,
-        views: 128,
-        likes: 34,
-        downloads: 22
-      },
-      {
-        id: 'mock-video-3',
-        title: 'הגנה קבוצתית - עקרונות בסיסיים',
-        description: 'מדריך להגנה קבוצתית עם דגש על תקשורת, מיקום וסינכרון בין השחקנים.',
-        fileName: 'team-defense-basics.mp4',
-        fileSize: 31457280, // 30MB
-        duration: 600, // 10 minutes
-        format: 'mp4',
-        resolution: '1920x1080',
-        thumbnailUrl: 'https://via.placeholder.com/320x180/ef4444/ffffff?text=הגנה+קבוצתית',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4',
-        uploadedBy: 'admin-1',
-        uploadedAt: threeDaysAgo,
-        lastModified: threeDaysAgo,
-        status: 'approved',
-        moderatedBy: 'admin-1',
-        moderatedAt: threeDaysAgo,
-        category: 'tutorial',
-        skillLevel: 'intermediate',
-        exerciseType: 'defending',
-        targetAudience: 'amateur',
-        trainingType: 'tactical-training',
-        positionSpecific: ['defender', 'defensive-midfielder'],
-        ageGroup: 'u16',
-        difficultyLevel: 5,
-        tags: ['הגנה', 'קבוצתית', 'טקטיקה', 'תקשורת'],
-        requiredEquipment: ['כדור', 'קונוסים', 'שער'],
-        instructions: 'תרגלו תנועות הגנה בסיסיות, ואז עבור לתרגילים קבוצתיים מורכבים יותר.',
-        goals: ['שיפור תקשורת קבוצתית', 'פיתוח מודעות טקטית', 'חיזוק הגנה'],
-        expectedDuration: 45,
-        views: 89,
-        likes: 23,
-        downloads: 15
-      },
-      {
-        id: 'mock-video-4',
-        title: 'שליטה בכדור - תרגילים מתקדמים',
-        description: 'תרגילים מתקדמים לשליטה בכדור עם דגש על מהירות, דיוק ויצירתיות.',
-        fileName: 'ball-control-advanced.mp4',
-        fileSize: 20971520, // 20MB
-        duration: 300, // 5 minutes
-        format: 'mp4',
-        resolution: '1920x1080',
-        thumbnailUrl: 'https://via.placeholder.com/320x180/8b5cf6/ffffff?text=שליטה+בכדור',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-        uploadedBy: 'player-123',
-        uploadedAt: oneWeekAgo,
-        lastModified: oneWeekAgo,
-        status: 'pending',
-        category: 'player-submission',
-        skillLevel: 'advanced',
-        exerciseType: 'ball-control',
-        targetAudience: 'professional',
-        trainingType: 'skill-development',
-        positionSpecific: ['midfielder', 'attacking-midfielder'],
-        ageGroup: 'u18',
-        difficultyLevel: 7,
-        tags: ['שליטה בכדור', 'מתקדם', 'מהירות', 'יצירתיות'],
-        requiredEquipment: ['כדור', 'קונוסים', 'סולם'],
-        instructions: 'התחל עם תרגילים בסיסיים ואז עבור לתרגילים מורכבים יותר עם שילוב תנועות.',
-        goals: ['שיפור שליטה מהירה', 'פיתוח יצירתיות', 'חיזוק קואורדינציה'],
-        expectedDuration: 25,
-        views: 67,
-        likes: 18,
-        downloads: 11,
-        playerInfo: {
-          playerId: 'player-123',
-          playerName: 'יוסי כהן',
-          position: 'קשר התקפי',
-          age: 17,
-          level: 'בינוני-מתקדם'
-        }
-      },
-      {
-        id: 'mock-video-5',
-        title: 'כושר גופני - אימון HIIT',
-        description: 'אימון כושר אינטנסיבי המותאם לשחקני כדורגל עם דגש על סיבולת ומהירות.',
-        fileName: 'hiit-training.mp4',
-        fileSize: 36700160, // 35MB
-        duration: 900, // 15 minutes
-        format: 'mp4',
-        resolution: '1920x1080',
-        thumbnailUrl: 'https://via.placeholder.com/320x180/06b6d4/ffffff?text=כושר+גופני',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
-        uploadedBy: 'admin-1',
-        uploadedAt: oneWeekAgo,
-        lastModified: oneWeekAgo,
-        status: 'approved',
-        moderatedBy: 'admin-1',
-        moderatedAt: oneWeekAgo,
-        category: 'training-exercise',
-        skillLevel: 'intermediate',
-        exerciseType: 'fitness',
-        targetAudience: 'amateur',
-        trainingType: 'fitness-conditioning',
-        positionSpecific: [],
-        ageGroup: 'adult',
-        difficultyLevel: 6,
-        tags: ['כושר', 'HIIT', 'סיבולת', 'מהירות'],
-        requiredEquipment: ['מזרן', 'משקולות קלות', 'קונוסים'],
-        instructions: 'בצע את התרגילים ברצף עם הפסקות קצרות בין סטים. התחל בקצב נוח והגבר בהדרגה.',
-        goals: ['שיפור סיבולת', 'פיתוח מהירות', 'חיזוק שרירים'],
-        expectedDuration: 60,
-        views: 156,
-        likes: 42,
-        downloads: 28
-      }
-    ]
-  }
 
   /**
    * Get videos with filtering and pagination
@@ -532,15 +344,6 @@ export class VideoService {
         }
       })
       
-      // If no videos found in database, return mock data
-      if (videos.length === 0 && !lastDocId) {
-        const mockVideos = this.getMockVideos()
-        return {
-          videos: mockVideos.slice(0, pageSize),
-          hasMore: mockVideos.length > pageSize,
-          lastDocId: mockVideos.length > pageSize ? mockVideos[pageSize - 1].id : undefined
-        }
-      }
       
       // Apply client-side filters
       let filteredVideos = videos
@@ -633,13 +436,7 @@ export class VideoService {
       
     } catch (error) {
       console.error('Error getting videos:', error)
-      // Return mock data on error as well
-      const mockVideos = this.getMockVideos()
-      return {
-        videos: mockVideos.slice(0, pageSize),
-        hasMore: mockVideos.length > pageSize,
-        lastDocId: mockVideos.length > pageSize ? mockVideos[pageSize - 1].id : undefined
-      }
+      throw new Error('Failed to fetch videos from database')
     }
   }
 
@@ -667,6 +464,66 @@ export class VideoService {
     } catch (error) {
       console.error('Error getting video:', error)
       throw new Error('Failed to fetch video')
+    }
+  }
+
+  /**
+   * Create a difficulty variant of an existing video
+   */
+  async createVariant(
+    baseVideoId: string, 
+    variantMetadata: Omit<VideoMetadata, 'id' | 'uploadedAt' | 'lastModified' | 'videoUrl' | 'thumbnailUrl' | 'views' | 'likes' | 'downloads'>
+  ): Promise<VideoMetadata> {
+    try {
+      // Get base video to copy video file references
+      const baseVideoDoc = await this.getVideo(baseVideoId)
+      if (!baseVideoDoc) {
+        throw new Error('Base video not found')
+      }
+      
+      // Create variant metadata with same video file but different metadata
+      const completeVariantMetadata: VideoMetadata = {
+        ...variantMetadata,
+        id: '', // Will be set by Firestore
+        videoUrl: baseVideoDoc.videoUrl, // Same video file
+        thumbnailUrl: baseVideoDoc.thumbnailUrl, // Same thumbnail
+        uploadedAt: new Date(),
+        lastModified: new Date(),
+        views: 0,
+        likes: 0,
+        downloads: 0
+      }
+      
+      // Prepare data for Firestore
+      const firestoreData: any = {
+        ...completeVariantMetadata,
+        uploadedAt: serverTimestamp(),
+        lastModified: serverTimestamp()
+      }
+      
+      // Remove undefined fields
+      Object.keys(firestoreData).forEach(key => {
+        if (firestoreData[key] === undefined) {
+          delete firestoreData[key]
+        }
+      })
+      
+      // Save to Firestore
+      const docRef = await addDoc(collection(db, VIDEOS_COLLECTION), firestoreData)
+      
+      // Return complete metadata
+      const createdVariant: VideoMetadata = {
+        ...completeVariantMetadata,
+        id: docRef.id,
+        uploadedAt: new Date(),
+        lastModified: new Date()
+      }
+      
+      return createdVariant
+      
+    } catch (error) {
+      console.error('Error creating video variant:', error)
+      throw new Error(error instanceof Error ? error.message : 'Failed to create video variant')
     }
   }
 

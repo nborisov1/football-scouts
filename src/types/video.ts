@@ -22,8 +22,8 @@ export interface VideoMetadata {
   uploadedAt: Date
   lastModified: Date
   
-  // Admin management
-  status: 'pending' | 'approved' | 'rejected'
+  // Admin management (deprecated)
+  status?: 'pending' | 'approved' | 'rejected'
   moderatedBy?: string // admin user ID
   moderatedAt?: Date
   moderationNotes?: string
@@ -38,10 +38,15 @@ export interface VideoMetadata {
   trainingType: TrainingType
   positionSpecific: Position[]
   ageGroup: AgeGroup
-  difficultyLevel: number // 1-10 scale
+  difficultyLevel: number // 1-10 scale or progression threshold
   seriesId?: string // Links to training series
   seriesOrder?: number // Order within the series
   prerequisites?: string[] // Required completed videos/exercises
+  
+  // Difficulty Variants System
+  baseVideoId?: string // References the original video if this is a variant
+  isVariant?: boolean // Whether this is a difficulty variant
+  variantLabel?: string // e.g., "מתחיל+", "בינוני+", "מתקדם+"
   
   // Additional metadata
   tags: string[]

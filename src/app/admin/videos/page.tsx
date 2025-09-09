@@ -14,12 +14,26 @@ export default function AdminVideos() {
   
   // State
   const [videos, setVideos] = useState<VideoMetadata[]>([])
+  const [groupedVideos, setGroupedVideos] = useState<Array<{
+    baseVideo: VideoMetadata,
+    variants: VideoMetadata[]
+  }>>([])
   const [loading, setLoading] = useState(true)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [filter, setFilter] = useState<'all'>('all')
-  const [selectedVideo, setSelectedVideo] = useState<VideoMetadata | null>(null)
-  const [showVariantModal, setShowVariantModal] = useState(false)
-  const [variantBaseVideo, setVariantBaseVideo] = useState<VideoMetadata | null>(null)
+  const [selectedVideoGroup, setSelectedVideoGroup] = useState<{
+    baseVideo: VideoMetadata,
+    variants: VideoMetadata[]
+  } | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    difficultyLevels: [
+      { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
+      { skillLevel: 'intermediate' as const, threshold: 30, enabled: false },
+      { skillLevel: 'advanced' as const, threshold: 60, enabled: false }
+    ],
+    positionSpecific: [] as string[]
+  })
   
   // Upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -38,12 +52,76 @@ export default function AdminVideos() {
     ]
   })
   
-  // Variant metadata state
-  const [variantMetadata, setVariantMetadata] = useState({
-    skillLevel: 'intermediate' as const,
-    progressionThreshold: 30,
-    variantLabel: ''
-  })
+
+  // Group videos by base content
+  const groupVideosByBase = (allVideos: VideoMetadata[]) => {
+    const groups: { [key: string]: { baseVideo: VideoMetadata, variants: VideoMetadata[] } } = {}
+    
+    // First, identify base videos and their variants
+    allVideos.forEach(video => {
+      if (video.isVariant && video.baseVideoId) {
+        // This is a variant
+        if (!groups[video.baseVideoId]) {
+          // Find the base video
+          const baseVideo = allVideos.find(v => v.id === video.baseVideoId)
+          if (baseVideo) {
+            groups[video.baseVideoId] = {
+              baseVideo,
+              variants: [video]
+            }
+          }
+        } else {
+          groups[video.baseVideoId].variants.push(video)
+        }
+      } else {
+        // This might be a base video
+        const videoId = video.id
+        if (!groups[videoId]) {
+          groups[videoId] = {
+            baseVideo: video,
+            variants: []
+          }
+        }
+      }
+    })
+
+    // Add standalone videos (videos without variants)
+    allVideos.forEach(video => {
+      if (!video.isVariant && !Object.keys(groups).includes(video.id)) {
+        groups[video.id] = {
+          baseVideo: video,
+          variants: []
+        }
+      }
+    })
+
+    return Object.values(groups)
+  }
+
+  // Initialize edit form with current video data
+  const initializeEditForm = (videoGroup: { baseVideo: VideoMetadata, variants: VideoMetadata[] }) => {
+    const allVideos = [videoGroup.baseVideo, ...videoGroup.variants]
+    
+    const difficultyLevels = [
+      { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
+      { skillLevel: 'intermediate' as const, threshold: 30, enabled: false },
+      { skillLevel: 'advanced' as const, threshold: 60, enabled: false }
+    ]
+
+    // Update with existing data
+    difficultyLevels.forEach(level => {
+      const existingVideo = allVideos.find(v => v.skillLevel === level.skillLevel)
+      if (existingVideo) {
+        level.enabled = true
+        level.threshold = existingVideo.difficultyLevel || level.threshold
+      }
+    })
+
+    setEditFormData({
+      difficultyLevels,
+      positionSpecific: videoGroup.baseVideo.positionSpecific || []
+    })
+  }
 
   // Load videos from Firebase
   const loadVideos = async () => {
@@ -55,10 +133,15 @@ export default function AdminVideos() {
         50 // pageSize
       )
       setVideos(result.videos)
+      
+      // Group videos by base content
+      const grouped = groupVideosByBase(result.videos)
+      setGroupedVideos(grouped)
     } catch (error) {
       console.error('Error loading videos:', error)
       showMessage('שגיאה בטעינת הסרטונים', 'error')
       setVideos([]) // Set empty array on error
+      setGroupedVideos([])
     } finally {
       setLoading(false)
     }
@@ -252,8 +335,11 @@ export default function AdminVideos() {
       setProgress(0)
       if (fileInputRef.current) fileInputRef.current.value = ''
       
-      // Add to list
-      setVideos(prev => [...uploadedVideos, ...prev])
+      // Update videos and regroup
+      const newVideosList = [...uploadedVideos, ...videos]
+      setVideos(newVideosList)
+      const grouped = groupVideosByBase(newVideosList)
+      setGroupedVideos(grouped)
       showMessage(`${uploadedVideos.length} סרטונים הועלו בהצלחה!`, 'success')
 
     } catch (error) {
@@ -266,56 +352,102 @@ export default function AdminVideos() {
     }
   }
 
-  // Handle creating difficulty variant
-  const handleCreateVariant = async () => {
-    if (!variantBaseVideo) return
 
-    if (!variantMetadata.variantLabel.trim()) {
-      showMessage('יש להזין תווית לווריאנט', 'error')
+  // Handle saving edit changes
+  const handleSaveEditChanges = async () => {
+    if (!selectedVideoGroup || !user) return
+
+    const enabledLevels = editFormData.difficultyLevels.filter(level => level.enabled)
+    if (enabledLevels.length === 0) {
+      showMessage('יש לבחור לפחות רמת קושי אחת', 'error')
       return
     }
 
     try {
-      const variantVideo: Omit<VideoMetadata, 'id' | 'uploadedAt' | 'lastModified' | 'videoUrl' | 'thumbnailUrl' | 'views' | 'likes' | 'downloads'> = {
-        ...variantBaseVideo,
-        title: `${variantBaseVideo.title} - ${variantMetadata.variantLabel}`,
-        skillLevel: variantMetadata.skillLevel,
-        difficultyLevel: variantMetadata.progressionThreshold,
-        baseVideoId: variantBaseVideo.id,
-        isVariant: true,
-        variantLabel: variantMetadata.variantLabel,
-        uploadedBy: user!.uid,
-        fileName: variantBaseVideo.fileName,
-        fileSize: variantBaseVideo.fileSize,
-        duration: variantBaseVideo.duration,
-        format: variantBaseVideo.format,
-        resolution: variantBaseVideo.resolution
-      }
-
-      const videoUpload = {
-        file: null, // No new file upload for variants
-        metadata: variantVideo
-      }
-
-      // Create variant in database with same video file
-      const createdVariant = await videoService.createVariant(variantBaseVideo.id, variantVideo)
+      setUploading(true) // Reuse uploading state for loading
       
-      // Add to local state
-      setVideos(prev => [createdVariant, ...prev])
+      const allCurrentVideos = [selectedVideoGroup.baseVideo, ...selectedVideoGroup.variants]
       
-      // Reset and close modal
-      setShowVariantModal(false)
-      setVariantBaseVideo(null)
-      setVariantMetadata({
-        skillLevel: 'intermediate',
-        progressionThreshold: 30,
-        variantLabel: ''
+      // Find videos to delete (levels that were disabled)
+      const videosToDelete = allCurrentVideos.filter(video => 
+        !enabledLevels.some(level => level.skillLevel === video.skillLevel)
+      )
+      
+      // Find videos to update (levels that exist but have different thresholds)
+      const videosToUpdate = allCurrentVideos.filter(video => {
+        const newLevel = enabledLevels.find(level => level.skillLevel === video.skillLevel)
+        return newLevel && (newLevel.threshold !== video.difficultyLevel || 
+               JSON.stringify(editFormData.positionSpecific) !== JSON.stringify(video.positionSpecific))
       })
       
-      showMessage('ווריאנט נוצר בהצלחה!', 'success')
+      // Find videos to create (new levels that didn't exist before)
+      const videosToCreate = enabledLevels.filter(level => 
+        !allCurrentVideos.some(video => video.skillLevel === level.skillLevel)
+      )
+
+      // Delete removed difficulty levels
+      for (const video of videosToDelete) {
+        await videoService.deleteVideo(video.id)
+      }
+
+      // Update existing difficulty levels
+      for (const video of videosToUpdate) {
+        const newLevel = enabledLevels.find(level => level.skillLevel === video.skillLevel)!
+        await videoService.updateVideo(video.id, {
+          difficultyLevel: newLevel.threshold,
+          positionSpecific: editFormData.positionSpecific as any[]
+        })
+      }
+
+      // Create new difficulty levels
+      for (const newLevel of videosToCreate) {
+        const baseVideo = selectedVideoGroup.baseVideo
+        const isFirst = videosToCreate.indexOf(newLevel) === 0 && videosToUpdate.length === 0 && videosToDelete.length === allCurrentVideos.length
+        
+        if (isFirst) {
+          // Update the base video instead of creating a new one
+          await videoService.updateVideo(baseVideo.id, {
+            skillLevel: newLevel.skillLevel,
+            difficultyLevel: newLevel.threshold,
+            positionSpecific: editFormData.positionSpecific as any[],
+            title: baseVideo.title.replace(/ - (מתחיל|בינוני|מתקדם)$/, '') + (enabledLevels.length > 1 ? ` - ${newLevel.skillLevel === 'beginner' ? 'מתחיל' : newLevel.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם'}` : '')
+          })
+        } else {
+          // Create variant
+          const variantMetadata: Omit<VideoMetadata, 'id' | 'uploadedAt' | 'lastModified' | 'videoUrl' | 'thumbnailUrl' | 'views' | 'likes' | 'downloads'> = {
+            ...baseVideo,
+            title: baseVideo.title.replace(/ - (מתחיל|בינוני|מתקדם)$/, '') + ` - ${newLevel.skillLevel === 'beginner' ? 'מתחיל' : newLevel.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם'}`,
+            skillLevel: newLevel.skillLevel,
+            difficultyLevel: newLevel.threshold,
+            positionSpecific: editFormData.positionSpecific as any[],
+            baseVideoId: baseVideo.id,
+            isVariant: true,
+            variantLabel: newLevel.skillLevel === 'beginner' ? 'מתחיל' : newLevel.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם',
+            uploadedBy: user.uid,
+            fileName: baseVideo.fileName,
+            fileSize: baseVideo.fileSize,
+            duration: baseVideo.duration,
+            format: baseVideo.format,
+            resolution: baseVideo.resolution
+          }
+          
+          await videoService.createVariant(baseVideo.id, variantMetadata)
+        }
+      }
+
+      // Refresh the videos list
+      await loadVideos()
+      
+      // Close modals and show success message
+      setShowEditModal(false)
+      setSelectedVideoGroup(null)
+      showMessage('השינויים נשמרו בהצלחה!', 'success')
+      
     } catch (error) {
-      console.error('Error creating variant:', error)
-      showMessage('שגיאה ביצירת ווריאנט', 'error')
+      console.error('Error saving changes:', error)
+      showMessage('שגיאה בשמירת השינויים', 'error')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -388,7 +520,7 @@ export default function AdminVideos() {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="px-6 py-4 border-b">
               <h2 className="text-lg font-medium text-gray-900">
-                כל הסרטונים ({videos.length})
+                כל הסרטונים ({groupedVideos.length})
               </h2>
             </div>
           </div>
@@ -403,7 +535,7 @@ export default function AdminVideos() {
                 <span className="mr-3 text-gray-600">טוען סרטונים...</span>
               </div>
             </div>
-          ) : videos.length === 0 ? (
+          ) : groupedVideos.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
               <div className="text-gray-400 text-4xl mb-4">
                 <i className="fas fa-video"></i>
@@ -431,72 +563,91 @@ export default function AdminVideos() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {videos.map((video) => (
-                      <tr key={video.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-16 w-20">
-                              {video.thumbnailUrl ? (
-                                <img
-                                  className="h-16 w-20 rounded-lg object-cover"
-                                  src={video.thumbnailUrl}
-                                  alt={video.title}
-                                />
-                              ) : (
-                                <div className="h-16 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                                  <i className="fas fa-video text-gray-400"></i>
-                                </div>
-                              )}
-                            </div>
-                            <div className="mr-4 min-w-0 flex-1">
-                              <div className="flex items-center space-x-2 space-x-reverse">
-                                <div className="text-sm font-medium text-gray-900 truncate">{video.title}</div>
-                                {video.isVariant && (
-                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                                    {video.variantLabel || 'ווריאנט'}
-                                  </span>
+                    {groupedVideos.map((group) => {
+                      const { baseVideo, variants } = group
+                      const allVideos = [baseVideo, ...variants]
+                      const thresholds = allVideos.map(v => `${v.skillLevel}(${v.difficultyLevel})`).join(', ')
+                      
+                      return (
+                        <tr key={baseVideo.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-16 w-20">
+                                {baseVideo.thumbnailUrl ? (
+                                  <img
+                                    className="h-16 w-20 rounded-lg object-cover"
+                                    src={baseVideo.thumbnailUrl}
+                                    alt={baseVideo.title}
+                                  />
+                                ) : (
+                                  <div className="h-16 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <i className="fas fa-video text-gray-400"></i>
+                                  </div>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500 truncate">{video.description}</div>
+                              <div className="mr-4 min-w-0 flex-1">
+                                <div className="flex items-center space-x-2 space-x-reverse">
+                                  <div className="text-sm font-medium text-gray-900 truncate">
+                                    {baseVideo.title.replace(/ - (מתחיל|בינוני|מתקדם)$/, '')}
+                                  </div>
+                                  {variants.length > 0 && (
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                      {allVideos.length} רמות
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-500 truncate">{baseVideo.description}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          <div>קטגוריה: {video.category}</div>
-                          <div>סוג: {video.exerciseType}</div>
-                          <div>רמה: {video.skillLevel} (סף: {video.difficultyLevel || 10})</div>
-                          <div>עמדות: {
-                            video.positionSpecific?.length > 0 
-                              ? video.positionSpecific.includes('all' as any) 
-                                ? 'כל העמדות' 
-                                : video.positionSpecific.slice(0, 2).join(', ') + (video.positionSpecific.length > 2 ? '...' : '')
-                              : 'לא צוין'
-                          }</div>
-                          <div>גודל: {video.fileSize ? formatFileSize(video.fileSize) : 'לא ידוע'}</div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {video.uploadedAt ? formatDate(video.uploadedAt) : 'לא ידוע'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2 space-x-reverse">
-                            <button
-                              onClick={() => setSelectedVideo(video)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="צפייה"
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                            <button
-                              onClick={() => handleVideoDelete(video.id)}
-                              className="text-red-600 hover:text-red-900"
-                              title="מחיקה"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div>קטגוריה: {baseVideo.category}</div>
+                            <div>סוג: {baseVideo.exerciseType}</div>
+                            <div>רמות: {thresholds}</div>
+                            <div>עמדות: {
+                              baseVideo.positionSpecific?.length > 0 
+                                ? baseVideo.positionSpecific.includes('all' as any) 
+                                  ? 'כל העמדות' 
+                                  : baseVideo.positionSpecific.slice(0, 2).join(', ') + (baseVideo.positionSpecific.length > 2 ? '...' : '')
+                                : 'לא צוין'
+                            }</div>
+                            <div>גודל: {baseVideo.fileSize ? formatFileSize(baseVideo.fileSize) : 'לא ידוע'}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {baseVideo.uploadedAt ? formatDate(baseVideo.uploadedAt) : 'לא ידוע'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex space-x-2 space-x-reverse">
+                              <button
+                                onClick={() => setSelectedVideoGroup(group)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="צפייה"
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedVideoGroup(group)
+                                  initializeEditForm(group)
+                                  setShowEditModal(true)
+                                }}
+                                className="text-green-600 hover:text-green-900"
+                                title="עריכה"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </button>
+                              <button
+                                onClick={() => handleVideoDelete(baseVideo.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="מחיקה"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -789,28 +940,30 @@ export default function AdminVideos() {
         )}
 
         {/* Video Preview Modal */}
-        {selectedVideo && (
+        {selectedVideoGroup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">{selectedVideo.title}</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {selectedVideoGroup.baseVideo.title.replace(/ - (מתחיל|בינוני|מתקדם)$/, '')}
+                  </h2>
                   <button
-                    onClick={() => setSelectedVideo(null)}
+                    onClick={() => setSelectedVideoGroup(null)}
                     className="text-gray-500 hover:text-gray-700"
                   >
                     <i className="fas fa-times text-xl"></i>
                   </button>
                 </div>
 
-                {selectedVideo.videoUrl && (
+                {selectedVideoGroup.baseVideo.videoUrl && (
                   <div className="mb-6">
                     <video
                       controls
                       className="w-full max-h-96 rounded-lg"
-                      poster={selectedVideo.thumbnailUrl}
+                      poster={selectedVideoGroup.baseVideo.thumbnailUrl}
                     >
-                      <source src={selectedVideo.videoUrl} type="video/mp4" />
+                      <source src={selectedVideoGroup.baseVideo.videoUrl} type="video/mp4" />
                       הדפדפן שלך אינו תומך בתגית הווידאו.
                     </video>
                   </div>
@@ -820,19 +973,56 @@ export default function AdminVideos() {
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-medium text-gray-900 mb-1">תיאור</h3>
-                      <p className="text-gray-600">{selectedVideo.description}</p>
+                      <p className="text-gray-600">{selectedVideoGroup.baseVideo.description}</p>
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900 mb-1">קטגוריה</h3>
-                      <p className="text-gray-600">{selectedVideo.category}</p>
+                      <p className="text-gray-600">{selectedVideoGroup.baseVideo.category}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">סוג תרגיל</h3>
+                      <p className="text-gray-600">{selectedVideoGroup.baseVideo.exerciseType}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">עמדות רלוונטיות</h3>
+                      <p className="text-gray-600">
+                        {selectedVideoGroup.baseVideo.positionSpecific?.length > 0 
+                          ? selectedVideoGroup.baseVideo.positionSpecific.includes('all' as any) 
+                            ? 'כל העמדות' 
+                            : selectedVideoGroup.baseVideo.positionSpecific.join(', ')
+                          : 'לא צוין'
+                        }
+                      </p>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-medium text-gray-900 mb-1">תאריך העלאה</h3>
                       <p className="text-gray-600">
-                        {selectedVideo.uploadedAt ? formatDate(selectedVideo.uploadedAt) : 'לא ידוע'}
+                        {selectedVideoGroup.baseVideo.uploadedAt ? formatDate(selectedVideoGroup.baseVideo.uploadedAt) : 'לא ידוע'}
                       </p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">גודל קובץ</h3>
+                      <p className="text-gray-600">
+                        {selectedVideoGroup.baseVideo.fileSize ? formatFileSize(selectedVideoGroup.baseVideo.fileSize) : 'לא ידוע'}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">רמות קושי זמינות</h3>
+                      <div className="space-y-2">
+                        {[selectedVideoGroup.baseVideo, ...selectedVideoGroup.variants].map((video, index) => (
+                          <div key={video.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span className="text-sm font-medium">
+                              {video.skillLevel === 'beginner' ? 'מתחיל' : 
+                               video.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם'}
+                            </span>
+                            <span className="text-sm text-gray-600">
+                              סף: {video.difficultyLevel} נקודות
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -840,14 +1030,13 @@ export default function AdminVideos() {
                 <div className="flex justify-end space-x-4 space-x-reverse mt-6 pt-6 border-t">
                   <button
                     onClick={() => {
-                      setVariantBaseVideo(selectedVideo)
-                      setShowVariantModal(true)
-                      setSelectedVideo(null)
+                      initializeEditForm(selectedVideoGroup)
+                      setShowEditModal(true)
                     }}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
-                    <i className="fas fa-plus ml-2"></i>
-                    הוסף רמת קושי
+                    <i className="fas fa-edit ml-2"></i>
+                    עריכת פרטים
                   </button>
                 </div>
               </div>
@@ -855,17 +1044,17 @@ export default function AdminVideos() {
           </div>
         )}
 
-        {/* Create Variant Modal */}
-        {showVariantModal && variantBaseVideo && (
+        {/* Edit Modal */}
+        {showEditModal && selectedVideoGroup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">צור רמת קושי חדשה</h2>
+                  <h2 className="text-xl font-bold text-gray-900">עריכת פרטי הסרטון</h2>
                   <button
                     onClick={() => {
-                      setShowVariantModal(false)
-                      setVariantBaseVideo(null)
+                      setShowEditModal(false)
+                      setSelectedVideoGroup(null)
                     }}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -873,77 +1062,140 @@ export default function AdminVideos() {
                   </button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Video Info */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-2">סרטון בסיס:</h3>
-                    <p className="text-sm text-gray-600">{variantBaseVideo.title}</p>
-                    <p className="text-xs text-gray-500">רמת קושי נוכחית: {variantBaseVideo.skillLevel} (סף: {variantBaseVideo.difficultyLevel})</p>
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      {selectedVideoGroup.baseVideo.title.replace(/ - (מתחיל|בינוני|מתקדם)$/, '')}
+                    </h3>
+                    <p className="text-sm text-gray-600">{selectedVideoGroup.baseVideo.description}</p>
                   </div>
 
+                  {/* Difficulty Levels - Same as Upload Form */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">תווית ווריאנט *</label>
-                    <input
-                      type="text"
-                      value={variantMetadata.variantLabel}
-                      onChange={(e) => setVariantMetadata(prev => ({ ...prev, variantLabel: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="לדוגמה: מתחיל+, בינוני+, מתקדם+"
-                      maxLength={20}
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">רמות קושי</label>
+                    <div className="space-y-3 border border-gray-300 rounded-lg p-4">
+                      {editFormData.difficultyLevels.map((level, index) => (
+                        <div key={level.skillLevel} className="flex items-center space-x-4 space-x-reverse">
+                          <label className="flex items-center min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={level.enabled}
+                              onChange={(e) => {
+                                setEditFormData(prev => ({
+                                  ...prev,
+                                  difficultyLevels: prev.difficultyLevels.map((l, i) =>
+                                    i === index ? { ...l, enabled: e.target.checked } : l
+                                  )
+                                }))
+                              }}
+                              className="ml-2"
+                            />
+                            <span className="text-sm font-medium">
+                              {level.skillLevel === 'beginner' ? 'מתחיל' : 
+                               level.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם'}
+                            </span>
+                          </label>
+                          <div className="flex items-center space-x-2 space-x-reverse">
+                            <span className="text-xs text-gray-500 whitespace-nowrap">סף התקדמות:</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="100"
+                              value={level.threshold}
+                              onChange={(e) => {
+                                const newThreshold = parseInt(e.target.value) || 10
+                                setEditFormData(prev => ({
+                                  ...prev,
+                                  difficultyLevels: prev.difficultyLevels.map((l, i) =>
+                                    i === index ? { ...l, threshold: newThreshold } : l
+                                  )
+                                }))
+                              }}
+                              disabled={!level.enabled}
+                              className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      בחר רמות קושי וקבע לכל אחת סף התקדמות (נקודות נדרשות למעבר לשלב הבא)
+                    </p>
                   </div>
 
+                  {/* Position Selection - Same as Upload Form */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">רמת קושי חדשה</label>
-                    <select
-                      value={variantMetadata.skillLevel}
-                      onChange={(e) => {
-                        const level = e.target.value as any
-                        const defaultThresholds: { [key: string]: number } = { beginner: 10, intermediate: 30, advanced: 60 }
-                        setVariantMetadata(prev => ({ 
-                          ...prev, 
-                          skillLevel: level,
-                          progressionThreshold: defaultThresholds[level] || 30
-                        }))
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="beginner">מתחיל</option>
-                      <option value="intermediate">בינוני</option>
-                      <option value="advanced">מתקדם</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      סף התקדמות (נקודות נדרשות למעבר לשלב הבא)
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={variantMetadata.progressionThreshold}
-                      onChange={(e) => setVariantMetadata(prev => ({ ...prev, progressionThreshold: parseInt(e.target.value) || 30 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">עמדות רלוונטיות</label>
+                    <div className="border border-gray-300 rounded-lg p-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {[
+                          { value: 'all', label: 'כל העמדות' },
+                          { value: 'goalkeeper', label: 'שוער' },
+                          { value: 'defender', label: 'בלם' },
+                          { value: 'center-back', label: 'בלם מרכזי' },
+                          { value: 'fullback', label: 'בלם צדדי' },
+                          { value: 'midfielder', label: 'קשר' },
+                          { value: 'defensive-midfielder', label: 'קשר הגנתי' },
+                          { value: 'attacking-midfielder', label: 'קשר התקפי' },
+                          { value: 'winger', label: 'אגף' },
+                          { value: 'striker', label: 'חלוץ' },
+                          { value: 'center-forward', label: 'חלוץ מרכזי' }
+                        ].map(position => {
+                          const isChecked = editFormData.positionSpecific.includes(position.value)
+                          
+                          return (
+                            <label key={position.value} className="flex items-center text-sm">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (position.value === 'all') {
+                                    setEditFormData(prev => ({ 
+                                      ...prev, 
+                                      positionSpecific: e.target.checked ? ['all'] : [] 
+                                    }))
+                                  } else {
+                                    setEditFormData(prev => {
+                                      let newPositions = [...prev.positionSpecific]
+                                      if (e.target.checked) {
+                                        newPositions = newPositions.filter(p => p !== 'all')
+                                        newPositions.push(position.value)
+                                      } else {
+                                        newPositions = newPositions.filter(p => p !== position.value)
+                                      }
+                                      return { ...prev, positionSpecific: newPositions }
+                                    })
+                                  }
+                                }}
+                                className="ml-2"
+                              />
+                              <span>{position.label}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex justify-end space-x-4 space-x-reverse pt-6 border-t mt-6">
                   <button
                     onClick={() => {
-                      setShowVariantModal(false)
-                      setVariantBaseVideo(null)
+                      setShowEditModal(false)
+                      setSelectedVideoGroup(null)
                     }}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                   >
                     ביטול
                   </button>
                   <button
-                    onClick={handleCreateVariant}
-                    disabled={!variantMetadata.variantLabel.trim()}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleSaveEditChanges}
+                    disabled={uploading}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   >
-                    צור ווריאנט
+                    {uploading ? 'שומר...' : 'שמור שינויים'}
                   </button>
                 </div>
               </div>

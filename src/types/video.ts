@@ -22,11 +22,7 @@ export interface VideoMetadata {
   uploadedAt: Date
   lastModified: Date
   
-  // Admin management (deprecated)
-  status?: 'pending' | 'approved' | 'rejected'
-  moderatedBy?: string // admin user ID
-  moderatedAt?: Date
-  moderationNotes?: string
+  // Admin management - removed (all uploads are active)
   
   // Enhanced Categorization for Training System
   category: VideoCategory
@@ -88,7 +84,7 @@ export interface VideoUpload {
 }
 
 export interface VideoFilter {
-  status?: VideoMetadata['status'][]
+  // status filter removed - all videos are active
   category?: VideoCategory[]
   skillLevel?: VideoMetadata['skillLevel'][]
   exerciseType?: ExerciseType[]
@@ -103,7 +99,7 @@ export interface VideoFilter {
 }
 
 export interface VideoSort {
-  field: 'uploadedAt' | 'title' | 'views' | 'likes' | 'duration' | 'status'
+  field: 'uploadedAt' | 'title' | 'views' | 'likes' | 'duration'
   direction: 'asc' | 'desc'
 }
 
@@ -115,13 +111,12 @@ import type {
   Position, 
   AgeGroup,
   SkillLevel,
-  TargetAudience,
-  StatusType
+  TargetAudience
 } from '@/constants'
 
 // Re-export for backward compatibility
 export type VideoCategory = ExerciseCategory
-export type { ExerciseType, TrainingType, Position, AgeGroup, SkillLevel, TargetAudience, StatusType }
+export type { ExerciseType, TrainingType, Position, AgeGroup, SkillLevel, TargetAudience }
 
 // Video Collections for organizing videos
 export interface VideoCollection {
@@ -234,7 +229,6 @@ export const DEFAULT_VIDEO_CONFIG: VideoUploadConfig = {
 
 // Import labels from centralized constants
 import { 
-  STATUS_LABELS,
   EXERCISE_CATEGORY_LABELS,
   EXERCISE_TYPE_LABELS,
   TRAINING_TYPE_LABELS,
@@ -243,6 +237,5 @@ import {
 } from '@/constants'
 
 // Re-export for backward compatibility
-export const VIDEO_STATUS_LABELS = STATUS_LABELS
 export const VIDEO_CATEGORY_LABELS = EXERCISE_CATEGORY_LABELS
 export { EXERCISE_TYPE_LABELS, TRAINING_TYPE_LABELS, POSITION_LABELS, AGE_GROUP_LABELS }

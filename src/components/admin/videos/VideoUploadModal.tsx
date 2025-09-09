@@ -7,8 +7,25 @@ import {
   EXERCISE_CATEGORIES, 
   EXERCISE_CATEGORY_LABELS, 
   PRIMARY_CATEGORIES,
-  EXERCISE_TYPES
+  EXERCISE_TYPES,
+  EXERCISE_TYPE_LABELS,
+  EXERCISE_TYPE_GROUPS
 } from '@/constants'
+import { 
+  generateVideoDefaults, 
+  validateExerciseTypeForCategory 
+} from '@/lib/videoService'
+
+// Helper function to get available exercise types based on category
+const getAvailableExerciseTypes = (category: string) => {
+  if (category === EXERCISE_CATEGORIES.FITNESS_TRAINING) {
+    return EXERCISE_TYPE_GROUPS.PHYSICAL
+  }
+  if (category === EXERCISE_CATEGORIES.FOOTBALL_TRAINING) {
+    return [...EXERCISE_TYPE_GROUPS.TECHNICAL, ...EXERCISE_TYPE_GROUPS.TACTICAL]
+  }
+  return Object.values(EXERCISE_TYPES)
+}
 
 interface DifficultyLevel {
   skillLevel: 'beginner' | 'intermediate' | 'advanced'
@@ -36,8 +53,8 @@ export function VideoUploadModal({
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
-    category: EXERCISE_CATEGORIES.FITNESS_TRAINING,
-    exerciseType: EXERCISE_TYPES.DRIBBLING,
+    category: EXERCISE_CATEGORIES.FITNESS_TRAINING as any,
+    exerciseType: EXERCISE_TYPES.DRIBBLING as any,
     positionSpecific: [] as string[],
     difficultyLevels: [
       { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
@@ -93,8 +110,8 @@ export function VideoUploadModal({
       setMetadata({ 
         title: '', 
         description: '', 
-        category: EXERCISE_CATEGORIES.FITNESS_TRAINING, 
-        exerciseType: EXERCISE_TYPES.DRIBBLING,
+        category: EXERCISE_CATEGORIES.FITNESS_TRAINING as any, 
+        exerciseType: EXERCISE_TYPES.DRIBBLING as any,
         positionSpecific: [],
         difficultyLevels: [
           { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
@@ -196,7 +213,19 @@ export function VideoUploadModal({
                   </label>
                   <select
                     value={metadata.category}
-                    onChange={(e) => setMetadata(prev => ({ ...prev, category: e.target.value as any }))}
+                    onChange={(e) => {
+                      const newCategory = e.target.value
+                      const availableTypes = getAvailableExerciseTypes(newCategory)
+                      const newType = availableTypes[0] // Default to first available type
+                      
+                      setMetadata(prev => ({ 
+                        ...prev, 
+                        category: newCategory as any,
+                        exerciseType: newType,
+                        // Auto-generate smart defaults
+                        ...generateVideoDefaults(newCategory, newType)
+                      }))
+                    }}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300 bg-background-surface text-text-primary"
                   >
                     {PRIMARY_CATEGORIES.map(category => (

@@ -1,6 +1,9 @@
 /**
  * Exercise and Training Constants for Football Scouting Platform
  * Centralized constants for exercises, positions, skills, ages, and training metadata
+ * 
+ * Note: All constant values are in English for better maintainability and international compatibility.
+ * Hebrew translations are provided in separate label objects for UI display.
  */
 
 // =============================================================================
@@ -275,50 +278,96 @@ export const TARGET_AUDIENCE_LABELS: Record<TargetAudience, string> = {
 // =============================================================================
 
 export const EQUIPMENT_TYPES = [
-  'כדורי כדורגל',
-  'קונוסים',
-  'סולמות זריזות',
-  'גולים קטנים',
-  'חבלים',
-  'מחסומים',
-  'קפיצות',
-  'כדורי מדיצינה',
-  'שטח ריצה',
-  'שעון עצר',
-  'מכשירי כושר',
-  'משקולות',
-  'רצועות התנגדות',
-  'מזרנים',
-  'חרוטים',
-  'סולמות ריצה',
-  'כדורי שיווי משקל',
-  'מדדי מהירות',
-  'מחסומי גובה',
-  'רשתות'
+  'football',
+  'cones',
+  'agility-ladders',
+  'small-goals',
+  'ropes',
+  'hurdles',
+  'rebounds',
+  'medicine-balls',
+  'running-track',
+  'stopwatch',
+  'fitness-equipment',
+  'weights',
+  'resistance-bands',
+  'mats',
+  'markers',
+  'speed-ladders',
+  'balance-balls',
+  'speed-sensors',
+  'height-barriers',
+  'nets'
 ] as const
+
+export type EquipmentType = typeof EQUIPMENT_TYPES[number]
+
+export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
+  'football': 'כדורי כדורגל',
+  'cones': 'קונוסים',
+  'agility-ladders': 'סולמות זריזות',
+  'small-goals': 'גולים קטנים',
+  'ropes': 'חבלים',
+  'hurdles': 'מחסומים',
+  'rebounds': 'קפיצות',
+  'medicine-balls': 'כדורי מדיצינה',
+  'running-track': 'שטח ריצה',
+  'stopwatch': 'שעון עצר',
+  'fitness-equipment': 'מכשירי כושר',
+  'weights': 'משקולות',
+  'resistance-bands': 'רצועות התנגדות',
+  'mats': 'מזרנים',
+  'markers': 'חרוטים',
+  'speed-ladders': 'סולמות ריצה',
+  'balance-balls': 'כדורי שיווי משקל',
+  'speed-sensors': 'מדדי מהירות',
+  'height-barriers': 'מחסומי גובה',
+  'nets': 'רשתות'
+}
 
 // =============================================================================
 // EXERCISE GOALS & OBJECTIVES
 // =============================================================================
 
 export const EXERCISE_GOALS = [
-  'שיפור טכניקה',
-  'פיתוח כוח',
-  'הגברת זריזות',
-  'שיפור דיוק',
-  'פיתוח מהירות',
-  'חיזוק שרירים',
-  'שיפור איזון',
-  'פיתוח סיבולת',
-  'שיפור קואורדינציה',
-  'פיתוח אירובי',
-  'שיפור מנטלי',
-  'פיתוח חשיבה',
-  'שיפור החלטות',
-  'פיתוח יצירתיות',
-  'שיפור תקשורת',
-  'פיתוח מנהיגות'
+  'improve-technique',
+  'develop-strength',
+  'increase-agility',
+  'improve-accuracy',
+  'develop-speed',
+  'strengthen-muscles',
+  'improve-balance',
+  'develop-endurance',
+  'improve-coordination',
+  'develop-aerobic',
+  'improve-mental',
+  'develop-thinking',
+  'improve-decisions',
+  'develop-creativity',
+  'improve-communication',
+  'develop-leadership'
 ] as const
+
+export type ExerciseGoal = typeof EXERCISE_GOALS[number]
+
+export const EXERCISE_GOAL_LABELS: Record<ExerciseGoal, string> = {
+  'improve-technique': 'שיפור טכניקה',
+  'develop-strength': 'פיתוח כוח',
+  'increase-agility': 'הגברת זריזות',
+  'improve-accuracy': 'שיפור דיוק',
+  'develop-speed': 'פיתוח מהירות',
+  'strengthen-muscles': 'חיזוק שרירים',
+  'improve-balance': 'שיפור איזון',
+  'develop-endurance': 'פיתוח סיבולת',
+  'improve-coordination': 'שיפור קואורדינציה',
+  'develop-aerobic': 'פיתוח אירובי',
+  'improve-mental': 'שיפור מנטלי',
+  'develop-thinking': 'פיתוח חשיבה',
+  'improve-decisions': 'שיפור החלטות',
+  'develop-creativity': 'פיתוח יצירתיות',
+  'improve-communication': 'שיפור תקשורת',
+  'develop-leadership': 'פיתוח מנהיגות'
+}
 
 // =============================================================================
 // DURATION SETTINGS
@@ -377,23 +426,7 @@ export const VIDEO_SETTINGS = {
   COMPRESSION_QUALITY: 0.8
 } as const
 
-// =============================================================================
-// STATUS TYPES
-// =============================================================================
-
-export const STATUS_TYPES = {
-  PENDING: 'pending',
-  APPROVED: 'approved',
-  REJECTED: 'rejected'
-} as const
-
-export type StatusType = typeof STATUS_TYPES[keyof typeof STATUS_TYPES]
-
-export const STATUS_LABELS: Record<StatusType, string> = {
-  [STATUS_TYPES.PENDING]: 'ממתין לאישור',
-  [STATUS_TYPES.APPROVED]: 'מאושר',
-  [STATUS_TYPES.REJECTED]: 'נדחה'
-}
+// Status types removed - all admin uploads are automatically active
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -464,6 +497,67 @@ export const isPositionSuitableForExercise = (
   
   // Technical exercises - suitable for all outfield positions
   return position !== POSITIONS.GOALKEEPER
+}
+
+/**
+ * Get equipment needed for exercise type
+ */
+export const getRequiredEquipment = (exerciseType: ExerciseType): EquipmentType[] => {
+  const baseEquipment: EquipmentType[] = ['football']
+  
+  switch (exerciseType) {
+    case EXERCISE_TYPES.AGILITY:
+      return [...baseEquipment, 'cones', 'agility-ladders', 'markers']
+    case EXERCISE_TYPES.GOALKEEPING:
+      return [...baseEquipment, 'small-goals', 'cones', 'mats']
+    case EXERCISE_TYPES.FITNESS:
+      return ['weights', 'resistance-bands', 'mats', 'fitness-equipment']
+    case EXERCISE_TYPES.SHOOTING:
+      return [...baseEquipment, 'small-goals', 'cones', 'markers']
+    case EXERCISE_TYPES.DRIBBLING:
+      return [...baseEquipment, 'cones', 'markers', 'hurdles']
+    case EXERCISE_TYPES.PASSING:
+      return [...baseEquipment, 'cones', 'markers']
+    default:
+      return baseEquipment
+  }
+}
+
+/**
+ * Get suggested goals for exercise type
+ */
+export const getSuggestedGoals = (exerciseType: ExerciseType): ExerciseGoal[] => {
+  const goals: ExerciseGoal[] = []
+  
+  if ((EXERCISE_TYPE_GROUPS.TECHNICAL as readonly ExerciseType[]).includes(exerciseType)) {
+    goals.push('improve-technique', 'improve-accuracy')
+  }
+  
+  if ((EXERCISE_TYPE_GROUPS.PHYSICAL as readonly ExerciseType[]).includes(exerciseType)) {
+    goals.push('develop-strength', 'increase-agility', 'develop-endurance')
+  }
+  
+  if ((EXERCISE_TYPE_GROUPS.TACTICAL as readonly ExerciseType[]).includes(exerciseType)) {
+    goals.push('develop-thinking', 'improve-decisions', 'develop-leadership')
+  }
+  
+  // Always include mental improvement
+  goals.push('improve-mental')
+  
+  return goals
+}
+
+/**
+ * Get age-appropriate skill level
+ */
+export const getAgeAppropriateSkillLevel = (ageGroup: AgeGroup): SkillLevel => {
+  if (ageGroup === AGE_GROUPS.U8 || ageGroup === AGE_GROUPS.U10) {
+    return SKILL_LEVELS.BEGINNER
+  }
+  if (ageGroup === AGE_GROUPS.U16 || ageGroup === AGE_GROUPS.U18 || ageGroup === AGE_GROUPS.U21) {
+    return SKILL_LEVELS.INTERMEDIATE
+  }
+  return SKILL_LEVELS.ADVANCED
 }
 
 // Types are already exported above with their respective constants

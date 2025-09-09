@@ -38,12 +38,129 @@ import type {
   VideoUploadConfig,
   VideoCollection
 } from '@/types/video'
+import { 
+  EXERCISE_CATEGORIES,
+  EXERCISE_TYPES,
+  POSITIONS,
+  AGE_GROUPS,
+  SKILL_LEVELS,
+  getRequiredEquipment,
+  getSuggestedGoals,
+  getDefaultPointsForSkill,
+  isPositionSuitableForExercise
+} from '@/constants'
 import { DEFAULT_VIDEO_CONFIG } from '@/types/video'
 
 // Collection names
 const VIDEOS_COLLECTION = 'videos'
 const VIDEO_COLLECTIONS_COLLECTION = 'videoCollections'
 const VIDEO_STATS_DOC = 'videoStats'
+
+// =============================================================================
+// HELPER UTILITIES FOR BETTER UX
+// =============================================================================
+
+/**
+ * Generate smart defaults for video metadata based on category and type
+ */
+export const generateVideoDefaults = (category: string, exerciseType: string) => {
+  try {
+    return {
+      equipment: getRequiredEquipment(exerciseType as any) || [],
+      goals: getSuggestedGoals(exerciseType as any) || [],
+      points: getDefaultPointsForSkill(SKILL_LEVELS.INTERMEDIATE),
+      skillLevels: [SKILL_LEVELS.BEGINNER, SKILL_LEVELS.INTERMEDIATE],
+      ageGroups: [AGE_GROUPS.U12, AGE_GROUPS.U16, AGE_GROUPS.U18],
+      positions: getDefaultPositionsForType(exerciseType),
+      duration: 120, // 2 minutes default
+      difficulty: 5 // Medium difficulty
+    }
+  } catch (error) {
+    console.error('Error generating video defaults:', error)
+    return {
+      equipment: [],
+      goals: [],
+      points: 25,
+      skillLevels: [SKILL_LEVELS.INTERMEDIATE],
+      ageGroups: [AGE_GROUPS.U16],
+      positions: [POSITIONS.ALL],
+      duration: 120,
+      difficulty: 5
+    }
+  }
+}
+
+/**
+ * Get default positions for exercise type
+ */
+const getDefaultPositionsForType = (exerciseType: string) => {
+  switch (exerciseType) {
+    case EXERCISE_TYPES.GOALKEEPING:
+      return [POSITIONS.GOALKEEPER]
+    case EXERCISE_TYPES.DEFENDING:
+      return [POSITIONS.DEFENDER, POSITIONS.CENTER_BACK, POSITIONS.FULLBACK]
+    case EXERCISE_TYPES.FITNESS:
+    case EXERCISE_TYPES.AGILITY:
+      return [POSITIONS.ALL]
+    default:
+      return [POSITIONS.MIDFIELDER, POSITIONS.STRIKER, POSITIONS.WINGER]
+  }
+}
+
+/**
+ * Validate if video category and exercise type combination makes sense
+ */
+export const validateExerciseTypeForCategory = (category: string, exerciseType: string): boolean => {
+  if (category === EXERCISE_CATEGORIES.FITNESS_TRAINING) {
+    return [EXERCISE_TYPES.FITNESS, EXERCISE_TYPES.AGILITY].includes(exerciseType as any)
+  }
+  
+  if (category === EXERCISE_CATEGORIES.FOOTBALL_TRAINING) {
+    return Object.values(EXERCISE_TYPES).includes(exerciseType as any)
+  }
+  
+  return true
+}
+
+/**
+ * Get exercises suitable for a specific position (simplified helper)
+ */
+export const getExercisesForPosition = async (position: string, limitCount: number = 20) => {
+  try {
+    const q = query(
+      collection(db, VIDEOS_COLLECTION),
+      where('positionSpecific', 'array-contains', position),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    )
+    
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error('Error fetching exercises for position:', error)
+    return []
+  }
+}
+
+/**
+ * Get exercises by category (simplified helper)
+ */
+export const getExercisesByCategory = async (category: string, limitCount: number = 20) => {
+  try {
+    const q = query(
+      collection(db, VIDEOS_COLLECTION),
+      where('category', '==', category),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    )
+    
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error('Error fetching exercises by category:', error)
+    return []
+  }
+}
 
 /**
  * Video Service Class
@@ -338,8 +455,7 @@ export class VideoService {
           ...data,
           id: doc.id,
           uploadedAt: data.uploadedAt?.toDate() || new Date(),
-          lastModified: data.lastModified?.toDate() || new Date(),
-          moderatedAt: data.moderatedAt?.toDate()
+          lastModified: data.lastModified?.toDate() || new Date()
         } as VideoMetadata)
       })
       
@@ -348,10 +464,7 @@ export class VideoService {
       let filteredVideos = videos
       
       if (filter) {
-        // Status filter (if not already applied server-side)
-        if (filter.status && filter.status.length > 1) {
-          filteredVideos = filteredVideos.filter(video => filter.status!.includes(video.status))
-        }
+        // Status filter removed - all videos are active
         
         // Category filter
         if (filter.category && filter.category.length > 0) {
@@ -401,10 +514,7 @@ export class VideoService {
               aValue = a.views
               bValue = b.views
               break
-            case 'status':
-              aValue = a.status
-              bValue = b.status
-              break
+            // status sorting removed
             case 'duration':
               aValue = a.duration
               bValue = b.duration
@@ -451,8 +561,7 @@ export class VideoService {
         ...data,
         id: snapshot.id,
         uploadedAt: data.uploadedAt?.toDate() || new Date(),
-        lastModified: data.lastModified?.toDate() || new Date(),
-        moderatedAt: data.moderatedAt?.toDate()
+        lastModified: data.lastModified?.toDate() || new Date()
       } as VideoMetadata
       
     } catch (error) {
@@ -635,9 +744,7 @@ export class VideoService {
       const snapshot = await getDocs(collection(db, VIDEOS_COLLECTION))
       
       let total = 0
-      let pending = 0
-      let approved = 0
-      let rejected = 0
+      // Status counting removed
       const byCategory: Record<string, number> = {}
       const byExerciseType: Record<string, number> = {}
       let totalSize = 0
@@ -651,12 +758,7 @@ export class VideoService {
         const data = doc.data() as VideoMetadata
         total++
         
-        // Status counts
-        switch (data.status) {
-          case 'pending': pending++; break
-          case 'approved': approved++; break
-          case 'rejected': rejected++; break
-        }
+        // Status counting removed - all videos are active
         
         // Category counts
         byCategory[data.category] = (byCategory[data.category] || 0) + 1
@@ -714,13 +816,7 @@ export class VideoService {
         case 'delete':
           updates.totalDeletes = increment(1)
           break
-        case 'moderate':
-          if (video.status === 'approved') {
-            updates.totalApproved = increment(1)
-          } else if (video.status === 'rejected') {
-            updates.totalRejected = increment(1)
-          }
-          break
+        // moderation case removed
       }
       
       await updateDoc(statsRef, updates)

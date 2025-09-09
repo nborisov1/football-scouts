@@ -14,7 +14,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCajKv0i81Fjw_Vv_DDQs1co3GDcsjVeyU",
   authDomain: "football-5e360.firebaseapp.com",
   projectId: "football-5e360",
-  storageBucket: "football-5e360.appspot.com",
+  storageBucket: "football-5e360.firebasestorage.app",
   messagingSenderId: "1035428109661",
   appId: "1:1035428109661:web:b41e0e45728f762bfb1cb4",
 }
@@ -25,7 +25,13 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 // Initialize Firebase services
 const auth = getAuth(app)
 const db = getFirestore(app)
-const storage = getStorage(app)
+const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`)
+
+// Debug logging in development
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+  console.log('🔥 Firebase initialized with storage bucket:', firebaseConfig.storageBucket)
+  console.log('🔥 Storage instance bucket:', storage._delegate?._host || 'unknown')
+}
 
 // Set auth language to Hebrew
 if (typeof window !== 'undefined' && auth) {

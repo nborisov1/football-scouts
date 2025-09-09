@@ -3,6 +3,12 @@
 import React, { useState, useRef } from 'react'
 import { Modal, ModalContent, ModalFooter, Button, Input, Card, Badge } from '@/components/ui'
 import { showMessage } from '@/components/MessageContainer'
+import { 
+  EXERCISE_CATEGORIES, 
+  EXERCISE_CATEGORY_LABELS, 
+  PRIMARY_CATEGORIES,
+  EXERCISE_TYPES
+} from '@/constants'
 
 interface DifficultyLevel {
   skillLevel: 'beginner' | 'intermediate' | 'advanced'
@@ -30,8 +36,8 @@ export function VideoUploadModal({
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
-    category: 'fitness-training' as const,
-    exerciseType: 'dribbling' as const,
+    category: EXERCISE_CATEGORIES.FITNESS_TRAINING,
+    exerciseType: EXERCISE_TYPES.DRIBBLING,
     positionSpecific: [] as string[],
     difficultyLevels: [
       { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
@@ -87,8 +93,8 @@ export function VideoUploadModal({
       setMetadata({ 
         title: '', 
         description: '', 
-        category: 'fitness-training', 
-        exerciseType: 'dribbling',
+        category: EXERCISE_CATEGORIES.FITNESS_TRAINING, 
+        exerciseType: EXERCISE_TYPES.DRIBBLING,
         positionSpecific: [],
         difficultyLevels: [
           { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
@@ -143,7 +149,7 @@ export function VideoUploadModal({
                   </div>
                 </div>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     setSelectedFile(null)
@@ -151,7 +157,9 @@ export function VideoUploadModal({
                   }}
                   icon="fas fa-times"
                   className="text-error-600 hover:text-error-700"
-                />
+                >
+                  הסר
+                </Button>
               </div>
             </Card>
 
@@ -191,8 +199,11 @@ export function VideoUploadModal({
                     onChange={(e) => setMetadata(prev => ({ ...prev, category: e.target.value as any }))}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300 bg-background-surface text-text-primary"
                   >
-                    <option value="fitness-training">אימון כושר</option>
-                    <option value="football-training">אימון כדורגל</option>
+                    {PRIMARY_CATEGORIES.map(category => (
+                      <option key={category} value={category}>
+                        {EXERCISE_CATEGORY_LABELS[category]}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -342,7 +353,7 @@ export function VideoUploadModal({
             variant="primary"
             onClick={handleSubmit}
             disabled={uploading || !metadata.title.trim() || !metadata.description.trim()}
-            isLoading={uploading}
+            loading={uploading}
           >
             {uploading ? 'מעלה...' : 'העלה סרטון'}
           </Button>

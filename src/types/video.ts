@@ -107,56 +107,21 @@ export interface VideoSort {
   direction: 'asc' | 'desc'
 }
 
-export type VideoCategory = 
-  | 'fitness-training'
-  | 'football-training'
-  | 'player-submission' 
-  | 'tutorial' 
-  | 'challenge-response' 
-  | 'skill-demonstration'
-  | 'match-analysis'
-  | 'technique-breakdown'
+// Import types from centralized constants
+import type { 
+  ExerciseCategory, 
+  ExerciseType, 
+  TrainingType, 
+  Position, 
+  AgeGroup,
+  SkillLevel,
+  TargetAudience,
+  StatusType
+} from '@/constants'
 
-export type ExerciseType = 
-  | 'dribbling'
-  | 'passing'
-  | 'shooting'
-  | 'defending'
-  | 'goalkeeping'
-  | 'fitness'
-  | 'agility'
-  | 'ball-control'
-  | 'crossing'
-  | 'heading'
-  | 'free-kicks'
-  | 'tactics'
-  | 'game-intelligence'
-  | 'mental-training'
-
-// New Training System Types
-export type TrainingType = 
-  | 'general-training'
-  | 'power-training'
-  | 'position-specific'
-  | 'skill-development'
-  | 'tactical-training'
-  | 'fitness-conditioning'
-  | 'mental-preparation'
-
-export type Position = 
-  | 'goalkeeper'
-  | 'defender'
-  | 'midfielder'
-  | 'striker'
-  | 'winger'
-  | 'fullback'
-  | 'center-back'
-  | 'defensive-midfielder'
-  | 'attacking-midfielder'
-  | 'center-forward'
-
-export type AgeGroup = 
-  | 'u8' | 'u10' | 'u12' | 'u14' | 'u16' | 'u18' | 'u21' | 'adult'
+// Re-export for backward compatibility
+export type VideoCategory = ExerciseCategory
+export type { ExerciseType, TrainingType, Position, AgeGroup, SkillLevel, TargetAudience, StatusType }
 
 // Video Collections for organizing videos
 export interface VideoCollection {
@@ -267,76 +232,17 @@ export const DEFAULT_VIDEO_CONFIG: VideoUploadConfig = {
   compressionQuality: 0.8
 }
 
-// Video status translations for Hebrew UI
-export const VIDEO_STATUS_LABELS: Record<VideoMetadata['status'], string> = {
-  pending: 'ממתין לאישור',
-  approved: 'מאושר',
-  rejected: 'נדחה'
-}
+// Import labels from centralized constants
+import { 
+  STATUS_LABELS,
+  EXERCISE_CATEGORY_LABELS,
+  EXERCISE_TYPE_LABELS,
+  TRAINING_TYPE_LABELS,
+  POSITION_LABELS,
+  AGE_GROUP_LABELS
+} from '@/constants'
 
-// Category translations for Hebrew UI
-export const VIDEO_CATEGORY_LABELS: Record<VideoCategory, string> = {
-  'fitness-training': 'אימון כושר',
-  'football-training': 'אימון כדורגל',
-  'player-submission': 'העלאת שחקן',
-  'tutorial': 'מדריך',
-  'challenge-response': 'תגובה לאתגר',
-  'skill-demonstration': 'הדגמת מיומנות',
-  'match-analysis': 'ניתוח משחק',
-  'technique-breakdown': 'פירוק טכניקה'
-}
-
-// Exercise type translations for Hebrew UI
-export const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
-  dribbling: 'כדרור',
-  passing: 'מסירות',
-  shooting: 'בעיטות',
-  defending: 'הגנה',
-  goalkeeping: 'שוערות',
-  fitness: 'כושר גופני',
-  agility: 'זריזות',
-  'ball-control': 'שליטה בכדור',
-  crossing: 'חיתוכים',
-  heading: 'בעיטות ראש',
-  'free-kicks': 'בעיטות חופשיות',
-  tactics: 'טקטיקה',
-  'game-intelligence': 'אינטליגנציה משחקית',
-  'mental-training': 'אימון מנטלי'
-}
-
-// Training type translations for Hebrew UI
-export const TRAINING_TYPE_LABELS: Record<TrainingType, string> = {
-  'general-training': 'אימון כללי',
-  'power-training': 'אימון כוח',
-  'position-specific': 'אימון ספציפי לעמדה',
-  'skill-development': 'פיתוח מיומנויות',
-  'tactical-training': 'אימון טקטי',
-  'fitness-conditioning': 'כושר גופני',
-  'mental-preparation': 'הכנה מנטלית'
-}
-
-// Position translations for Hebrew UI
-export const POSITION_LABELS: Record<Position, string> = {
-  goalkeeper: 'שוער',
-  defender: 'מגן',
-  midfielder: 'קשר',
-  striker: 'חלוץ',
-  winger: 'כנף',
-  'fullback': 'מגן צדדי',
-  'center-back': 'מגן מרכזי',
-  'defensive-midfielder': 'קשר הגנתי',
-  'attacking-midfielder': 'קשר התקפי',
-  'center-forward': 'חלוץ מרכזי'
-}
-
-// Age group translations for Hebrew UI
-export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
-  u8: 'עד גיל 8',
-  u10: 'עד גיל 10',
-  u12: 'עד גיל 12',
-  u14: 'עד גיל 14',
-  u16: 'עד גיל 16',
-  u18: 'עד גיל 18',
-  u21: 'עד גיל 21',
-  adult: 'בוגרים'
-}
+// Re-export for backward compatibility
+export const VIDEO_STATUS_LABELS = STATUS_LABELS
+export const VIDEO_CATEGORY_LABELS = EXERCISE_CATEGORY_LABELS
+export { EXERCISE_TYPE_LABELS, TRAINING_TYPE_LABELS, POSITION_LABELS, AGE_GROUP_LABELS }

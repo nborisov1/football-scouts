@@ -108,7 +108,8 @@ export interface VideoSort {
 }
 
 export type VideoCategory = 
-  | 'training-exercise' 
+  | 'fitness-training'
+  | 'football-training'
   | 'player-submission' 
   | 'tutorial' 
   | 'challenge-response' 
@@ -275,7 +276,8 @@ export const VIDEO_STATUS_LABELS: Record<VideoMetadata['status'], string> = {
 
 // Category translations for Hebrew UI
 export const VIDEO_CATEGORY_LABELS: Record<VideoCategory, string> = {
-  'training-exercise': 'תרגיל אימון',
+  'fitness-training': 'אימון כושר',
+  'football-training': 'אימון כדורגל',
   'player-submission': 'העלאת שחקן',
   'tutorial': 'מדריך',
   'challenge-response': 'תגובה לאתגר',

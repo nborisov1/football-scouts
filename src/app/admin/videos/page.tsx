@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
 import { videoService } from '@/lib/videoService'
@@ -21,6 +21,10 @@ export default function AdminVideos() {
     variants: VideoMetadata[]
   }>>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [lastDocId, setLastDocId] = useState<string | undefined>(undefined)
+  const [totalCount, setTotalCount] = useState<number>(0)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [filter, setFilter] = useState<'all'>('all')
   const [selectedVideoGroup, setSelectedVideoGroup] = useState<{
@@ -112,85 +116,93 @@ export default function AdminVideos() {
     })
   }
 
-  // Load videos from Firebase
-  const loadVideos = async () => {
+  // Get total count of videos
+  const getTotalCount = async () => {
     try {
-      setLoading(true)
-      const result = await videoService.getVideos(
-        {}, // No status filtering needed
-        undefined, // sort
-        50 // pageSize
-      )
-      setVideos(result.videos)
-      
-      // Group videos by base content
-      const grouped = groupVideosByBase(result.videos)
-      setGroupedVideos(grouped)
+      const stats = await videoService.getVideoStats()
+      setTotalCount(stats.total)
     } catch (error) {
-      console.error('Error loading videos:', error)
-      showMessage('שגיאה בטעינת הסרטונים', 'error')
-      setVideos([]) // Set empty array on error
-      setGroupedVideos([])
-    } finally {
-      setLoading(false)
+      console.error('Error getting video stats:', error)
     }
   }
 
+  // Load initial videos from Firebase
+  const loadVideos = async (reset: boolean = true) => {
+    try {
+      if (reset) {
+        setLoading(true)
+        setVideos([])
+        setGroupedVideos([])
+        setLastDocId(undefined)
+        setHasMore(true)
+      } else {
+        setLoadingMore(true)
+      }
+      
+      const result = await videoService.getVideos(
+        {}, // No status filtering needed
+        { field: 'uploadedAt', direction: 'desc' }, // sort by upload date
+        50, // pageSize - load 50 at a time
+        reset ? undefined : lastDocId
+      )
+      
+      const newVideos = reset ? result.videos : [...videos, ...result.videos]
+      setVideos(newVideos)
+      setHasMore(result.hasMore)
+      setLastDocId(result.lastDocId)
+      
+      // Group videos by base content
+      const grouped = groupVideosByBase(newVideos)
+      setGroupedVideos(grouped)
+      
+      console.log(`Loaded ${newVideos.length} videos total, batch size: ${result.videos.length}, hasMore: ${result.hasMore}, lastDocId: ${result.lastDocId}`)
+      
+    } catch (error) {
+      console.error('Error loading videos:', error)
+      showMessage('שגיאה בטעינת הסרטונים', 'error')
+      if (reset) {
+        setVideos([])
+        setGroupedVideos([])
+      }
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  // Load more videos (for infinite scroll)
+  const loadMoreVideos = useCallback(() => {
+    console.log('loadMoreVideos called', { hasMore, loadingMore, loading })
+    if (!loadingMore && hasMore && !loading) {
+      loadVideos(false)
+    }
+  }, [hasMore, loadingMore, loading])
+
   useEffect(() => {
     loadVideos()
+    getTotalCount()
   }, [filter])
 
+  // Auto-scroll infinite loading
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 800 && // Load when 800px from bottom
+        hasMore &&
+        !loadingMore &&
+        !loading
+      ) {
+        console.log('Triggering load more videos...', { hasMore, loadingMore, loading, currentCount: videos.length })
+        loadMoreVideos()
+      }
+    }
 
-  // Generate thumbnail from video
-  const generateThumbnail = async (videoFile: File): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      const video = document.createElement('video')
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      
-      video.preload = 'metadata'
-      video.muted = true
-      
-      video.addEventListener('loadedmetadata', () => {
-        canvas.width = Math.min(video.videoWidth, 1280)
-        canvas.height = Math.min(video.videoHeight, 720)
-        
-        const aspectRatio = video.videoWidth / video.videoHeight
-        if (canvas.width / canvas.height > aspectRatio) {
-          canvas.width = canvas.height * aspectRatio
-        } else {
-          canvas.height = canvas.width / aspectRatio
-        }
-        
-        video.currentTime = video.duration * 0.1
-      })
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [hasMore, loadingMore, loading, loadMoreVideos])
 
-      video.addEventListener('seeked', () => {
-        if (ctx && video.readyState >= 2) {
-          try {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-            canvas.toBlob((blob) => {
-              URL.revokeObjectURL(video.src)
-              resolve(blob)
-            }, 'image/jpeg', 0.85)
-          } catch (error) {
-            console.warn('Error drawing video frame:', error)
-            resolve(null)
-          }
-        } else {
-          resolve(null)
-        }
-      })
 
-      video.addEventListener('error', (e) => {
-        console.warn('Video loading error:', e)
-        resolve(null)
-      })
-      
-      video.src = URL.createObjectURL(videoFile)
-      video.load()
-    })
-  }
 
   // Handle upload
   const handleUpload = async ({ selectedFile, metadata }: { selectedFile: File, metadata: any }) => {
@@ -206,8 +218,8 @@ export default function AdminVideos() {
       setUploading(true)
       setProgress(0)
 
-      // Generate thumbnail from video
-      const thumbnailBlob = await generateThumbnail(selectedFile)
+      // No thumbnail generation needed
+      const thumbnailBlob = null
 
       const uploadedVideos: VideoMetadata[] = []
       const totalUploads = enabledLevels.length
@@ -289,6 +301,8 @@ export default function AdminVideos() {
       setVideos(newVideosList)
       const grouped = groupVideosByBase(newVideosList)
       setGroupedVideos(grouped)
+      // Update total count after upload
+      await getTotalCount()
       showMessage(`${uploadedVideos.length} סרטונים הועלו בהצלחה!`, 'success')
 
     } catch (error) {
@@ -384,8 +398,9 @@ export default function AdminVideos() {
         }
       }
 
-      // Refresh the videos list
+      // Refresh the videos list and total count
       await loadVideos()
+      await getTotalCount()
       
       // Close modals and show success message
       setShowEditModal(false)
@@ -447,19 +462,9 @@ export default function AdminVideos() {
       }
       stats={[
         {
-          number: groupedVideos.length,
-          label: "סרטונים",
+          number: totalCount,
+          label: "כל הסרטונים",
           icon: "fas fa-video"
-        },
-        {
-          number: videos.filter(v => !v.isVariant).length,
-          label: "סרטונים בסיס",
-          icon: "fas fa-film"
-        },
-        {
-          number: videos.filter(v => v.isVariant).length,
-          label: "וריאציות",
-          icon: "fas fa-layer-group"
         },
         {
           number: new Set(videos.map(v => v.category)).size,
@@ -483,6 +488,23 @@ export default function AdminVideos() {
           }}
           onVideoDelete={handleVideoDelete}
         />
+        
+        {/* Loading More Indicator */}
+        {loadingMore && (
+          <div className="flex justify-center mt-8 py-4">
+            <div className="flex items-center text-primary-600">
+              <i className="fas fa-spinner fa-spin ml-2"></i>
+              טוען עוד סרטונים...
+            </div>
+          </div>
+        )}
+        
+        {!hasMore && videos.length > 0 && (
+          <div className="text-center mt-8 py-4 text-gray-500">
+            <i className="fas fa-check-circle ml-2"></i>
+            כל הסרטונים נטענו ({totalCount} סרטונים)
+          </div>
+        )}
       </PageContainer>
 
       {/* Upload Modal */}

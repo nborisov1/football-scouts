@@ -321,27 +321,26 @@ export class VideoService {
         }
       }
       
-      constraints.push(limit(pageSize * 3)) // Get more to allow for client-side filtering
+      constraints.push(limit(pageSize + 1)) // Get one extra to check if there are more
       
       const q = query(baseQuery, ...constraints)
       
       const snapshot = await getDocs(q)
       const videos: VideoMetadata[] = []
-      let hasMore = false
+      const hasMore = snapshot.docs.length > pageSize
       
-      snapshot.docs.forEach((doc, index) => {
-        if (index < pageSize) {
-          const data = doc.data()
-          videos.push({
-            ...data,
-            id: doc.id,
-            uploadedAt: data.uploadedAt?.toDate() || new Date(),
-            lastModified: data.lastModified?.toDate() || new Date(),
-            moderatedAt: data.moderatedAt?.toDate()
-          } as VideoMetadata)
-        } else {
-          hasMore = true
-        }
+      // Take only the requested pageSize
+      const docsToProcess = hasMore ? snapshot.docs.slice(0, pageSize) : snapshot.docs
+      
+      docsToProcess.forEach((doc) => {
+        const data = doc.data()
+        videos.push({
+          ...data,
+          id: doc.id,
+          uploadedAt: data.uploadedAt?.toDate() || new Date(),
+          lastModified: data.lastModified?.toDate() || new Date(),
+          moderatedAt: data.moderatedAt?.toDate()
+        } as VideoMetadata)
       })
       
       
@@ -422,12 +421,7 @@ export class VideoService {
         })
       }
       
-      // Limit results to requested page size
-      hasMore = filteredVideos.length > pageSize
-      if (hasMore) {
-        filteredVideos = filteredVideos.slice(0, pageSize)
-      }
-      
+      // Since we're not doing complex filtering for admin, just return the results
       return {
         videos: filteredVideos,
         hasMore,

@@ -30,7 +30,7 @@ export function VideoUploadModal({
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
-    category: 'training-exercise' as const,
+    category: 'fitness-training' as const,
     exerciseType: 'dribbling' as const,
     positionSpecific: [] as string[],
     difficultyLevels: [
@@ -87,7 +87,7 @@ export function VideoUploadModal({
       setMetadata({ 
         title: '', 
         description: '', 
-        category: 'training-exercise', 
+        category: 'fitness-training', 
         exerciseType: 'dribbling',
         positionSpecific: [],
         difficultyLevels: [
@@ -191,10 +191,8 @@ export function VideoUploadModal({
                     onChange={(e) => setMetadata(prev => ({ ...prev, category: e.target.value as any }))}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300 bg-background-surface text-text-primary"
                   >
-                    <option value="training-exercise">תרגיל אימון</option>
-                    <option value="technique-demo">הדגמת טכניקה</option>
-                    <option value="game-analysis">ניתוח משחק</option>
                     <option value="fitness-training">אימון כושר</option>
+                    <option value="football-training">אימון כדורגל</option>
                   </select>
                 </div>
 

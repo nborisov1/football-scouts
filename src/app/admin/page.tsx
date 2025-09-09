@@ -108,7 +108,7 @@ export default function AdminDashboard() {
             title="סקאוטים"
             value={stats.totalScouts}
             icon="fas fa-search"
-            color="bg-purple-500"
+            color="bg-primary-500"
           />
           <StatCard
             title="סרטונים ממתינים"

@@ -16,7 +16,7 @@ export default function ProfilePage() {
   const { user, updateProfile } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: user ? `${user.firstName} ${user.lastName}`.trim() : '',
     age: user?.age || 18,
     position: user?.position || '',
     dominantFoot: user?.dominantFoot || 'right',
@@ -35,7 +35,20 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      await updateProfile(formData)
+      // Split name into firstName and lastName
+      const nameParts = formData.name.trim().split(' ')
+      const firstName = nameParts[0] || ''
+      const lastName = nameParts.slice(1).join(' ') || ''
+      
+      const updateData = {
+        ...formData,
+        firstName,
+        lastName
+      }
+      // Remove the 'name' field as it doesn't exist in UserData
+      delete (updateData as any).name
+      
+      await updateProfile(updateData)
       showMessage('הפרופיל עודכן בהצלחה!', 'success')
       setIsEditing(false)
     } catch (error) {
@@ -45,12 +58,12 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      name: user.displayName || `${user.firstName} ${user.lastName}` || '',
-      age: user.age || 18,
-      position: user.position || '',
-      dominantFoot: user.dominantFoot || 'right',
-      level: user.level || 'beginner',
-      organization: user.organization || ''
+      name: user ? `${user.firstName} ${user.lastName}`.trim() : '',
+      age: user?.age || 18,
+      position: user?.position || '',
+      dominantFoot: user?.dominantFoot || 'right',
+      level: user?.level || 'beginner',
+      organization: user?.organization || ''
     })
     setIsEditing(false)
   }

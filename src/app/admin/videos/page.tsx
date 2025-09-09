@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import ProtectedRoute from '@/components/ProtectedRoute'
 import { showMessage } from '@/components/MessageContainer'
 import { videoService } from '@/lib/videoService'
 import { USER_TYPES } from '@/lib/firebase'
+import { PrimaryButton } from '@/components/ui'
+import { VideoStats, VideoListTable, VideoUploadModal } from '@/components/admin/videos'
+import PageLayout, { PageContainer, PageCard } from '@/components/PageLayout'
 import type { VideoMetadata } from '@/types/video'
 
 export default function AdminVideos() {
@@ -36,21 +38,8 @@ export default function AdminVideos() {
   })
   
   // Upload state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [metadata, setMetadata] = useState({
-    title: '',
-    description: '',
-    category: 'training-exercise' as const,
-    exerciseType: 'dribbling' as const,
-    positionSpecific: [] as string[],
-    difficultyLevels: [
-      { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
-      { skillLevel: 'intermediate' as const, threshold: 30, enabled: false },
-      { skillLevel: 'advanced' as const, threshold: 60, enabled: false }
-    ]
-  })
   
 
   // Group videos by base content
@@ -151,27 +140,6 @@ export default function AdminVideos() {
     loadVideos()
   }, [filter])
 
-  // Handle file selection
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    if (!file.type.startsWith('video/')) {
-      showMessage('יש לבחור קובץ וידאו', 'error')
-      return
-    }
-
-    if (file.size > 500 * 1024 * 1024) {
-      showMessage('קובץ גדול מדי (מקסימום 500MB)', 'error')
-      return
-    }
-
-    setSelectedFile(file)
-    setMetadata(prev => ({
-      ...prev,
-      title: prev.title || file.name.replace(/\.[^/.]+$/, '')
-    }))
-  }
 
   // Generate thumbnail from video
   const generateThumbnail = async (videoFile: File): Promise<Blob | null> => {
@@ -225,15 +193,10 @@ export default function AdminVideos() {
   }
 
   // Handle upload
-  const handleUpload = async () => {
+  const handleUpload = async ({ selectedFile, metadata }: { selectedFile: File, metadata: any }) => {
     if (!selectedFile || !user) return
 
-    if (!metadata.title.trim() || !metadata.description.trim()) {
-      showMessage('יש למלא כותרת ותיאור', 'error')
-      return
-    }
-
-    const enabledLevels = metadata.difficultyLevels.filter(level => level.enabled)
+    const enabledLevels = metadata.difficultyLevels.filter((level: any) => level.enabled)
     if (enabledLevels.length === 0) {
       showMessage('יש לבחור לפחות רמת קושי אחת', 'error')
       return
@@ -318,22 +281,8 @@ export default function AdminVideos() {
       }
 
       // Reset form and refresh list
-      setSelectedFile(null)
       setShowUploadModal(false)
-      setMetadata({ 
-        title: '', 
-        description: '', 
-        category: 'training-exercise', 
-        exerciseType: 'dribbling',
-        positionSpecific: [],
-        difficultyLevels: [
-          { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
-          { skillLevel: 'intermediate' as const, threshold: 30, enabled: false },
-          { skillLevel: 'advanced' as const, threshold: 60, enabled: false }
-        ]
-      })
       setProgress(0)
-      if (fileInputRef.current) fileInputRef.current.value = ''
       
       // Update videos and regroup
       const newVideosList = [...uploadedVideos, ...videos]
@@ -480,467 +429,73 @@ export default function AdminVideos() {
   }
 
 
-  // Check if user is admin
-  if (!user || user.type !== USER_TYPES.ADMIN) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">אין הרשאה</h1>
-          <p className="text-gray-600">עמוד זה מיועד למנהלים בלבד</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">ניהול סרטונים</h1>
-                <p className="text-gray-600">העלה וניהל סרטוני אימון</p>
-              </div>
-              
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                <i className="fas fa-plus ml-2"></i>
-                העלה סרטון חדש
-              </button>
-            </div>
-          </div>
-        </div>
+    <PageLayout
+      title="ניהול סרטונים"
+      subtitle="העלה וניהל סרטוני אימון"
+      loading={loading}
+      requiresAuth={true}
+      requiresRole={USER_TYPES.ADMIN}
+      headerActions={
+        <PrimaryButton
+          icon="fas fa-plus"
+          size="lg"
+          onClick={() => setShowUploadModal(true)}
+        >
+          העלה סרטון חדש
+        </PrimaryButton>
+      }
+      stats={[
+        {
+          number: groupedVideos.length,
+          label: "סרטונים",
+          icon: "fas fa-video"
+        },
+        {
+          number: videos.filter(v => !v.isVariant).length,
+          label: "סרטונים בסיס",
+          icon: "fas fa-film"
+        },
+        {
+          number: videos.filter(v => v.isVariant).length,
+          label: "וריאציות",
+          icon: "fas fa-layer-group"
+        },
+        {
+          number: new Set(videos.map(v => v.category)).size,
+          label: "קטגוריות",
+          icon: "fas fa-tags"
+        }
+      ]}
+      showStats={true}
+    >
+      <PageContainer size="wide">
+        <VideoStats totalVideos={groupedVideos.length} />
+        
+        <VideoListTable
+          groupedVideos={groupedVideos}
+          loading={loading}
+          onVideoView={setSelectedVideoGroup}
+          onVideoEdit={(group) => {
+            setSelectedVideoGroup(group)
+            initializeEditForm(group)
+            setShowEditModal(true)
+          }}
+          onVideoDelete={handleVideoDelete}
+        />
+      </PageContainer>
 
-        {/* Videos Header */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-medium text-gray-900">
-                כל הסרטונים ({groupedVideos.length})
-              </h2>
-            </div>
-          </div>
-        </div>
+      {/* Upload Modal */}
+      <VideoUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUpload={handleUpload}
+        uploading={uploading}
+        progress={progress}
+      />
 
-        {/* Video List */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
-          {loading ? (
-            <div className="bg-white rounded-lg shadow-sm border p-8">
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="mr-3 text-gray-600">טוען סרטונים...</span>
-              </div>
-            </div>
-          ) : groupedVideos.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-              <div className="text-gray-400 text-4xl mb-4">
-                <i className="fas fa-video"></i>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">אין סרטונים</h3>
-              <p className="text-gray-600 mb-4">לא נמצאו סרטונים במערכת</p>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="btn-primary"
-              >
-                <i className="fas fa-plus ml-2"></i>
-                העלה את הסרטון הראשון
-              </button>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">סרטון</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">פרטים</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">תאריך</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">פעולות</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {groupedVideos.map((group) => {
-                      const { baseVideo, variants } = group
-                      const allVideos = [baseVideo, ...variants]
-                      const thresholds = allVideos.map(v => `${v.skillLevel}(${v.difficultyLevel})`).join(', ')
-                      
-                      return (
-                        <tr key={baseVideo.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-16 w-20">
-                                {baseVideo.thumbnailUrl ? (
-                                  <img
-                                    className="h-16 w-20 rounded-lg object-cover"
-                                    src={baseVideo.thumbnailUrl}
-                                    alt={baseVideo.title}
-                                  />
-                                ) : (
-                                  <div className="h-16 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <i className="fas fa-video text-gray-400"></i>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="mr-4 min-w-0 flex-1">
-                                <div className="flex items-center space-x-2 space-x-reverse">
-                                  <div className="text-sm font-medium text-gray-900 truncate">
-                                    {baseVideo.title.replace(/ - (מתחיל|בינוני|מתקדם)$/, '')}
-                                  </div>
-                                  {variants.length > 0 && (
-                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                      {allVideos.length} רמות
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-sm text-gray-500 truncate">{baseVideo.description}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            <div>קטגוריה: {baseVideo.category}</div>
-                            <div>סוג: {baseVideo.exerciseType}</div>
-                            <div>רמות: {thresholds}</div>
-                            <div>עמדות: {
-                              baseVideo.positionSpecific?.length > 0 
-                                ? baseVideo.positionSpecific.includes('all' as any) 
-                                  ? 'כל העמדות' 
-                                  : baseVideo.positionSpecific.slice(0, 2).join(', ') + (baseVideo.positionSpecific.length > 2 ? '...' : '')
-                                : 'לא צוין'
-                            }</div>
-                            <div>גודל: {baseVideo.fileSize ? formatFileSize(baseVideo.fileSize) : 'לא ידוע'}</div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            {baseVideo.uploadedAt ? formatDate(baseVideo.uploadedAt) : 'לא ידוע'}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex space-x-2 space-x-reverse">
-                              <button
-                                onClick={() => setSelectedVideoGroup(group)}
-                                className="text-blue-600 hover:text-blue-900"
-                                title="צפייה"
-                              >
-                                <i className="fas fa-eye"></i>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedVideoGroup(group)
-                                  initializeEditForm(group)
-                                  setShowEditModal(true)
-                                }}
-                                className="text-green-600 hover:text-green-900"
-                                title="עריכה"
-                              >
-                                <i className="fas fa-edit"></i>
-                              </button>
-                              <button
-                                onClick={() => handleVideoDelete(baseVideo.id)}
-                                className="text-red-600 hover:text-red-900"
-                                title="מחיקה"
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Upload Modal */}
-        {showUploadModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">העלאת סרטון חדש</h2>
-                  <button
-                    onClick={() => {
-                      setShowUploadModal(false)
-                      setSelectedFile(null)
-                      setMetadata({ 
-                        title: '', 
-                        description: '', 
-                        category: 'training-exercise', 
-                        exerciseType: 'dribbling',
-                        positionSpecific: [],
-                        difficultyLevels: [
-                          { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
-                          { skillLevel: 'intermediate' as const, threshold: 30, enabled: false },
-                          { skillLevel: 'advanced' as const, threshold: 60, enabled: false }
-                        ]
-                      })
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <i className="fas fa-times text-xl"></i>
-                  </button>
-                </div>
-
-                {/* File Selection */}
-                {!selectedFile ? (
-                  <div
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      accept="video/*"
-                      className="hidden"
-                    />
-                    
-                    <div className="text-4xl text-gray-400 mb-4">
-                      <i className="fas fa-video"></i>
-                    </div>
-                    
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">בחר קובץ וידאו</h3>
-                    <p className="text-gray-600 mb-4">גרור קובץ לכאן או לחץ לבחירה</p>
-                    
-                    <div className="text-sm text-gray-500">
-                      <p>פורמטים: MP4, MOV, AVI, WebM</p>
-                      <p>גודל מקסימלי: 500MB</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* File Info */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 space-x-reverse">
-                          <i className="fas fa-video text-blue-600"></i>
-                          <div>
-                            <p className="font-medium">{selectedFile.name}</p>
-                            <p className="text-sm text-gray-600">
-                              {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setSelectedFile(null)
-                            if (fileInputRef.current) fileInputRef.current.value = ''
-                          }}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Form Fields */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">כותרת הסרטון *</label>
-                        <input
-                          type="text"
-                          value={metadata.title}
-                          onChange={(e) => setMetadata(prev => ({ ...prev, title: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="כותרת תיאורית לסרטון"
-                          maxLength={100}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">תיאור הסרטון *</label>
-                        <textarea
-                          value={metadata.description}
-                          onChange={(e) => setMetadata(prev => ({ ...prev, description: e.target.value }))}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="תיאור מפורט של תוכן הסרטון"
-                          maxLength={500}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">קטגוריה</label>
-                          <select
-                            value={metadata.category}
-                            onChange={(e) => setMetadata(prev => ({ ...prev, category: e.target.value as any }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="training-exercise">תרגיל אימון</option>
-                            <option value="technique-demo">הדגמת טכניקה</option>
-                            <option value="game-analysis">ניתוח משחק</option>
-                            <option value="fitness-training">אימון כושר</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">רמות קושי</label>
-                          <div className="space-y-3 border border-gray-300 rounded-lg p-4">
-                            {metadata.difficultyLevels.map((level, index) => (
-                              <div key={level.skillLevel} className="flex items-center space-x-4 space-x-reverse">
-                                <label className="flex items-center min-w-0">
-                                  <input
-                                    type="checkbox"
-                                    checked={level.enabled}
-                                    onChange={(e) => {
-                                      setMetadata(prev => ({
-                                        ...prev,
-                                        difficultyLevels: prev.difficultyLevels.map((l, i) =>
-                                          i === index ? { ...l, enabled: e.target.checked } : l
-                                        )
-                                      }))
-                                    }}
-                                    className="ml-2"
-                                  />
-                                  <span className="text-sm font-medium">
-                                    {level.skillLevel === 'beginner' ? 'מתחיל' : 
-                                     level.skillLevel === 'intermediate' ? 'בינוני' : 'מתקדם'}
-                                  </span>
-                                </label>
-                                <div className="flex items-center space-x-2 space-x-reverse">
-                                  <span className="text-xs text-gray-500 whitespace-nowrap">סף התקדמות:</span>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    max="100"
-                                    value={level.threshold}
-                                    onChange={(e) => {
-                                      const newThreshold = parseInt(e.target.value) || 10
-                                      setMetadata(prev => ({
-                                        ...prev,
-                                        difficultyLevels: prev.difficultyLevels.map((l, i) =>
-                                          i === index ? { ...l, threshold: newThreshold } : l
-                                        )
-                                      }))
-                                    }}
-                                    disabled={!level.enabled}
-                                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            בחר רמות קושי וקבע לכל אחת סף התקדמות (נקודות נדרשות למעבר לשלב הבא)
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Position Selection */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">עמדות רלוונטיות</label>
-                        <div className="border border-gray-300 rounded-lg p-3">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {[
-                              { value: 'all', label: 'כל העמדות' },
-                              { value: 'goalkeeper', label: 'שוער' },
-                              { value: 'defender', label: 'בלם' },
-                              { value: 'center-back', label: 'בלם מרכזי' },
-                              { value: 'fullback', label: 'בלם צדדי' },
-                              { value: 'midfielder', label: 'קשר' },
-                              { value: 'defensive-midfielder', label: 'קשר הגנתי' },
-                              { value: 'attacking-midfielder', label: 'קשר התקפי' },
-                              { value: 'winger', label: 'אגף' },
-                              { value: 'striker', label: 'חלוץ' },
-                              { value: 'center-forward', label: 'חלוץ מרכזי' }
-                            ].map(position => (
-                              <label key={position.value} className="flex items-center text-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={metadata.positionSpecific.includes(position.value)}
-                                  onChange={(e) => {
-                                    if (position.value === 'all') {
-                                      setMetadata(prev => ({ 
-                                        ...prev, 
-                                        positionSpecific: e.target.checked ? ['all'] : [] 
-                                      }))
-                                    } else {
-                                      setMetadata(prev => {
-                                        let newPositions = [...prev.positionSpecific]
-                                        if (e.target.checked) {
-                                          newPositions = newPositions.filter(p => p !== 'all')
-                                          newPositions.push(position.value)
-                                        } else {
-                                          newPositions = newPositions.filter(p => p !== position.value)
-                                        }
-                                        return { ...prev, positionSpecific: newPositions }
-                                      })
-                                    }
-                                  }}
-                                  className="ml-2"
-                                />
-                                <span>{position.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-
-                    {/* Upload Progress */}
-                    {uploading && (
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-blue-900">מעלה סרטון...</span>
-                          <span className="text-sm text-blue-700">{Math.round(progress)}%</span>
-                        </div>
-                        <div className="w-full bg-blue-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-end space-x-4 space-x-reverse pt-4 border-t">
-                      <button
-                        onClick={() => {
-                          setShowUploadModal(false)
-                        setSelectedFile(null)
-                        setMetadata({ 
-                          title: '', 
-                          description: '', 
-                          category: 'training-exercise', 
-                          exerciseType: 'dribbling',
-                          positionSpecific: [],
-                          difficultyLevels: [
-                            { skillLevel: 'beginner' as const, threshold: 10, enabled: false },
-                            { skillLevel: 'intermediate' as const, threshold: 30, enabled: false },
-                            { skillLevel: 'advanced' as const, threshold: 60, enabled: false }
-                          ]
-                        })
-                        }}
-                        disabled={uploading}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        ביטול
-                      </button>
-                      <button
-                        onClick={handleUpload}
-                        disabled={uploading || !metadata.title.trim() || !metadata.description.trim()}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        {uploading ? 'מעלה...' : 'העלה סרטון'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Video Preview Modal */}
-        {selectedVideoGroup && (
+      {/* Video Preview Modal */}
+      {selectedVideoGroup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
@@ -1033,7 +588,7 @@ export default function AdminVideos() {
                       initializeEditForm(selectedVideoGroup)
                       setShowEditModal(true)
                     }}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="btn-page-primary"
                   >
                     <i className="fas fa-edit ml-2"></i>
                     עריכת פרטים
@@ -1193,7 +748,7 @@ export default function AdminVideos() {
                   <button
                     onClick={handleSaveEditChanges}
                     disabled={uploading}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="btn-page-primary btn-disabled"
                   >
                     {uploading ? 'שומר...' : 'שמור שינויים'}
                   </button>
@@ -1202,7 +757,6 @@ export default function AdminVideos() {
             </div>
           </div>
         )}
-      </div>
-    </ProtectedRoute>
+    </PageLayout>
   )
 }

@@ -20,11 +20,11 @@ export default function ComingSoon({
   className = ''
 }: ComingSoonProps) {
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4 ${className}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center p-4 ${className}`}>
       <div className="max-w-4xl mx-auto text-center">
         {/* Main Icon */}
         <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-2xl">
+          <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full shadow-2xl">
             <i className={`${icon} text-6xl text-white`}></i>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function ComingSoon({
             רוצה לקבל עדכון כשהתוכן יהיה זמין?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg">
+            <button className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium text-lg">
               <i className="fas fa-bell ml-2"></i>
               הודע לי כשזה יהיה זמין
             </button>
@@ -91,9 +91,9 @@ export default function ComingSoon({
         {/* Progress Indicator */}
         <div className="mt-12">
           <div className="flex items-center justify-center space-x-2 space-x-reverse mb-4">
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-            <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-            <div className="w-3 h-3 bg-blue-300 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-3 h-3 bg-primary-300 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
           </div>
           <p className="text-sm text-gray-500">אנחנו עובדים על זה...</p>
         </div>

@@ -2,37 +2,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Football-themed color palette */
-  --primary-green: #1a7f37;
+  /* Unified Football-themed color palette with proper contrast */
+  --primary-green: #15803d;
+  --primary-green-dark: #14532d;
+  --primary-green-light: #16a34a;
   --secondary-green: #22c55e;
+  --secondary-green-light: #4ade80;
   --accent-gold: #fbbf24;
-  --background: #fafafa;
+  --background: #f8fafc;
   --background-dark: #0f172a;
   --foreground: #1e293b;
-  --foreground-light: #1e293b;
+  --foreground-light: #475569;
   --surface: #ffffff;
   --surface-dark: #1e293b;
-  --pitch-green: #2d5b3d;
+  --pitch-green: #166534;
   --stadium-gray: #374151;
   
-  /* Football field gradient */
-  --field-gradient: linear-gradient(135deg, #1a7f37 0%, #22c55e 50%, #16a34a 100%);
+  /* Enhanced gradients with better contrast */
+  --field-gradient: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #166534 100%);
+  --field-gradient-light: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 50%, #a7f3d0 100%);
   --stadium-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   
   /* Typography */
   --font-display: 'Oswald', sans-serif;
   --font-body: 'Inter', sans-serif;
+  
+  /* Color scales for consistent usage */
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-300: #86efac;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --green-900: #14532d;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary-green);
-  --color-secondary: var(--secondary-green);
-  --color-accent: var(--accent-gold);
-  --font-sans: var(--font-body);
-  --font-display: var(--font-display);
-}
+/* Theme configuration for Tailwind CSS integration */
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -52,11 +60,34 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: var(--green-50);
   color: #1e293b !important;
   font-family: var(--font-body);
   line-height: 1.6;
   font-weight: 400;
+}
+
+/* Main app background - consistent green theme */
+.app-background {
+  background: linear-gradient(135deg, #f8fffe 0%, #f0fdf4 50%, #ecfdf5 100%);
+  min-height: 100vh;
+}
+
+/* Page background with subtle green tint */
+.page-background {
+  background: linear-gradient(180deg, #f8fffe 0%, #f0fdf4 100%);
+}
+
+/* Header sections with green gradient */
+.header-section {
+  background: var(--field-gradient);
+}
+
+/* Consistent page header styling */
+.page-header {
+  background: var(--field-gradient);
+  color: white;
+  padding: 3rem 0;
 }
 
 /* Typography hierarchy */
@@ -170,47 +201,113 @@ h3 {
   border-color: var(--secondary-green);
 }
 
-/* Button styles */
+/* Enhanced Button System with Proper Contrast */
 .btn-primary {
-  background: var(--field-gradient);
+  background: var(--primary-green-dark);
   color: white !important;
   font-family: var(--font-display);
-  font-weight: 600;
-  padding: 0.75rem 2rem;
+  font-weight: 700;
+  padding: 0.875rem 2rem;
   border-radius: 0.75rem;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: 0.02em;
   text-decoration: none;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-primary:hover {
+  background: var(--primary-green);
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.4);
   color: white !important;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.3);
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--primary-green) !important;
-  border: 2px solid var(--primary-green);
+  color: var(--primary-green-dark) !important;
+  border: 2px solid var(--primary-green-dark);
   font-family: var(--font-display);
   font-weight: 600;
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: 0.02em;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-secondary:hover {
-  background: var(--primary-green);
+  background: var(--primary-green-dark);
   color: white !important;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+}
+
+/* Additional button variants */
+.btn-gradient {
+  background: var(--field-gradient);
+  color: white !important;
+  font-family: var(--font-display);
+  font-weight: 700;
+  padding: 0.875rem 2rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.4);
+  color: white !important;
+}
+
+.btn-outline {
+  background: white;
+  color: var(--primary-green-dark) !important;
+  border: 2px solid var(--primary-green-dark);
+  font-family: var(--font-display);
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline:hover {
+  background: var(--primary-green-dark);
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
 }
 
 /* Navigation styles */
@@ -324,48 +421,141 @@ h3 {
   color: var(--stadium-200) !important;
 }
 
-/* Force readable text colors - override grey text */
-.text-stadium-600,
+/* Design system utilities for consistent colors */
+.text-primary {
+  color: #0f172a !important;
+}
+
+.text-secondary {
+  color: #1e293b !important;
+}
+
+.text-muted {
+  color: #475569 !important;
+}
+
+/* Override legacy color classes to use design system */
+.text-gray-900,
+.text-gray-800,
+.text-gray-700 {
+  color: #0f172a !important;
+}
+
 .text-gray-600,
-.text-gray-500,
-.text-gray-400 {
-  color: #1e293b !important;
-}
-
-.text-stadium-700,
-.text-gray-700 {
-  color: #0f172a !important;
-}
-
-.text-stadium-800,
-.text-gray-800 {
-  color: #000000 !important;
-}
-
-/* Ensure all body text is readable */
-p, span, div, td, th {
-  color: #1e293b !important;
-}
-
-/* Override specific grey classes */
 .text-gray-500 {
-  color: #1e293b !important;
+  color: #475569 !important;
 }
 
-.text-gray-600 {
-  color: #1e293b !important;
+.text-gray-400 {
+  color: #64748b !important;
 }
 
-.text-gray-700 {
-  color: #0f172a !important;
+/* Unified Background System */
+.bg-background {
+  background: var(--green-50) !important;
 }
 
-.text-gray-800 {
-  color: #000000 !important;
+.bg-primary-600,
+.bg-field-gradient,
+.bg-green-600,
+.bg-green-700,
+.bg-green-800 {
+  background: var(--field-gradient) !important;
+  color: white !important;
 }
 
-.text-gray-900 {
-  color: #000000 !important;
+.bg-white {
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Enhanced card styling with unified colors */
+.card-green-theme {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--green-200);
+  box-shadow: 
+    0 4px 20px rgba(21, 128, 61, 0.08),
+    0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* Unified Color System Overrides */
+.text-primary-100,
+.text-indigo-100 {
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary-600,
+.text-indigo-600 {
+  color: var(--primary-green-dark) !important;
+}
+
+.text-primary-700 {
+  color: var(--green-700) !important;
+}
+
+.text-primary-800 {
+  color: var(--green-800) !important;
+}
+
+.text-primary-900 {
+  color: var(--green-900) !important;
+}
+
+.bg-primary-50 {
+  background: var(--green-50) !important;
+}
+
+.bg-primary-100 {
+  background: var(--green-100) !important;
+}
+
+.bg-primary-200 {
+  background: var(--green-200) !important;
+}
+
+.bg-primary-500 {
+  background: var(--green-500) !important;
+  color: white !important;
+}
+
+.bg-primary-600 {
+  background: var(--green-600) !important;
+  color: white !important;
+}
+
+.bg-primary-700 {
+  background: var(--green-700) !important;
+  color: white !important;
+}
+
+.bg-indigo-600 {
+  background: var(--primary-green-dark) !important;
+  color: white !important;
+}
+
+/* Focus states with unified green */
+.border-indigo-500,
+.focus\:ring-indigo-500:focus,
+.focus\:border-indigo-500:focus,
+.focus\:ring-primary-500:focus,
+.focus\:border-primary-500:focus {
+  border-color: var(--green-600) !important;
+  --tw-ring-color: rgba(21, 128, 61, 0.2) !important;
+}
+
+/* Hover states */
+.hover\:bg-primary-700:hover {
+  background: var(--green-700) !important;
+}
+
+.hover\:bg-primary-800:hover {
+  background: var(--green-800) !important;
+}
+
+.hover\:text-primary-600:hover {
+  color: var(--green-600) !important;
 }
 
 /* Better visibility on background patterns */
@@ -418,36 +608,62 @@ a:hover {
   text-decoration: none;
 }
 
-/* Improved form styling */
+/* Improved form styling with consistent focus states */
 input,
 select,
 textarea {
   background-color: white;
-  color: var(--stadium-900);
-  border: 1px solid var(--stadium-300);
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
   transition: all 0.3s ease;
 }
 
 input::placeholder,
 select::placeholder,
 textarea::placeholder {
-  color: var(--stadium-500);
+  color: #64748b;
 }
 
 input:hover,
 select:hover,
 textarea:hover {
-  border-color: var(--primary-green);
+  border-color: #22c55e;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   box-shadow: 
-    0 0 0 2px var(--primary-green),
+    0 0 0 2px rgba(34, 197, 94, 0.2),
     0 4px 8px rgba(34, 197, 94, 0.1);
-  border-color: var(--primary-green);
+  border-color: #22c55e !important;
   outline: none;
+}
+
+/* Override any blue/indigo focus states */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Fix focus states for checkboxes and radio buttons */
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+}
+
+/* Global override for any blue/indigo focus rings */
+.focus\:ring-blue-500:focus,
+.focus\:ring-indigo-500:focus {
+  --tw-ring-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+.focus\:border-blue-500:focus,
+.focus\:border-indigo-500:focus {
+  border-color: #22c55e !important;
 }
 
 /* Ensure contrast for form elements */
@@ -617,4 +833,462 @@ select option {
   color: #dc2626;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
+}
+
+/* =================================================================
+   CENTRALIZED PAGE STYLING SYSTEM
+   ================================================================= */
+
+/* Main page wrapper - consistent background for all pages */
+.page-wrapper {
+  min-height: 100vh;
+  background: var(--green-50);
+}
+
+/* Standard page header with green gradient */
+.page-header {
+  background: var(--field-gradient) !important;
+  color: white !important;
+  padding: 3rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="grain" width="100" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="white" opacity="0.1"/><circle cx="30" cy="5" r="1" fill="white" opacity="0.05"/><circle cx="50" cy="15" r="2" fill="white" opacity="0.08"/><circle cx="70" cy="8" r="1.5" fill="white" opacity="0.06"/><circle cx="90" cy="12" r="1" fill="white" opacity="0.04"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
+}
+
+.page-header-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.page-subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+}
+
+/* Standard page content area */
+.page-content {
+  padding: 2rem 0;
+}
+
+.page-section {
+  padding: 3rem 0;
+}
+
+.page-section-sm {
+  padding: 2rem 0;
+}
+
+.page-section-lg {
+  padding: 4rem 0;
+}
+
+/* Container utilities */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.page-container-wide {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.page-container-narrow {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Standard card styling */
+.page-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--green-200);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 
+    0 4px 20px rgba(21, 128, 61, 0.08),
+    0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 32px rgba(21, 128, 61, 0.12),
+    0 4px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--green-300);
+}
+
+.page-card-flat {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--green-200);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 
+    0 2px 12px rgba(21, 128, 61, 0.06),
+    0 1px 6px rgba(0, 0, 0, 0.02);
+}
+
+/* Stats cards for dashboard sections - Enhanced specificity */
+.stats-card,
+.page-header .stats-card,
+div[class*="stats-card"],
+.bg-white.bg-opacity-20 {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--green-200) !important;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.1);
+}
+
+.stats-card:hover,
+.page-header .stats-card:hover,
+div[class*="stats-card"]:hover,
+.bg-white.bg-opacity-20:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.15);
+}
+
+.stats-number,
+.stats-card .stats-number,
+.page-header .stats-number,
+div[class*="stats"] .stats-number,
+.bg-white.bg-opacity-20 .text-2xl {
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  font-family: var(--font-display) !important;
+  color: var(--primary-green-dark) !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.stats-label,
+.stats-card .stats-label,
+.page-header .stats-label,
+div[class*="stats"] .stats-label,
+.bg-white.bg-opacity-20 .text-indigo-100,
+.bg-white.bg-opacity-20 .text-primary-100 {
+  color: var(--green-700) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+/* Enhanced Centralized Button System */
+.btn-page-primary {
+  background: var(--primary-green-dark) !important;
+  color: white !important;
+  font-family: var(--font-display);
+  font-weight: 700;
+  padding: 0.875rem 2rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Styling Fixes */
+.bg-background-surface {
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #1e293b !important;
+}
+
+.bg-black\/70 {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.border-neutral-200,
+.border-neutral-300 {
+  border-color: var(--green-200) !important;
+}
+
+.text-neutral-400 {
+  color: var(--green-400) !important;
+}
+
+.text-neutral-300 {
+  color: var(--green-300) !important;
+}
+
+.text-text-primary {
+  color: #1e293b !important;
+}
+
+.text-text-secondary {
+  color: var(--green-700) !important;
+}
+
+.text-text-muted {
+  color: var(--green-600) !important;
+}
+
+.focus\:ring-primary-500\/20:focus {
+  --tw-ring-color: rgba(21, 128, 61, 0.2) !important;
+}
+
+.focus\:border-primary-500:focus {
+  border-color: var(--green-600) !important;
+}
+
+/* Form Elements in Modals */
+.bg-background-surface input,
+.bg-background-surface select,
+.bg-background-surface textarea {
+  background: white !important;
+  color: #1e293b !important;
+  border-color: var(--green-200) !important;
+}
+
+.bg-background-surface input:focus,
+.bg-background-surface select:focus,
+.bg-background-surface textarea:focus {
+  border-color: var(--green-600) !important;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.2) !important;
+}
+
+/* Upload area styling */
+.border-dashed.border-neutral-300 {
+  border-color: var(--green-300) !important;
+  background: var(--green-50) !important;
+}
+
+.border-dashed.border-neutral-300:hover {
+  border-color: var(--green-400) !important;
+  background: var(--green-100) !important;
+}
+
+/* Card styling in modals */
+.bg-background-surface .bg-primary-50 {
+  background: var(--green-50) !important;
+}
+
+.bg-background-surface .border-primary-200 {
+  border-color: var(--green-200) !important;
+}
+
+.bg-background-surface .text-primary-900 {
+  color: var(--green-900) !important;
+}
+
+.bg-background-surface .text-primary-700 {
+  color: var(--green-700) !important;
+}
+
+.bg-background-surface .text-primary-600 {
+  color: var(--green-600) !important;
+}
+
+.bg-background-surface .bg-primary-200 {
+  background: var(--green-200) !important;
+}
+
+.bg-background-surface .bg-primary-600 {
+  background: var(--green-600) !important;
+}
+
+/* Ensure consistent header background across all pages */
+.page-wrapper .page-header,
+div[class*="page-header"],
+section[class*="bg-field"],
+section[class*="bg-primary"] {
+  background: var(--field-gradient) !important;
+  color: white !important;
+}
+
+.btn-page-primary:hover {
+  background: var(--green-700);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.4);
+  color: white !important;
+}
+
+.btn-page-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.3);
+}
+
+.btn-page-secondary {
+  background: white;
+  color: var(--primary-green-dark) !important;
+  border: 2px solid var(--primary-green-dark);
+  font-family: var(--font-display);
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-page-secondary:hover {
+  background: var(--primary-green-dark);
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+}
+
+/* Button size variants */
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 1rem 2.5rem;
+  font-size: 1.125rem;
+}
+
+/* Button state variants */
+.btn-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+/* Responsive design for page elements */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 2.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 1.125rem;
+  }
+  
+  .page-header {
+    padding: 2rem 0;
+  }
+  
+  .page-section {
+    padding: 2rem 0;
+  }
+  
+  .page-card {
+    padding: 1.5rem;
+  }
+  
+  .stats-number {
+    font-size: 1.75rem;
+  }
+}
+
+/* Loading states with green theme */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(34, 197, 94, 0.2);
+  border-top: 4px solid var(--secondary-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error states */
+.page-error {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.error-icon {
+  font-size: 4rem;
+  color: rgba(239, 68, 68, 0.6);
+  margin-bottom: 1rem;
+}
+
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.error-message {
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+/* Coming soon states */
+.page-coming-soon {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.coming-soon-icon {
+  font-size: 5rem;
+  color: rgba(34, 197, 94, 0.3);
+  margin-bottom: 2rem;
+}
+
+.coming-soon-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.coming-soon-description {
+  color: #6b7280;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 2rem;
 }

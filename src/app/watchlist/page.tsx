@@ -18,7 +18,7 @@ export default function WatchlistPage() {
 
   if (user?.type !== USER_TYPES.SCOUT) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">גישה מוגבלת</h2>
           <p className="text-gray-600">רשימת המעקב זמינה רק לסקאוטים</p>
@@ -29,12 +29,12 @@ export default function WatchlistPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
       {/* Header Section */}
-      <section className="bg-indigo-600 text-white py-12">
+      <section className="bg-field-gradient text-white py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4">רשימת המעקב שלי</h1>
-          <p className="text-xl text-indigo-100">
+          <p className="text-xl text-primary-100">
             עקוב אחר שחקנים מעניינים וצפה בהתקדמותם
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function WatchlistPage() {
             </p>
             <button
               onClick={() => showMessage('עבור לעמוד הגילוי כדי למצוא שחקנים', 'info')}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
             >
               מצא שחקנים
             </button>

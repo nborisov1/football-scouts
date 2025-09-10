@@ -89,12 +89,12 @@ export default function TrainingDashboard({ onContentAvailabilityChange }: Train
       currentSeries: seriesId,
       currentVideoIndex: 0
     }))
-    showMessage('התחלת סדרת אימונים חדשה!', 'success')
+    // showMessage('התחלת סדרת אימונים חדשה!', 'success')
   }
 
   const submitVideo = (videoId: string, seriesId: string) => {
     // This will open video upload modal
-    showMessage('פתיחת מסך העלאת סרטון...', 'info')
+    // showMessage('פתיחת מסך העלאת סרטון...', 'info')
   }
 
   const getProgressPercentage = (series: TrainingSeries) => {

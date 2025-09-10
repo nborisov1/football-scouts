@@ -78,7 +78,7 @@ export default function AdminDashboard() {
             </div>
             <div className="flex space-x-4 space-x-reverse">
               <button
-                onClick={() => showMessage('תכונה זו תהיה זמינה בקרוב', 'info')}
+                onClick={() => {/* showMessage('תכונה זו תהיה זמינה בקרוב', 'info') */}}
                 className="btn-primary"
               >
                 <i className="fas fa-download ml-2"></i>

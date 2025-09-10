@@ -116,7 +116,7 @@ export default function PlayerChallengesDashboard({ onSubmissionComplete }: Play
     }
     
     setSubmissionVideo(file)
-    showMessage('סרטון נבחר בהצלחה!', 'success')
+    // showMessage('סרטון נבחר בהצלחה!', 'success')
   }
 
   const handleMetricChange = (metricId: string, value: string) => {
@@ -165,7 +165,7 @@ export default function PlayerChallengesDashboard({ onSubmissionComplete }: Play
       // Submit the challenge (this will handle video upload and scoring)
       await challengeService.submitChallenge(submissionData, submissionVideo)
       
-      showMessage('האתגר נשלח בהצלחה!', 'success')
+      // showMessage('האתגר נשלח בהצלחה!', 'success')
       setShowSubmissionModal(false)
       setSelectedChallenge(null)
       setSubmissionVideo(null)

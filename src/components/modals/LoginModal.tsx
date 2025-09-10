@@ -42,9 +42,9 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
     setIsLoading(true)
     
     try {
-      showMessage('מתחבר...', 'info')
+      // showMessage('מתחבר...', 'info')
       await login(formData.email, formData.password)
-      showMessage('התחברת בהצלחה!', 'success')
+      // showMessage('התחברת בהצלחה!', 'success')
       onClose()
       
       // Reset form

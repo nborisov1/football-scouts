@@ -49,7 +49,7 @@ export default function ProfilePage() {
       delete (updateData as any).name
       
       await updateProfile(updateData)
-      showMessage('הפרופיל עודכן בהצלחה!', 'success')
+      // showMessage('הפרופיל עודכן בהצלחה!', 'success')
       setIsEditing(false)
     } catch (error) {
       showMessage('שגיאה בעדכון הפרופיל', 'error')

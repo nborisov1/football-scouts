@@ -48,22 +48,20 @@ export default function AssessmentVideoUpload({
     setUploadProgress(0)
 
     try {
-      // Simulate upload progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 100))
-      }, 100)
-
-      // Simulate processing time 
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Show initial progress
+      setUploadProgress(10)
       
-      clearInterval(progressInterval)
+      // REAL Firebase Storage upload
+      console.log('🔥 Starting REAL Firebase upload for:', selectedFile.name)
+      const videoUrl = await ChallengeService.uploadChallengeVideo(selectedFile, challenge.id)
+      console.log('✅ Firebase upload complete! URL:', videoUrl)
+      
       setUploadProgress(100)
-      
-      showMessage('הסרטון מוכן לשליחה!', 'success')
-      onUploadComplete(selectedFile) // Pass the file object instead of URL
+      showMessage('הסרטון הועלה בהצלחה ל-Firebase!', 'success')
+      onUploadComplete(selectedFile) // Still pass file for metrics flow
     } catch (error) {
-      console.error('Error preparing video:', error)
-      showMessage('שגיאה בהכנת הסרטון. נסה שוב.', 'error')
+      console.error('❌ Firebase upload failed:', error)
+      showMessage('שגיאה בהעלאת הסרטון ל-Firebase. נסה שוב.', 'error')
     } finally {
       setUploading(false)
       setUploadProgress(0)

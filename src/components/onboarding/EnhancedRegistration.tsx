@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { updateProfile } from 'firebase/auth'
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import { UserData, RegisterData, OnboardingState } from '@/types/user'
+import { useAuth } from '@/contexts/AuthContext'
 import Button from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
@@ -37,6 +38,7 @@ type OnboardingStepId = typeof ONBOARDING_STEPS[number]['id']
 
 export default function EnhancedRegistration({ isOpen, onClose, userType }: EnhancedRegistrationProps) {
   const router = useRouter()
+  const { register } = useAuth()
   const [currentStep, setCurrentStep] = useState<OnboardingStepId>('registration')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -127,19 +129,13 @@ export default function EnhancedRegistration({ isOpen, onClose, userType }: Enha
 
   const handleBasicRegistration = async (data: RegisterData) => {
     try {
-      // Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      )
-
-      // Update display name
-      await updateProfile(userCredential.user, {
-        displayName: `${data.firstName} ${data.lastName}`
+      // Use the register function from AuthContext - this creates the user properly
+      await register({
+        ...data,
+        type: 'player' // Force player type for enhanced registration
       })
 
-      // Save registration data
+      // Save registration data for later steps
       setRegistrationData(data)
       
       // Mark step complete and move to next
@@ -195,7 +191,10 @@ export default function EnhancedRegistration({ isOpen, onClose, userType }: Enha
         updatedAt: serverTimestamp()
       }
 
-      await setDoc(doc(db, 'users', user.uid), userData)
+      await updateDoc(doc(db, 'users', user.uid), {
+        ...userData,
+        updatedAt: serverTimestamp()
+      })
 
       // Move to assessment introduction
       setOnboardingState(prev => ({

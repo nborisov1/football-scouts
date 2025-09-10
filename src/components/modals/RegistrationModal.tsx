@@ -37,6 +37,7 @@ export default function RegistrationModal({
   const [currentStep, setCurrentStep] = useState(STEPS.USER_TYPE)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedUserType, setSelectedUserType] = useState<UserType | null>(initialType || null)
+  const [userType, setUserType] = useState<UserType | null>(null)
   const [formData, setFormData] = useState<RegisterData>({
     firstName: '',
     lastName: '',
@@ -50,18 +51,6 @@ export default function RegistrationModal({
     team: '',
     type: 'player'
   })
-
-  // If user selects 'player', use enhanced registration flow
-  if (selectedUserType === 'player') {
-    return (
-      <EnhancedRegistration
-        isOpen={isOpen}
-        onClose={onClose}
-        userType="player"
-      />
-    )
-  }
-  const [userType, setUserType] = useState<UserType | null>(null)
 
   // Set initial type if provided
   useEffect(() => {
@@ -153,6 +142,17 @@ export default function RegistrationModal({
   }
 
   if (!isOpen) return null
+
+  // If user selects 'player', use enhanced registration flow
+  if (selectedUserType === 'player') {
+    return (
+      <EnhancedRegistration
+        isOpen={isOpen}
+        onClose={onClose}
+        userType="player"
+      />
+    )
+  }
 
   const renderUserTypeStep = () => (
     <div className="space-y-6">

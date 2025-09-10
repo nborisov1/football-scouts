@@ -3,7 +3,7 @@
 import React from 'react'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'gradient'
+  variant?: 'primary' | 'secondary' | 'outline' | 'gradient' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   icon?: string
@@ -30,7 +30,8 @@ export default function Button({
     primary: 'btn-page-primary',
     secondary: 'btn-page-secondary', 
     outline: 'btn-outline',
-    gradient: 'btn-gradient'
+    gradient: 'btn-gradient',
+    ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 bg-transparent border-none'
   }
   
   const sizeClasses = {

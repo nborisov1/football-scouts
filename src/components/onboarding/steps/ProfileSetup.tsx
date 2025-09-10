@@ -54,7 +54,7 @@ export default function ProfileSetup({
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
-  const handleInputChange = (field: keyof RegisterData, value: string | number) => {
+  const handleInputChange = (field: keyof RegisterData, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     // Clear validation error when user changes value
     if (validationErrors[field]) {
@@ -233,7 +233,7 @@ export default function ProfileSetup({
             label="גובה (ס״מ) - אופציונלי"
             type="number"
             value={formData.height?.toString() || ''}
-            onChange={(e) => handleInputChange('height', e.target.value ? parseInt(e.target.value) : 0)}
+            onChange={(e) => handleInputChange('height', e.target.value ? parseInt(e.target.value) : undefined)}
             error={validationErrors.height}
             placeholder="175"
             min={100}
@@ -243,7 +243,7 @@ export default function ProfileSetup({
             label="משקל (ק״ג) - אופציונלי"
             type="number"
             value={formData.weight?.toString() || ''}
-            onChange={(e) => handleInputChange('weight', e.target.value ? parseInt(e.target.value) : 0)}
+            onChange={(e) => handleInputChange('weight', e.target.value ? parseInt(e.target.value) : undefined)}
             error={validationErrors.weight}
             placeholder="70"
             min={20}

@@ -39,7 +39,7 @@ export default function DiscoverPage() {
         </button>
       }
     >
-      {/* This content won't be rendered because comingSoon is active */}
+      <div>{/* This content won't be rendered because comingSoon is active */}</div>
     </PageLayout>
   )
 }

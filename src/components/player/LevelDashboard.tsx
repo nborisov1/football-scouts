@@ -29,11 +29,13 @@ export default function LevelDashboard({ onChallengeSelect }: LevelDashboardProp
 
     setLoading(true)
     try {
+      const currentLevel = user.currentLevel || 1 // Default to level 1 if not set
+      
       // Load all level progression data
       const [summary, challenges, eligibility] = await Promise.all([
-        ChallengeGatingService.getLevelProgressionSummary(user.uid, user.currentLevel),
-        ChallengeGatingService.getAvailableChallenges(user.uid, user.currentLevel),
-        ChallengeGatingService.checkLevelUpEligibility(user.uid, user.currentLevel)
+        ChallengeGatingService.getLevelProgressionSummary(user.uid, currentLevel),
+        ChallengeGatingService.getAvailableChallenges(user.uid, currentLevel),
+        ChallengeGatingService.checkLevelUpEligibility(user.uid, currentLevel)
       ])
 
       setProgressData(summary)
@@ -73,7 +75,7 @@ export default function LevelDashboard({ onChallengeSelect }: LevelDashboardProp
     )
   }
 
-  const levelSummary = LevelAssessmentService.generateLevelSummary(progressData.currentLevel)
+  const levelSummary = LevelAssessmentService.generateLevelSummary(progressData.currentLevel || 1)
 
   return (
     <div className="space-y-6">
@@ -280,11 +282,19 @@ function ChallengeCard({ challenge, onSelect }: ChallengeCardProps) {
         </span>
       </div>
       
-      <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">
+      <h4 className="font-medium text-gray-900 mb-2 overflow-hidden" style={{ 
+        display: '-webkit-box', 
+        WebkitLineClamp: 2, 
+        WebkitBoxOrient: 'vertical' 
+      }}>
         {challenge.title}
       </h4>
       
-      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+      <p className="text-sm text-gray-600 mb-3 overflow-hidden" style={{ 
+        display: '-webkit-box', 
+        WebkitLineClamp: 2, 
+        WebkitBoxOrient: 'vertical' 
+      }}>
         {challenge.description}
       </p>
       

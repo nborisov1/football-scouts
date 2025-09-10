@@ -466,7 +466,7 @@ export class ChallengeService {
     videoFile?: File
   ): Promise<ChallengeSubmission> {
     try {
-      let videoUrl = submission.videoUrl || ''
+      let videoUrl = ''
       
       // Upload video if provided
       if (videoFile) {

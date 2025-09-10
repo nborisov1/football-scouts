@@ -6,9 +6,12 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { RegisterData, UserType } from '@/types/user'
 import { showMessage } from '../MessageContainer'
+import PlayerRegistration from '../onboarding/PlayerRegistration'
+import ScoutRegistration from '../onboarding/ScoutRegistration'
 
 import { USER_TYPES } from '@/lib/firebase'
 
@@ -26,12 +29,13 @@ const STEPS = {
   CONFIRMATION: 3
 }
 
-export default function RegistrationModal({ 
-  isOpen, 
-  onClose, 
-  onSwitchToLogin, 
-  initialType 
+export default function RegistrationModal({
+  isOpen,
+  onClose,
+  onSwitchToLogin,
+  initialType
 }: RegistrationModalProps) {
+  const router = useRouter()
   const { register } = useAuth()
   const [currentStep, setCurrentStep] = useState(STEPS.USER_TYPE)
   const [isLoading, setIsLoading] = useState(false)
@@ -72,12 +76,18 @@ export default function RegistrationModal({
 
   const handleUserTypeSelect = (type: UserType) => {
     if (type === 'player') {
-      // Use enhanced registration flow for players
+      // Route to dedicated PlayerRegistration component
       setSelectedUserType('player')
       return
     }
     
-    // Continue with existing flow for scouts/admins
+    if (type === 'scout') {
+      // Route to dedicated ScoutRegistration component  
+      setSelectedUserType('scout')
+      return
+    }
+    
+    // Continue with existing flow for admins
     setUserType(type)
     setFormData(prev => ({ ...prev, type }))
     setCurrentStep(STEPS.BASIC_INFO)
@@ -128,6 +138,11 @@ export default function RegistrationModal({
       setCurrentStep(STEPS.USER_TYPE)
       setUserType(null)
       onClose()
+      
+      // Redirect players to challenges page after successful registration
+      if (formData.type === 'player') {
+        router.push('/challenges')
+      }
     } catch (error: any) {
       console.error('Registration error:', error)
       showMessage(error.message || 'שגיאה ברישום', 'error')
@@ -138,6 +153,26 @@ export default function RegistrationModal({
 
   if (!isOpen) return null
 
+  // Route to dedicated registration components
+  if (selectedUserType === 'player') {
+    return (
+      <PlayerRegistration
+        isOpen={isOpen}
+        onClose={onClose}
+        onSwitchToLogin={onSwitchToLogin}
+      />
+    )
+  }
+
+  if (selectedUserType === 'scout') {
+    return (
+      <ScoutRegistration
+        isOpen={isOpen}
+        onClose={onClose}
+        onSwitchToLogin={onSwitchToLogin}
+      />
+    )
+  }
 
   const renderUserTypeStep = () => (
     <div className="space-y-6">

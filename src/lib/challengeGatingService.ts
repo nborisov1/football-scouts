@@ -48,37 +48,53 @@ export class ChallengeGatingService {
       // Define level ranges and difficulty mapping
       const levelConfig = this.getLevelConfig(currentLevel)
       
-      const challengesQuery = query(
-        collection(db, 'challenges'),
-        where('status', '==', 'available'),
-        where('difficulty', '==', levelConfig.difficulty),
-        where('level', '<=', currentLevel), // Only challenges for current level or below
-        orderBy('level', 'asc'),
-        orderBy('category', 'asc')
+      // Import the video service to access existing videos
+      const { videoService } = await import('@/lib/videoService')
+      
+      // Get videos from Firebase that match the level requirements
+      const videoResult = await videoService.getVideos(
+        {
+          // Filter by appropriate categories for this level
+          category: this.getCategoriesForLevel(currentLevel)
+        },
+        { field: 'uploadedAt', direction: 'desc' },
+        levelConfig.targetCount * 2 // Get more than needed to filter
       )
 
-      const querySnapshot = await getDocs(challengesQuery)
-      const challenges: Challenge[] = []
+      // Convert videos to Challenge format
+      const challenges: Challenge[] = videoResult.videos
+        .filter(video => {
+          // Filter videos appropriate for current level
+          const videoLevel = this.mapSkillToLevel(video.skillLevel)
+          return videoLevel <= currentLevel
+        })
+        .map(video => ({
+          id: video.id,
+          title: video.title,
+          description: video.description,
+          instructions: video.instructions || `צפה בסרטון ובצע את התרגיל כפי שמוצג. העלה סרטון של הביצוע שלך.`,
+          category: this.mapVideoToCategory(video.category),
+          difficulty: video.skillLevel || levelConfig.difficulty,
+          level: this.mapSkillToLevel(video.skillLevel),
+          status: 'available' as const,
+          ageGroup: video.ageGroup || 'u14',
+          positions: video.positionSpecific || ['all'],
+          attempts: 3,
+          timeLimit: video.expectedDuration || 300,
+          isMonthlyChallenge: false,
+          levelPassingScore: this.getPassingScoreForLevel(currentLevel),
+          rewards: {
+            points: this.calculateLevelPoints(video.skillLevel, currentLevel),
+            xp: this.calculateLevelXP(video.skillLevel, currentLevel)
+          },
+          metrics: this.generateLevelMetrics(video.category),
+          videoUrl: video.videoUrl,
+          thumbnailUrl: video.thumbnailUrl,
+          createdAt: video.uploadedAt,
+          updatedAt: video.lastModified
+        }))
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data()
-        challenges.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date()
-        } as Challenge)
-      })
-
-      // If we don't have enough challenges, fill with additional ones
-      if (challenges.length < levelConfig.targetCount) {
-        const additionalChallenges = await this.getAdditionalChallenges(
-          currentLevel, 
-          levelConfig.targetCount - challenges.length
-        )
-        challenges.push(...additionalChallenges)
-      }
-
+      console.log(`🎯 Found ${challenges.length} required challenges for level ${currentLevel} from videos`)
       return challenges.slice(0, levelConfig.targetCount)
     } catch (error) {
       console.error('Error getting required challenges for level:', error)
@@ -347,5 +363,112 @@ export class ChallengeGatingService {
         skillFocus: []
       }
     }
+  }
+
+  /**
+   * Helper methods to convert videos to challenge format
+   */
+  private static getCategoriesForLevel(level: number): string[] {
+    if (level <= 2) {
+      return ['technical-skills', 'general-training']
+    } else if (level <= 4) {
+      return ['technical-skills', 'physical-fitness', 'general-training']
+    } else {
+      return ['technical-skills', 'physical-fitness', 'general-training', 'tactical', 'goalkeeping']
+    }
+  }
+
+  private static mapVideoToCategory(videoCategory: string): string {
+    const categoryMap: Record<string, string> = {
+      'technical-skills': 'passing',
+      'physical-fitness': 'fitness',
+      'general-training': 'dribbling',
+      'goalkeeping': 'goalkeeping',
+      'tactical': 'combination'
+    }
+    return categoryMap[videoCategory] || 'general'
+  }
+
+  private static mapSkillToLevel(skillLevel?: string): number {
+    const levelMap: Record<string, number> = {
+      'beginner': 1,
+      'intermediate': 2,
+      'advanced': 3
+    }
+    return levelMap[skillLevel || 'beginner'] || 1
+  }
+
+  private static calculateLevelPoints(skillLevel?: string, currentLevel: number = 1): number {
+    const basePoints: Record<string, number> = {
+      'beginner': 60,
+      'intermediate': 80,
+      'advanced': 100
+    }
+    const base = basePoints[skillLevel || 'beginner'] || 60
+    return base + (currentLevel * 10) // Increase points as level increases
+  }
+
+  private static calculateLevelXP(skillLevel?: string, currentLevel: number = 1): number {
+    const baseXP: Record<string, number> = {
+      'beginner': 30,
+      'intermediate': 40,
+      'advanced': 50
+    }
+    const base = baseXP[skillLevel || 'beginner'] || 30
+    return base + (currentLevel * 5) // Increase XP as level increases
+  }
+
+  private static generateLevelMetrics(category: string): any[] {
+    const baseMetrics = [
+      {
+        id: 'execution_quality',
+        name: 'איכות ביצוע',
+        description: 'ציון כללי לאיכות הביצוע (1-10)',
+        type: 'numeric',
+        unit: 'ציון',
+        required: true,
+        min: 1,
+        max: 10
+      },
+      {
+        id: 'technique_score',
+        name: 'ציון טכני',
+        description: 'ציון לטכניקה והביצוע (1-10)',
+        type: 'numeric',
+        unit: 'ציון',
+        required: true,
+        min: 1,
+        max: 10
+      }
+    ]
+
+    // Add category-specific metrics
+    if (category.includes('technical') || category.includes('passing')) {
+      baseMetrics.push({
+        id: 'accuracy',
+        name: 'דיוק',
+        description: 'רמת הדיוק בביצוע (1-10)',
+        type: 'numeric',
+        unit: 'ציון',
+        required: true,
+        min: 1,
+        max: 10
+      })
+    }
+
+    if (category.includes('fitness') || category.includes('physical')) {
+      baseMetrics.push({
+        id: 'endurance',
+        name: 'סיבולת',
+        description: 'רמת הסיבולת שהוצגה (1-10)',
+        type: 'numeric',
+        unit: 'ציון',
+        required: true,
+        min: 1,
+        max: 10
+      })
+    }
+
+    return baseMetrics
   }
 }

@@ -40,40 +40,132 @@ export class AssessmentService {
    */
   static async getInitialAssessmentChallenges(): Promise<Challenge[]> {
     try {
-      // Query for challenges that are marked as assessment challenges
-      // We'll look for challenges with specific categories that work for assessment
-      const challengesQuery = query(
-        collection(db, 'challenges'),
-        where('status', '==', 'available'),
-        where('difficulty', 'in', ['beginner', 'intermediate']), // Suitable for initial assessment
-        orderBy('level', 'asc')
+      // Import the video service to access existing videos
+      const { videoService } = await import('@/lib/videoService')
+      
+      // Get videos from Firebase (your existing 300+ videos)
+      const videoResult = await videoService.getVideos(
+        { category: ['technical-skills', 'physical-fitness', 'general-training'] }, // Good for assessment
+        { field: 'uploadedAt', direction: 'desc' },
+        10 // Get 10 videos for assessment
       )
 
-      const querySnapshot = await getDocs(challengesQuery)
-      const challenges: Challenge[] = []
+      // Convert videos to Challenge format for assessment
+      const challenges: Challenge[] = videoResult.videos.map(video => ({
+        id: video.id,
+        title: video.title,
+        description: video.description,
+        instructions: video.instructions || `צפה בסרטון ובצע את התרגיל כפי שמוצג. העלה סרטון של הביצוע שלך.`,
+        category: this.mapVideoToCategory(video.category),
+        difficulty: video.skillLevel || 'beginner',
+        level: this.mapSkillToLevel(video.skillLevel),
+        status: 'available' as const,
+        ageGroup: video.ageGroup || 'u14',
+        positions: video.positionSpecific || ['all'],
+        attempts: 3,
+        timeLimit: video.expectedDuration || 300,
+        isMonthlyChallenge: false,
+        rewards: {
+          points: this.calculateAssessmentPoints(video.skillLevel),
+          xp: this.calculateAssessmentXP(video.skillLevel)
+        },
+        metrics: this.generateDefaultMetrics(video.category),
+        videoUrl: video.videoUrl,
+        thumbnailUrl: video.thumbnailUrl,
+        createdAt: video.uploadedAt,
+        updatedAt: video.lastModified
+      }))
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data()
-        const challenge: Challenge = {
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date()
-        } as Challenge
-        challenges.push(challenge)
-      })
-
-      // Filter and select assessment-appropriate challenges
-      const assessmentChallenges = this.selectAssessmentChallenges(challenges)
-      
-      console.log(`Found ${assessmentChallenges.length} assessment challenges`)
-      return assessmentChallenges
+      console.log(`🎯 Found ${challenges.length} assessment challenges from videos`)
+      return challenges.slice(0, 5) // Take only 5 for assessment
     } catch (error) {
       console.error('Error fetching assessment challenges:', error)
       
       // Return empty array if fetch fails - UI should handle this gracefully
       return []
     }
+  }
+
+  /**
+   * Helper methods to convert videos to challenge format
+   */
+  private static mapVideoToCategory(videoCategory: string): string {
+    const categoryMap: Record<string, string> = {
+      'technical-skills': 'passing',
+      'physical-fitness': 'fitness',
+      'general-training': 'dribbling',
+      'goalkeeping': 'goalkeeping',
+      'tactical': 'combination'
+    }
+    return categoryMap[videoCategory] || 'general'
+  }
+
+  private static mapSkillToLevel(skillLevel?: string): number {
+    const levelMap: Record<string, number> = {
+      'beginner': 1,
+      'intermediate': 2,
+      'advanced': 3
+    }
+    return levelMap[skillLevel || 'beginner'] || 1
+  }
+
+  private static calculateAssessmentPoints(skillLevel?: string): number {
+    const pointsMap: Record<string, number> = {
+      'beginner': 50,
+      'intermediate': 75,
+      'advanced': 100
+    }
+    return pointsMap[skillLevel || 'beginner'] || 50
+  }
+
+  private static calculateAssessmentXP(skillLevel?: string): number {
+    const xpMap: Record<string, number> = {
+      'beginner': 25,
+      'intermediate': 35,
+      'advanced': 50
+    }
+    return xpMap[skillLevel || 'beginner'] || 25
+  }
+
+  private static generateDefaultMetrics(category: string): any[] {
+    const baseMetrics = [
+      {
+        id: 'execution_quality',
+        name: 'איכות ביצוע',
+        description: 'ציון כללי לאיכות הביצוע (1-10)',
+        type: 'numeric',
+        unit: 'ציון',
+        required: true,
+        min: 1,
+        max: 10
+      },
+      {
+        id: 'completion_time',
+        name: 'זמן השלמה',
+        description: 'כמה זמן לקח לבצע את התרגיל',
+        type: 'time',
+        unit: 'שניות',
+        required: false,
+        min: 10,
+        max: 600
+      }
+    ]
+
+    // Add category-specific metrics
+    if (category.includes('technical') || category.includes('passing')) {
+      baseMetrics.push({
+        id: 'accuracy',
+        name: 'דיוק',
+        description: 'רמת הדיוק בביצוע (1-10)',
+        type: 'numeric',
+        unit: 'ציון',
+        required: true,
+        min: 1,
+        max: 10
+      })
+    }
+
+    return baseMetrics
   }
 
   /**

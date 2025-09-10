@@ -2,7 +2,83 @@
 
 This document provides detailed specifications for all features in the Football Scouting Platform, organized by user type and development phase.
 
-## Phase 1: MVP Features (Weeks 1-3)
+## Phase 1: Enhanced MVP with Level Assessment Flow (Weeks 1-3)
+
+### 1.0 New User Onboarding & Level Assessment Flow
+
+#### Complete User Journey - From Registration to Level Assignment
+**Flow Overview:**
+```
+Registration → Profile Setup → Assessment Challenges → Video Upload → Level Assignment → Level Dashboard
+```
+
+#### Step 1: Basic Registration
+- **Feature**: Standard email/password registration
+- **Data Collected**: Email, password, first name, last name
+- **Next Step**: Redirect to profile setup
+
+#### Step 2: Extended Profile Setup
+- **Feature**: Football-specific profile completion
+- **Required Data**:
+  - Age (determines age group and appropriate challenges)
+  - Primary position (striker, midfielder, defender, goalkeeper)
+  - Dominant foot (right, left, both)
+  - Years playing football (0-1, 2-5, 6-10, 10+ years)
+  - Previous club/team experience (optional)
+  - Height and weight (optional but recommended)
+- **UI/UX**: Step-by-step wizard with position-specific graphics
+- **Validation**: Age-appropriate position validation (no 8-year-old goalkeepers)
+
+#### Step 3: Generic Assessment Challenge Presentation
+- **Feature**: Present the same standardized set of 5 assessment challenges to ALL users
+- **Standardized Challenge Set**:
+  - **Ball Control**: Basic touch and control measurement
+  - **Short Passing**: 20 passes to target accuracy test
+  - **Shooting Accuracy**: 10 shots on target measurement
+  - **Basic Dribbling**: Cone weaving time and technique assessment
+  - **Sprint Speed**: 30-meter sprint timing
+- **UI**: Present challenges with clear instructions and demo videos
+- **User Choice**: Player can complete challenges in any order they prefer
+- **Benefits**: Consistent baseline for all players, easier score comparison
+
+#### Step 4: Video + Performance Data Submission
+- **Feature**: For each assessment challenge, collect both video and performance metrics
+- **Video Upload**:
+  - Record attempt at challenge (30-90 seconds max)
+  - Multiple attempts allowed, submit best one
+  - Basic video validation (format, length, file size)
+- **Performance Data Entry**:
+  - **Example - Shooting Accuracy**: "How many shots out of 10 hit the target?"
+  - **Example - Passing**: "How many passes out of 20 reached teammate accurately?"
+  - **Example - Ball Control**: "How many touches to control 10 balls?"
+  - **Example - Sprint**: "Time for 30-meter sprint (seconds)"
+- **Data Validation**: Reasonable range validation (can't have 100% accuracy on first assessment)
+
+#### Step 5: Level Determination Algorithm
+- **Feature**: Automated analysis combines video review + performance data to assign starting level
+- **Scoring Algorithm**:
+  - Each challenge scored 1-10 based on performance metrics
+  - Video analysis provides technique score 1-10
+  - Age-adjusted scoring (expectations lower for younger players)
+  - Position-weighted scoring (strikers judged more on shooting, etc.)
+- **Level Assignment**:
+  - Average score 1-3: Start at Level 1 (Complete Beginner)
+  - Average score 4-5: Start at Level 3-4 (Beginner with some skills)
+  - Average score 6-7: Start at Level 5-6 (Intermediate beginner)
+  - Average score 8-9: Start at Level 7-8 (Solid intermediate)
+  - Average score 10: Start at Level 9-10 (Advanced beginner)
+- **Transparency**: Show player their scores and explain level assignment
+
+#### Step 6: Level Dashboard & Next Steps
+- **Feature**: Clear dashboard showing current level and path forward
+- **Dashboard Components**:
+  - **Current Level Display**: "You are Level 5 - Intermediate Beginner"
+  - **Progress to Next Level**: "Complete 4 challenges to reach Level 6"
+  - **Challenge List**: Specific challenges required for next level advancement
+  - **Estimated Time**: "Players typically take 2-3 weeks to complete Level 5"
+  - **Skill Focus Areas**: Based on assessment, highlight areas needing improvement
+
+## Phase 1: Core Platform Features (Weeks 1-3)
 
 ### 1.1 User Authentication System
 
@@ -34,24 +110,37 @@ This document provides detailed specifications for all features in the Football 
   - Privacy settings
   - Account deactivation option
 
-### 1.2 Enhanced Player Features with Level Progression
+### 1.2 Enhanced Player Onboarding with Level Assessment Flow
 
-#### Player Profile Creation with Level System
-- **Feature**: Comprehensive player profile with level progression tracking
+#### New Player Onboarding & Level Assessment System
+- **Feature**: Structured onboarding process that determines player's starting level through assessment challenges
+- **Complete Flow**:
+  1. **Basic Registration**: Email, password, name
+  2. **Profile Setup**: Age, position, dominant foot, playing experience
+  3. **Initial Assessment Challenges**: 3-5 position-specific challenges to determine starting level
+  4. **Video + Performance Upload**: For each challenge, upload video and enter performance metrics
+  5. **Level Determination**: Algorithm analyzes performance and assigns starting level (1-10)
+  6. **Level Dashboard**: Show current level and clear path to next level
+
+#### Enhanced Player Profile with Dynamic Level System
+- **Feature**: Comprehensive player profile that evolves with level progression
 - **Data Fields**:
-  - Personal info (name, age, height, weight)
-  - Football info (position, dominant foot, playing level)
-  - Contact information
-  - Profile picture
-  - Brief bio/description
-  - **Level Progression Data**:
-    - Current level (1-50)
+  - Personal info (name, age, height, weight, position, dominant foot)
+  - Contact information and profile picture
+  - **Assessment Results**:
+    - Initial challenge scores and videos
+    - Determined starting level and reasoning
+    - Skill strengths and areas for improvement
+  - **Current Level Data**:
+    - Current level (1-50) with visual progress bar
     - Skill category (Beginner/Intermediate/Advanced/Professional)
-    - Total experience points (XP)
-    - Current level XP and progress to next level
+    - Total experience points (XP) and current level progress
+    - Challenges completed vs required for next level
+  - **Progression Tracking**:
     - Unlocked features and achievements
     - Skill mastery levels for different football skills
-    - Monthly goals and progress tracking
+    - Monthly goals and completion status
+    - Next level requirements and estimated time to complete
 
 #### Exercise Video Training System
 - **Feature**: Access to admin-created exercise videos with AI-powered performance analysis
@@ -155,15 +244,26 @@ This document provides detailed specifications for all features in the Football 
 
 ### 2.1 Advanced Player Features with Level System
 
-#### Level Progression Engine
-- **Feature**: Core 50-level progression system with XP and achievements
+#### Two-Phase Level Progression System
+- **Feature**: Streamlined progression system with distinct assessment and advancement phases
+
+**Phase 1: Generic Assessment (Initial Level Assignment)**
+- **Standardized Challenges**: Same 5 generic challenges for all users
+- **Level Assignment**: Simple scoring algorithm assigns starting level (1-10)
+- **No Personalization**: Consistent baseline measurement for everyone
+- **Quick Onboarding**: Fast, focused assessment process
+
+**Phase 2: Level-Specific Progression (Long-term Engagement)**
+- **Large Challenge Sets**: ~50 challenges required per level
+- **Performance Thresholds**: Must achieve minimum score AND complete all challenges
+- **Level Gating**: Can only access current level challenges
+- **Rich Content**: Comprehensive skill development at each level
+
 - **Components**:
-  - **XP Calculation System**: Base XP + multipliers for streaks, perfect scores, improvement
-  - **Level Advancement**: Exponential XP requirements (Level 1: 100 XP, Level 50: ~50,000 XP)
-  - **Skill Categories**: Automatic categorization as players advance through levels
-  - **Achievement System**: Automatic generation of level-based achievements and badges
-  - **Feature Unlocking**: Progressive unlocking of advanced features by level
-  - **Monthly Goal Generation**: Level-appropriate goals created automatically each month
+  - **Simplified Assessment**: No complex algorithms - direct score-to-level mapping
+  - **Performance Thresholds**: Each challenge has minimum passing score requirement
+  - **Level Gate System**: Must complete ALL challenges with passing scores to advance
+  - **Progress Visualization**: Clear progress bars showing X/50 challenges completed for current level
 
 #### Enhanced Skill Assessment with Level Integration
 - **Feature**: Comprehensive skill evaluation that determines starting level

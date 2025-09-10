@@ -33,13 +33,22 @@ By combining personalized training programs, advanced evaluation tools, and rich
 
 ### 2.1. Player Experience: Growth and Excellence
 
-#### Registration and Creation of a Comprehensive Player Profile
-- Fast and intuitive registration process, secured with Firebase Authentication
-- **Extended Initial Assessment Module**: Upon profile creation, the player will undergo interactive questionnaires:
-  - **Technical and Physical Skill Assessment**: A built-in self-rating of specific football abilities (e.g., passing accuracy, dribbling speed, shooting power) and physical data
-  - **Mental Assessment**: A questionnaire analyzing critical aspects such as mental resilience, leadership, discipline, ability to cope with pressure, and decision-making under stress—inspired by the holistic approach of "Train Effective"
+#### Structured Registration and Level Assessment Flow
+- **Step 1 - Basic Registration**: Fast and intuitive account creation with Firebase Authentication
+- **Step 2 - Profile Setup**: Football-specific data collection (age, position, experience, physical attributes)
+- **Step 3 - Assessment Challenge Selection**: Algorithm assigns 3-5 position-specific challenges to determine starting level
+- **Step 4 - Video + Performance Submission**: For each challenge, player uploads video and enters performance metrics (counts, timing, accuracy)
+- **Step 5 - Level Determination**: Automated analysis of video + performance data assigns starting level (1-10)
+- **Step 6 - Level Dashboard**: Clear dashboard showing current level and exact challenges needed to advance
 
-This data will serve as the basis for tailoring training programs and providing insights to scouts.
+**Assessment Challenge Examples by Position:**
+- **All Players**: Ball control, short passing accuracy
+- **Strikers**: Shooting accuracy (X/10 shots on target), first touch control, finishing technique
+- **Midfielders**: Long passing accuracy, ball control under pressure, vision and awareness
+- **Defenders**: 1v1 defending success rate, clearance technique, positioning
+- **Goalkeepers**: Shot stopping (saves/shots faced), distribution accuracy, positioning
+
+This structured approach ensures every player starts at an appropriate level and has a clear path for progression.
 
 #### Level-Based Progressive Training System
 - **50-Level Progression System**: Players start at Level 1 and work toward Level 50, with each level unlocking new challenges, features, and content

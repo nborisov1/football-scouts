@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { RegisterData } from '@/types/user'
-import { Button } from '@/components/ui/Button'
+import Button from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 
@@ -92,7 +92,7 @@ export default function BasicRegistration({
             label="שם פרטי"
             type="text"
             value={formData.firstName}
-            onChange={(value) => handleInputChange('firstName', value)}
+            onChange={(e) => handleInputChange('firstName', e.target.value)}
             error={validationErrors.firstName}
             required
             placeholder="הכנס את השם הפרטי שלך"
@@ -101,7 +101,7 @@ export default function BasicRegistration({
             label="שם משפחה"
             type="text"
             value={formData.lastName}
-            onChange={(value) => handleInputChange('lastName', value)}
+            onChange={(e) => handleInputChange('lastName', e.target.value)}
             error={validationErrors.lastName}
             required
             placeholder="הכנס את שם המשפחה שלך"
@@ -113,7 +113,7 @@ export default function BasicRegistration({
           label="כתובת אימייל"
           type="email"
           value={formData.email}
-          onChange={(value) => handleInputChange('email', value)}
+          onChange={(e) => handleInputChange('email', e.target.value)}
           error={validationErrors.email}
           required
           placeholder="example@email.com"
@@ -124,7 +124,7 @@ export default function BasicRegistration({
           label="סיסמה"
           type="password"
           value={formData.password}
-          onChange={(value) => handleInputChange('password', value)}
+          onChange={(e) => handleInputChange('password', e.target.value)}
           error={validationErrors.password}
           required
           placeholder="לפחות 6 תווים"
@@ -135,7 +135,7 @@ export default function BasicRegistration({
           label="קבוצה / ארגון (אופציונלי)"
           type="text"
           value={formData.organization}
-          onChange={(value) => handleInputChange('organization', value)}
+          onChange={(e) => handleInputChange('organization', e.target.value)}
           placeholder="הכנס את שם הקבוצה או הארגון שלך"
         />
 
@@ -165,7 +165,7 @@ export default function BasicRegistration({
           variant="primary"
           size="lg"
           disabled={loading}
-          isLoading={loading}
+          loading={loading}
           className="w-full"
         >
           {loading ? 'יוצר חשבון...' : 'צור חשבון והמשך'}

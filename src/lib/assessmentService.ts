@@ -146,28 +146,24 @@ export class AssessmentService {
         throw new Error('Challenge not found')
       }
 
-      // Upload video using existing challenge service
-      const videoUrl = await ChallengeService.uploadChallengeVideo(videoFile, challengeId)
-
       // Calculate scores based on performance metrics
       const scores = this.calculateChallengeScores(challenge, performanceMetrics)
       const totalScore = this.calculateTotalScore(scores)
 
       // Create submission using existing challenge submission format
-      const submissionData: Omit<ChallengeSubmission, 'id' | 'submittedAt'> = {
+      const submissionData: Omit<ChallengeSubmission, 'id' | 'submittedAt' | 'videoUrl'> = {
         playerId,
         challengeId,
-        videoUrl,
         description,
         metrics: performanceMetrics,
         scores,
         totalScore,
         overallRating: this.getOverallRating(totalScore),
-        status: 'pending' // Will be auto-approved for assessment
+        status: 'approved' // Auto-approve assessment submissions
       }
 
-      // Submit using existing challenge service
-      return await ChallengeService.submitChallenge(submissionData, undefined) // Video already uploaded
+      // Submit using existing challenge service (it will handle video upload)
+      return await ChallengeService.submitChallenge(submissionData, videoFile)
     } catch (error) {
       console.error('Error submitting assessment challenge:', error)
       throw new Error('Failed to submit assessment challenge')

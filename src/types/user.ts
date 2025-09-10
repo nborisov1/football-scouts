@@ -164,7 +164,7 @@ export interface LevelProgressionData {
 }
 
 export interface OnboardingStep {
-  step: 'registration' | 'profile' | 'assessment' | 'level-assignment' | 'dashboard'
+  step: 'registration' | 'profile' | 'assessment-intro' | 'assessment' | 'level-assignment' | 'dashboard'
   completed: boolean
   data?: any
 }
@@ -172,7 +172,7 @@ export interface OnboardingStep {
 export interface OnboardingState {
   currentStep: OnboardingStep['step']
   completedSteps: OnboardingStep['step'][]
-  assessmentChallenges: AssessmentChallenge[]
+  assessmentChallenges: any[] // Will be Challenge[] from challenge types
   assessmentSubmissions: AssessmentSubmission[]
   assignedLevel?: number
   canProceed: boolean

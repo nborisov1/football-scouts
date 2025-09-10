@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { RegisterData } from '@/types/user'
-import { Button } from '@/components/ui/Button'
+import Button from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 
@@ -132,7 +132,7 @@ export default function ProfileSetup({
             label="גיל"
             type="number"
             value={formData.age?.toString() || ''}
-            onChange={(value) => handleInputChange('age', parseInt(value) || 16)}
+            onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 16)}
             error={validationErrors.age}
             required
             placeholder="16"
@@ -233,7 +233,7 @@ export default function ProfileSetup({
             label="גובה (ס״מ) - אופציונלי"
             type="number"
             value={formData.height?.toString() || ''}
-            onChange={(value) => handleInputChange('height', parseInt(value) || undefined)}
+            onChange={(e) => handleInputChange('height', e.target.value ? parseInt(e.target.value) : 0)}
             error={validationErrors.height}
             placeholder="175"
             min={100}
@@ -243,7 +243,7 @@ export default function ProfileSetup({
             label="משקל (ק״ג) - אופציונלי"
             type="number"
             value={formData.weight?.toString() || ''}
-            onChange={(value) => handleInputChange('weight', parseInt(value) || undefined)}
+            onChange={(e) => handleInputChange('weight', e.target.value ? parseInt(e.target.value) : 0)}
             error={validationErrors.weight}
             placeholder="70"
             min={20}
@@ -257,14 +257,14 @@ export default function ProfileSetup({
             label="קבוצה נוכחית (אופציונלי)"
             type="text"
             value={formData.team || ''}
-            onChange={(value) => handleInputChange('team', value)}
+            onChange={(e) => handleInputChange('team', e.target.value)}
             placeholder="שם הקבוצה הנוכחית"
           />
           <Input
             label="קבוצה קודמת (אופציונלי)"
             type="text"
             value={formData.previousClub || ''}
-            onChange={(value) => handleInputChange('previousClub', value)}
+            onChange={(e) => handleInputChange('previousClub', e.target.value)}
             placeholder="קבוצה שבה שיחקת בעבר"
           />
         </div>
@@ -286,7 +286,7 @@ export default function ProfileSetup({
             variant="primary"
             size="lg"
             disabled={loading}
-            isLoading={loading}
+            loading={loading}
             className="flex-1"
           >
             {loading ? 'שומר...' : 'המשך למבחן הרמה'}

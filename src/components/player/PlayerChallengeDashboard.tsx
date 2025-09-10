@@ -109,7 +109,6 @@ export default function PlayerChallengeDashboard({}: PlayerChallengeDashboardPro
       setSubmissions(prev => [savedSubmission, ...prev])
       setShowSubmissionModal(false)
       setSelectedChallenge(null)
-      showMessage('האתגר נשלח בהצלחה!', 'success')
     } catch (error) {
       console.error('Error submitting challenge:', error)
       showMessage('שגיאה בשליחת האתגר', 'error')

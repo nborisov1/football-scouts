@@ -199,7 +199,6 @@ export default function VideoUpload({
       }
 
       onUploadComplete?.(uploadedVideo)
-      showMessage('הסרטון הועלה בהצלחה!', 'success')
 
     } catch (error) {
       console.error('Upload error:', error)

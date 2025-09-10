@@ -57,7 +57,6 @@ export default function AssessmentVideoUpload({
       console.log('✅ Firebase upload complete! URL:', videoUrl)
       
       setUploadProgress(100)
-      showMessage('הסרטון הועלה בהצלחה ל-Firebase!', 'success')
       onUploadComplete(selectedFile) // Still pass file for metrics flow
     } catch (error) {
       console.error('❌ Firebase upload failed:', error)

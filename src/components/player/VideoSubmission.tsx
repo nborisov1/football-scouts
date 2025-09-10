@@ -64,12 +64,10 @@ export default function VideoSubmission({
         const file = new File([blob], `submission-${Date.now()}.webm`, { type: 'video/webm' })
         setSelectedFile(file)
         setPreviewUrl(URL.createObjectURL(blob))
-        showMessage('ההקלטה הושלמה בהצלחה!', 'success')
       }
 
       mediaRecorder.start()
       setIsRecording(true)
-      showMessage('התחלת הקלטה...', 'info')
     } catch (error) {
       console.error('Error starting recording:', error)
       showMessage('שגיאה בהתחלת ההקלטה. אנא בדוק את הרשאות המצלמה', 'error')
@@ -123,7 +121,6 @@ export default function VideoSubmission({
       }
 
       onSubmissionComplete(submission)
-      showMessage('הסרטון הועלה בהצלחה וממתין לבדיקה!', 'success')
     } catch (error) {
       console.error('Upload error:', error)
       showMessage('שגיאה בהעלאת הסרטון. אנא נסה שוב', 'error')

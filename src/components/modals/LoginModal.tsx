@@ -42,9 +42,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
     setIsLoading(true)
     
     try {
-      // showMessage('מתחבר...', 'info')
       await login(formData.email, formData.password)
-      // showMessage('התחברת בהצלחה!', 'success')
       onClose()
       
       // Reset form
@@ -156,7 +154,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
             <button
               type="button"
               className="text-sm text-field-500 hover:text-field-600 transition-colors flex items-center justify-center mx-auto space-x-1 space-x-reverse"
-              onClick={() => showMessage('אפשרות שחזור סיסמה תופעל בקרוב', 'info')}
+              onClick={() => {}}
             >
               <i className="fas fa-question-circle"></i>
               <span>שכחת סיסמה?</span>

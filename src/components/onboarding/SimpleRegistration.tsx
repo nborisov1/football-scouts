@@ -68,7 +68,6 @@ export default function SimpleRegistration({
       // Register the user with all the data
       await register(formData)
       
-      // showMessage('ההרשמה הושלמה בהצלחה! ברוך הבא!', 'success')
       onClose()
       router.push('/training') // Redirect to training where they can explore
       

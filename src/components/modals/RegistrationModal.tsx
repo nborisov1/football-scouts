@@ -110,11 +110,7 @@ export default function RegistrationModal({
     setIsLoading(true)
 
     try {
-      // showMessage('יוצר חשבון...', 'info')
       await register(formData)
-      
-      const userTypeHebrew = userType === USER_TYPES.PLAYER ? 'שחקן' : 'סקאוט'
-      // showMessage(`ברוך הבא! נרשמת בהצלחה כ${userTypeHebrew}`, 'success')
       
       // Reset form and close modal
       setFormData({

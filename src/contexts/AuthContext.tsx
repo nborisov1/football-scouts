@@ -247,7 +247,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       
       // Show success message and redirect to landing page
-      // showMessage('התנתקת בהצלחה! מקווים לראותך שוב בקרוב', 'success')
       router.push('/')
     } catch (error: any) {
       console.error('❌ Logout error:', error)

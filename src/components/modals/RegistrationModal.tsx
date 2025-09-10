@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { RegisterData, UserType } from '@/types/user'
 import { showMessage } from '../MessageContainer'
+import EnhancedRegistration from '../onboarding/EnhancedRegistration'
 
 import { USER_TYPES } from '@/lib/firebase'
 
@@ -35,6 +36,7 @@ export default function RegistrationModal({
   const { register } = useAuth()
   const [currentStep, setCurrentStep] = useState(STEPS.USER_TYPE)
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedUserType, setSelectedUserType] = useState<UserType | null>(initialType || null)
   const [formData, setFormData] = useState<RegisterData>({
     firstName: '',
     lastName: '',
@@ -48,6 +50,17 @@ export default function RegistrationModal({
     team: '',
     type: 'player'
   })
+
+  // If user selects 'player', use enhanced registration flow
+  if (selectedUserType === 'player') {
+    return (
+      <EnhancedRegistration
+        isOpen={isOpen}
+        onClose={onClose}
+        userType="player"
+      />
+    )
+  }
   const [userType, setUserType] = useState<UserType | null>(null)
 
   // Set initial type if provided
@@ -70,6 +83,13 @@ export default function RegistrationModal({
   }
 
   const handleUserTypeSelect = (type: UserType) => {
+    if (type === 'player') {
+      // Use enhanced registration flow for players
+      setSelectedUserType('player')
+      return
+    }
+    
+    // Continue with existing flow for scouts/admins
     setUserType(type)
     setFormData(prev => ({ ...prev, type }))
     setCurrentStep(STEPS.BASIC_INFO)

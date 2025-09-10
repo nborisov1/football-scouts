@@ -103,6 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               level: userData.level || 'beginner',
               dominantFoot: userData.dominantFoot || 'right',
               organization: userData.organization || '',
+              // New level progression fields with defaults
+              onboardingCompleted: userData.onboardingCompleted || false,
+              assessmentCompleted: userData.assessmentCompleted || false,
+              currentLevel: userData.currentLevel || 1,
+              skillCategory: userData.skillCategory || 'beginner',
+              levelProgress: userData.levelProgress || 0,
+              completedLevelChallenges: userData.completedLevelChallenges || [],
+              totalChallengesInLevel: userData.totalChallengesInLevel || 30,
               ...userData
             })
           } else {
@@ -121,7 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               team: '',
               level: 'beginner',
               dominantFoot: 'right',
-              organization: ''
+              organization: '',
+              // New level progression fields
+              onboardingCompleted: false,
+              assessmentCompleted: false,
+              currentLevel: 1,
+              skillCategory: 'beginner',
+              levelProgress: 0,
+              completedLevelChallenges: [],
+              totalChallengesInLevel: 30
             })
           }
         } else {

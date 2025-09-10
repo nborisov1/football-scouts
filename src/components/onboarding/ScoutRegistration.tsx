@@ -90,14 +90,14 @@ export default function ScoutRegistration({
       <div className="max-w-md mx-auto">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Back Button */}
-          <div className="flex items-center justify-start mb-6">
+          <div className="flex items-center justify-start mb-4">
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex items-center px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all group"
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              title="חזור לבחירת סוג משתמש"
             >
-              <i className="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-              <span>חזור לבחירת סוג משתמש</span>
+              <i className="fas fa-arrow-right text-gray-600 hover:text-gray-800"></i>
             </button>
           </div>
 

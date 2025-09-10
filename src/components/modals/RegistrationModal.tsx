@@ -153,6 +153,11 @@ export default function RegistrationModal({
 
   if (!isOpen) return null
 
+  // Reset user type selection to go back to user type selection
+  const handleBackToUserSelection = () => {
+    setSelectedUserType(null)
+  }
+
   // Route to dedicated registration components
   if (selectedUserType === 'player') {
     return (
@@ -160,6 +165,7 @@ export default function RegistrationModal({
         isOpen={isOpen}
         onClose={onClose}
         onSwitchToLogin={onSwitchToLogin}
+        onBack={handleBackToUserSelection}
       />
     )
   }
@@ -170,6 +176,7 @@ export default function RegistrationModal({
         isOpen={isOpen}
         onClose={onClose}
         onSwitchToLogin={onSwitchToLogin}
+        onBack={handleBackToUserSelection}
       />
     )
   }

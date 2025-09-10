@@ -16,12 +16,14 @@ interface PlayerRegistrationProps {
   isOpen: boolean
   onClose: () => void
   onSwitchToLogin: () => void
+  onBack: () => void
 }
 
 export default function PlayerRegistration({ 
   isOpen, 
   onClose, 
-  onSwitchToLogin 
+  onSwitchToLogin,
+  onBack
 }: PlayerRegistrationProps) {
   const router = useRouter()
   const { register } = useAuth()
@@ -87,14 +89,24 @@ export default function PlayerRegistration({
     <Modal isOpen={isOpen} onClose={onClose} title="הרשמת שחקן">
       <div className="max-w-md mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Header */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              הצטרף כשחקן ⚽
-            </h2>
-            <p className="text-gray-600">
-              צור חשבון והתחל להתאמן ולהתקדם
-            </p>
+          {/* Header with Back Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={onBack}
+              className="absolute right-0 top-0 flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <i className="fas fa-arrow-right ml-2"></i>
+              חזור לבחירת סוג משתמש
+            </button>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                הצטרף כשחקן ⚽
+              </h2>
+              <p className="text-gray-600">
+                צור חשבון והתחל להתאמן ולהתקדם
+              </p>
+            </div>
           </div>
 
           {/* Basic Info */}

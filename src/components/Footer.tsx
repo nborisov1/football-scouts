@@ -68,12 +68,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/training" className="flex items-center text-white hover:text-field-300 text-sm transition-colors group">
-                  <i className="fas fa-dumbbell ml-3 text-white group-hover:text-field-300 transition-colors"></i>
-                  תוכניות אימון
-                </Link>
-              </li>
-              <li>
                 <Link href="/about" className="flex items-center text-white hover:text-field-300 text-sm transition-colors group">
                   <i className="fas fa-info-circle ml-3 text-white group-hover:text-field-300 transition-colors"></i>
                   אודות

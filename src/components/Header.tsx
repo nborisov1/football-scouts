@@ -77,10 +77,6 @@ export default function Header() {
                     <i className="fas fa-trophy ml-2 text-accent-500"></i>
                     טבלאות מובילים
                   </Link>
-                  <Link href="/training" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
-                    <i className="fas fa-dumbbell ml-2 text-field-500"></i>
-                    תוכניות אימון
-                  </Link>
                   <Link href="/challenges" className="nav-link relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-field-50">
                     <i className="fas fa-bullseye ml-2 text-field-600 text-lg"></i>
                     אתגרים
@@ -124,20 +120,12 @@ export default function Header() {
                         הפרופיל שלי
                       </Link>
                       <Link
-                        href="/training"
-                        className="flex items-center px-4 py-3 text-sm text-stadium-700 hover:bg-field-50 hover:text-field-700 transition-colors"
-                        onClick={() => setShowUserDropdown(false)}
-                      >
-                        <i className="fas fa-dumbbell ml-3 text-field-500"></i>
-                        תוכנית האימון שלי
-                      </Link>
-                      <Link
                         href="/challenges"
                         className="flex items-center px-4 py-3 text-sm text-stadium-700 hover:bg-field-50 hover:text-field-700 transition-colors"
                         onClick={() => setShowUserDropdown(false)}
                       >
-                        <i className="fas fa-bullseye ml-3 text-field-600 text-base"></i>
-                        אתגרים
+                        <i className="fas fa-bullseye ml-3 text-field-600"></i>
+                        האתגרים שלי
                       </Link>
                       {user.type === USER_TYPES.SCOUT && (
                         <Link
@@ -233,14 +221,6 @@ export default function Header() {
                     >
                       <i className="fas fa-trophy ml-3 text-accent-500"></i>
                       טבלאות מובילים
-                    </Link>
-                    <Link 
-                      href="/training" 
-                      className="flex items-center px-4 py-3 text-stadium-700 hover:text-field-700 hover:bg-field-50 font-medium rounded-lg mx-2 transition-colors"
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      <i className="fas fa-dumbbell ml-3 text-field-500"></i>
-                      תוכניות אימון
                     </Link>
                     <Link 
                       href="/challenges" 

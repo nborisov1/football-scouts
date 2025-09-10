@@ -120,11 +120,11 @@ export default function HomePage() {
           {/* Quick Actions */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
             <Link
-              href="/training"
+              href="/challenges"
               className="group bg-transparent text-white px-8 py-4 rounded-xl font-display font-bold border-2 border-white hover:bg-white hover:text-field-700 transition-all duration-300 hover:scale-105 shadow-stadium inline-flex items-center justify-center"
             >
-              <i className="fas fa-tasks ml-3 group-hover:text-field-600 transition-colors"></i>
-              המשך אימון
+              <i className="fas fa-bullseye ml-3 group-hover:text-field-600 transition-colors"></i>
+              התחל אתגרים
             </Link>
             <Link
               href="/challenges"

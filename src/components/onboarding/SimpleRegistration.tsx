@@ -38,7 +38,9 @@ export default function SimpleRegistration({
     position: '',
     dominantFoot: 'right',
     level: 'beginner',
-    type: 'player'
+    type: 'player',
+    team: '',
+    organization: ''
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -69,7 +71,7 @@ export default function SimpleRegistration({
       await register(formData)
       
       onClose()
-      router.push('/training') // Redirect to training where they can explore
+      router.push('/challenges') // Redirect to challenges where they can start training
       
     } catch (error: any) {
       console.error('Registration error:', error)
@@ -207,7 +209,7 @@ export default function SimpleRegistration({
         {/* Info Message */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
-            💡 <strong>טיפ:</strong> לאחר ההרשמה תוכל לקחת מבחן רמה כדי לקבל תרגילים מותאמים אישית
+            💡 <strong>טיפ:</strong> לאחר ההרשמה תגיע לעמוד האתגרים שם תוכל להתחיל להתאמן
           </p>
         </div>
 

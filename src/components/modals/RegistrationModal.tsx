@@ -9,7 +9,6 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { RegisterData, UserType } from '@/types/user'
 import { showMessage } from '../MessageContainer'
-import SimpleRegistration from '../onboarding/SimpleRegistration'
 
 import { USER_TYPES } from '@/lib/firebase'
 
@@ -139,16 +138,6 @@ export default function RegistrationModal({
 
   if (!isOpen) return null
 
-  // If user selects 'player', use simple registration flow
-  if (selectedUserType === 'player') {
-    return (
-      <SimpleRegistration
-        isOpen={isOpen}
-        onClose={onClose}
-        onSwitchToLogin={onSwitchToLogin}
-      />
-    )
-  }
 
   const renderUserTypeStep = () => (
     <div className="space-y-6">

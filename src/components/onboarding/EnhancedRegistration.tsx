@@ -11,14 +11,10 @@ import Button from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
-import { AssessmentService } from '@/lib/assessmentService'
 
 // Step Components
 import BasicRegistration from './steps/BasicRegistration'
 import ProfileSetup from './steps/ProfileSetup'
-import AssessmentIntroduction from './steps/AssessmentIntroduction'
-import AssessmentChallenges from './steps/AssessmentChallenges'
-import LevelAssignment from './steps/LevelAssignment'
 
 interface EnhancedRegistrationProps {
   isOpen: boolean
@@ -28,10 +24,7 @@ interface EnhancedRegistrationProps {
 
 const ONBOARDING_STEPS = [
   { id: 'registration', title: 'רישום בסיסי', description: 'פרטים אישיים ראשוניים' },
-  { id: 'profile', title: 'פרופיל כדורגל', description: 'פרטי כדורגל ורקע ספורטיבי' },
-  { id: 'assessment-intro', title: 'הכנה למבחן', description: 'הסבר על מבחן הרמה' },
-  { id: 'assessment', title: 'מבחן רמה', description: '5 אתגרים לקביעת רמה' },
-  { id: 'level-assignment', title: 'קביעת רמה', description: 'תוצאות ורמה אישית' }
+  { id: 'profile', title: 'פרופיל כדורגל', description: 'פרטי כדורגל ורקע ספורטיבי' }
 ] as const
 
 type OnboardingStepId = typeof ONBOARDING_STEPS[number]['id']
@@ -179,9 +172,9 @@ export default function EnhancedRegistration({ isOpen, onClose, userType }: Enha
         height: updatedData.height,
         weight: updatedData.weight,
         previousClub: updatedData.previousClub,
-        onboardingCompleted: false,
-        assessmentCompleted: false,
-        currentLevel: 1,
+        onboardingCompleted: true, // Complete onboarding immediately
+        assessmentCompleted: false, // Assessment can be done later
+        currentLevel: 1, // Default level
         skillCategory: 'beginner',
         levelProgress: 0,
         completedLevelChallenges: [],
@@ -196,13 +189,9 @@ export default function EnhancedRegistration({ isOpen, onClose, userType }: Enha
         updatedAt: serverTimestamp()
       })
 
-      // Move to assessment introduction
-      setOnboardingState(prev => ({
-        ...prev,
-        completedSteps: [...prev.completedSteps, 'profile'],
-        currentStep: 'assessment-intro'
-      }))
-      setCurrentStep('assessment-intro')
+      // Complete registration immediately - no assessment needed
+      onClose() // Close the modal
+      router.push('/training') // Redirect to training page where they can take assessment later
 
     } catch (error) {
       console.error('Profile setup error:', error)
@@ -288,35 +277,15 @@ export default function EnhancedRegistration({ isOpen, onClose, userType }: Enha
             error={error}
           />
         )
-      case 'assessment-intro':
+      default:
         return (
-          <AssessmentIntroduction
-            challenges={onboardingState.assessmentChallenges}
+          <BasicRegistration
+            data={registrationData}
             onComplete={handleStepComplete}
-            onBack={handleBackStep}
-            loading={loading}
-          />
-        )
-      case 'assessment':
-        return (
-          <AssessmentChallenges
-            challenges={onboardingState.assessmentChallenges}
-            onComplete={handleStepComplete}
-            onBack={handleBackStep}
             loading={loading}
             error={error}
           />
         )
-      case 'level-assignment':
-        return (
-          <LevelAssignment
-            assignedLevel={onboardingState.assignedLevel || 1}
-            onComplete={handleStepComplete}
-            loading={loading}
-          />
-        )
-      default:
-        return null
     }
   }
 

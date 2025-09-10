@@ -88,25 +88,27 @@ export default function ScoutRegistration({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="הרשמת סקאוט">
       <div className="max-w-md mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Header with Back Button */}
-          <div className="relative">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Back Button */}
+          <div className="flex items-center justify-start mb-6">
             <button
               type="button"
               onClick={onBack}
-              className="absolute right-0 top-0 flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+              className="inline-flex items-center px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all group"
             >
-              <i className="fas fa-arrow-right ml-2"></i>
-              חזור לבחירת סוג משתמש
+              <i className="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+              <span>חזור לבחירת סוג משתמש</span>
             </button>
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                הצטרף כסקאוט 🔍
-              </h2>
-              <p className="text-gray-600">
-                צור חשבון והתחל לגלות כישרונות
-              </p>
-            </div>
+          </div>
+
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              הצטרף כסקאוט 🔍
+            </h2>
+            <p className="text-gray-600">
+              צור חשבון והתחל לגלות כישרונות
+            </p>
           </div>
 
           {/* Basic Info */}

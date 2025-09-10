@@ -1,68 +1,72 @@
 # Football Scouting Platform - Development Roadmap
 
-## Overall Goal: Project Completion in 1.5 Months (approx. 6 weeks)
+## Overall Goal: Level Progression System Implementation (Next Development Phase)
 
-This roadmap outlines the complete development timeline for transitioning from the current localStorage-based prototype to a fully functional Firebase-powered platform.
+This roadmap outlines the development timeline for implementing the 50-level progression system on top of the existing production-ready React/Firebase platform. **Note: The core platform is already complete and functional.**
 
 ## Phase Breakdown
 
-### Phase 1: Minimum Viable Product (MVP)
-Focus on the core platform that will enable basic and beneficial interaction between players and scouts.
+### ✅ Phase 1: COMPLETED - Core Platform MVP
+The core platform with authentication, player profiles, challenges, video uploads, scout discovery, and admin management is **fully functional and production-ready**.
 
-### Phase 2: Enhancements, Personalization, and Core Strengthening
-After launching the MVP and receiving initial feedback, we will upgrade the experience with more advanced capabilities.
+### 🎯 Phase 2: Level Progression System Implementation (Current Focus)
+Implement the 50-level progression system with XP, achievements, and monthly goals to enhance player engagement and retention.
 
-### Phase 3: Innovation, Differentiation, and Market Leadership
-Implementation of the most advanced features discussed, which will significantly differentiate the platform and leverage Firebase's full potential.
-
----
-
-## Week 1: Foundation & Core MVP (Authentication, Basic Profiles, Hosting) - (7 Days)
-
-### Day 1-2: Firebase Project Setup & Initial Configuration
-**Tasks:**
-- [ ] Verify Firebase project setup (Authentication, Firestore, Storage, Hosting)
-- [ ] Ensure `config/firebase.js` contains actual project credentials and is correctly initialized
-- [ ] Test Firebase connectivity and basic operations
-- [ ] Set up development environment with Firebase CLI
-
-**Deliverables:**
-- Working Firebase project configuration
-- Firebase CLI properly installed and configured
-- Initial Firebase Security Rules set up
-
-### Day 3-5: User Authentication & Registration
-**Tasks:**
-- [ ] Design and implement HTML/CSS for player, scout, and admin registration forms (if not already present or needs refinement)
-- [ ] Implement client-side JavaScript to handle user registration (email/password) using Firebase Authentication, connecting to forms
-- [ ] Implement client-side JavaScript for user login (email/password) using Firebase Authentication, connecting to login forms
-- [ ] Integrate existing `auth/auth.js` logic for `onAuthStateChanged` and persistence into relevant HTML pages (e.g., `index.html`, `pages/profile.html`)
-- [ ] Implement password reset functionality
-- [ ] Add user role management (player, scout, admin)
-
-**Deliverables:**
-- Complete authentication system with Firebase
-- User registration flows for all user types
-- Login/logout functionality
-- Password reset capability
-
-### Day 6-7: Basic User Profiles (Firestore)
-**Tasks:**
-- [ ] Define and implement a basic Firestore data schema for Player profiles (name, email, type, age, position, dominantFoot, level, basic stats, challenges stub, trainingProgram stub)
-- [ ] Define and implement a basic Firestore data schema for Scout profiles (name, email, type, club, position, watchlist stub)
-- [ ] Refine `auth/auth.js` to ensure basic player profiles are correctly created and stored in Firestore upon registration
-- [ ] Refine `auth/auth.js` to ensure basic scout profiles are correctly created and stored in Firestore upon registration
-- [ ] Create basic HTML structure and associated JavaScript for displaying a player's profile on `pages/profile.html`
-- [ ] Create basic HTML structure and associated JavaScript for displaying a scout's profile
-
-**Deliverables:**
-- Firestore data schemas for all user types
-- Profile creation and display functionality
-- User profile management interface
+### 🚀 Phase 3: Advanced Level Features & Analytics
+Extend the level system with advanced features like skill mastery tracking, competitive leaderboards, and detailed progression analytics.
 
 ---
 
-## Week 2: MVP - Video Uploads, Basic Admin, Player Discovery - (7 Days)
+## 🎯 NEW ROADMAP: Level Progression System Implementation
+
+## Week 1: Level System Foundation (7 Days)
+
+### Day 1-2: Level System Type Definitions & Data Models
+**Tasks:**
+- [ ] Create enhanced user types with level progression fields
+- [ ] Define XP calculation algorithms and level requirements
+- [ ] Create achievement, skill mastery, and monthly goal type definitions
+- [ ] Update Firestore data models for level progression
+- [ ] Create level progression service architecture
+
+**Deliverables:**
+- Complete TypeScript type definitions for level system
+- Level progression service skeleton
+- Updated user data models with level fields
+
+### Day 3-5: XP Engine & Level Calculation System
+**Tasks:**
+- [ ] Implement XP calculation algorithms with multipliers (streaks, perfect scores, improvement)
+- [ ] Create level progression calculation engine (exponential XP requirements)
+- [ ] Build achievement generation system for level-ups and milestones
+- [ ] Implement skill category determination based on current level
+- [ ] Create monthly goal generation system based on player level
+- [ ] Integrate XP awarding into existing challenge and exercise completion flows
+
+**Deliverables:**
+- Functional XP calculation and awarding system
+- Level progression engine with all 50 levels defined
+- Achievement system generating appropriate rewards
+- Monthly goal generation based on level
+
+### Day 6-7: Player Profile Level Integration
+**Tasks:**
+- [ ] Update existing player profiles to include level progression fields
+- [ ] Create level progression initialization system for new players
+- [ ] Implement level progress display components (progress bars, XP counters)
+- [ ] Update profile pages to show current level, skill category, and next level requirements
+- [ ] Create achievement gallery component for displaying earned badges
+- [ ] Add monthly goals display to player dashboard
+
+**Deliverables:**
+- Enhanced player profiles with level progression data
+- Level progress visualization components
+- Achievement and goal display systems
+- Updated player dashboard with level information
+
+---
+
+## Week 2: Level-Integrated Features & Skill Mastery (7 Days)
 
 ### Day 8-10: Admin Exercise Video Upload System
 **Tasks:**

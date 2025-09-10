@@ -41,8 +41,13 @@ By combining personalized training programs, advanced evaluation tools, and rich
 
 This data will serve as the basis for tailoring training programs and providing insights to scouts.
 
-#### Personalized and Dynamic Training Programs
-- Training programs automatically adapted to the initial assessment results and updated in real-time with the player's progress, stored and managed in Firestore Database
+#### Level-Based Progressive Training System
+- **50-Level Progression System**: Players start at Level 1 and work toward Level 50, with each level unlocking new challenges, features, and content
+- **Skill Categories**: Four main categories (Beginner: Levels 1-10, Intermediate: 11-25, Advanced: 26-40, Professional: 41-50)
+- **XP and Achievement System**: Players earn experience points (XP) through completing exercises, challenges, and goals, with multipliers for streaks, perfect scores, and improvement
+- **Monthly Level Goals**: Each level generates appropriate monthly goals that must be achieved to progress (e.g., complete X training sessions, master Y skills)
+- **Training programs automatically adapted to the player's current level, initial assessment results, and ongoing progress
+- **Feature Unlocking**: Advanced training programs, custom challenges, video analysis tools, and scout visibility features unlock at specific levels
 - **Enrichment of Training Content**:
   - **"Expert Tips" in Video/Text**: Integration of short video clips from "virtual coaches" demonstrating correct techniques, emphasizing the importance of the exercise, and providing mental guidance
   - **Interactive Tactical Scenarios**: Video exercises simulating real game situations, challenging the player to make quick and correct tactical decisions
@@ -58,8 +63,12 @@ This data will serve as the basis for tailoring training programs and providing 
 
 #### Comprehensive Progress Tracking and Visual Dashboard
 - **Advanced Personal Dashboard**: Displays clear visual progress to the player:
-  - **Dynamic Graphs**: Show improvement in specific skills (e.g., passing accuracy percentages) over time, based on challenge performance and video analysis
-  - **Goal Tracking**: The player can set personal goals and track their achievement
+  - **Level Progress Bar**: Shows current level, XP earned, and progress to next level
+  - **Skill Mastery Tracking**: Visual representation of mastery levels in different skills (dribbling, passing, shooting, etc.)
+  - **Achievement Gallery**: Display of earned achievements, badges, and milestones
+  - **Monthly Goals Progress**: Real-time tracking of current month's level-specific goals
+  - **Dynamic Graphs**: Show improvement in specific skills over time, based on challenge performance and video analysis
+  - **Unlocked Features**: Clear display of features unlocked at current level and preview of upcoming unlocks
   - Clear display of points, leaderboard position, and comparison to past performance
 
 #### Tactical and Mental Development Modules
@@ -183,12 +192,16 @@ The transition to Firebase will be part of the development roadmap outlined in t
 
 ## Key Differentiators
 
-1. **Holistic Approach**: Unlike competitors who focus only on technical skills, we emphasize tactical and mental development
-2. **Personalized Training**: AI-driven adaptation of training programs based on initial assessments and ongoing progress
-3. **Interactive Evaluation**: Advanced video analysis tools for scouts with tagging and report generation
-4. **Real-time Development Tracking**: Visual timelines showing player progression over time
-5. **Secure Communication**: Built-in messaging system maintaining privacy while facilitating connections
-6. **Professional UI/UX**: Clean, modern interface optimized for both Hebrew (RTL) and international users
+1. **Progressive Level System**: Players advance through 50 levels with goals to achieve for each level progression, creating a gamified and engaging development experience
+2. **Holistic Approach**: Unlike competitors who focus only on technical skills, we emphasize tactical and mental development with level-appropriate challenges
+3. **Personalized Training**: AI-driven adaptation of training programs based on player level, initial assessments, and ongoing progress
+4. **Level-Based Goal Setting**: Monthly goals and achievements automatically generated based on player's current level and skill category
+5. **Interactive Evaluation**: Advanced video analysis tools for scouts with tagging and report generation
+6. **Real-time Development Tracking**: Visual timelines showing player progression and level advancement over time
+7. **Skill Mastery System**: Players develop expertise in specific skills (dribbling, passing, shooting) with measurable progression
+8. **Feature Unlocking**: Advanced features and content unlock as players reach higher levels, maintaining engagement
+9. **Secure Communication**: Built-in messaging system maintaining privacy while facilitating connections
+10. **Professional UI/UX**: Clean, modern interface optimized for both Hebrew (RTL) and international users
 
 ## Success Metrics
 

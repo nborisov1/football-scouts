@@ -34,16 +34,24 @@ This document provides detailed specifications for all features in the Football 
   - Privacy settings
   - Account deactivation option
 
-### 1.2 Basic Player Features
+### 1.2 Enhanced Player Features with Level Progression
 
-#### Player Profile Creation
-- **Feature**: Comprehensive player profile with basic information
+#### Player Profile Creation with Level System
+- **Feature**: Comprehensive player profile with level progression tracking
 - **Data Fields**:
   - Personal info (name, age, height, weight)
   - Football info (position, dominant foot, playing level)
   - Contact information
   - Profile picture
   - Brief bio/description
+  - **Level Progression Data**:
+    - Current level (1-50)
+    - Skill category (Beginner/Intermediate/Advanced/Professional)
+    - Total experience points (XP)
+    - Current level XP and progress to next level
+    - Unlocked features and achievements
+    - Skill mastery levels for different football skills
+    - Monthly goals and progress tracking
 
 #### Exercise Video Training System
 - **Feature**: Access to admin-created exercise videos with AI-powered performance analysis
@@ -143,18 +151,29 @@ This document provides detailed specifications for all features in the Football 
   - Read status indicators
   - Basic spam protection
 
-## Phase 2: Enhanced Features (Weeks 4-5)
+## Phase 2: Enhanced Features with Level Progression (Weeks 4-5)
 
-### 2.1 Advanced Player Features
+### 2.1 Advanced Player Features with Level System
 
-#### Initial Skill Assessment
-- **Feature**: Comprehensive skill evaluation questionnaire
+#### Level Progression Engine
+- **Feature**: Core 50-level progression system with XP and achievements
 - **Components**:
-  - Technical skills assessment (15 questions)
+  - **XP Calculation System**: Base XP + multipliers for streaks, perfect scores, improvement
+  - **Level Advancement**: Exponential XP requirements (Level 1: 100 XP, Level 50: ~50,000 XP)
+  - **Skill Categories**: Automatic categorization as players advance through levels
+  - **Achievement System**: Automatic generation of level-based achievements and badges
+  - **Feature Unlocking**: Progressive unlocking of advanced features by level
+  - **Monthly Goal Generation**: Level-appropriate goals created automatically each month
+
+#### Enhanced Skill Assessment with Level Integration
+- **Feature**: Comprehensive skill evaluation that determines starting level
+- **Components**:
+  - Technical skills assessment (15 questions) 
   - Physical abilities evaluation (10 questions)
   - Mental/tactical assessment (12 questions)
   - Self-rating system with video examples
-  - Automated scoring algorithm
+  - **Level Recommendation Algorithm**: Determines appropriate starting level (1-10)
+  - **Skill Mastery Initialization**: Sets baseline for skill tracking system
 
 #### Personalized Training Programs
 - **Feature**: AI-driven training program adaptation
@@ -166,15 +185,20 @@ This document provides detailed specifications for all features in the Football 
   - Exercise completion verification
   - Performance improvement metrics
 
-#### Advanced Progress Dashboard
-- **Feature**: Visual analytics and progress tracking
-- **Implementation**: Chart.js or similar for data visualization
+#### Advanced Progress Dashboard with Level Visualization
+- **Feature**: Visual analytics and progress tracking with level progression focus
+- **Implementation**: Chart.js or similar for data visualization with level progression components
 - **Requirements**:
-  - Skill improvement graphs
-  - Training consistency metrics
-  - Goal setting and tracking
-  - Performance comparison (self and peers)
-  - Achievement badges and milestones
+  - **Level Progress Display**: Current level, XP earned, and visual progress bar to next level
+  - **Skill Mastery Charts**: Radar charts showing mastery levels (1-5) in different football skills
+  - **Achievement Gallery**: Visual display of earned badges, milestones, and level achievements
+  - **Monthly Goals Tracker**: Real-time progress on current month's level-specific goals
+  - **XP History Graph**: Timeline of XP earned over time with streak indicators
+  - **Feature Unlock Preview**: Display of unlocked features and preview of upcoming unlocks
+  - Skill improvement graphs over time
+  - Training consistency metrics with streak tracking
+  - Performance comparison (self and peers) within same level range
+  - **Level Leaderboards**: Separate leaderboards for each skill category
 
 #### Tactical Development Module
 - **Feature**: Interactive tactical learning system

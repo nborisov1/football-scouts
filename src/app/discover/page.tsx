@@ -37,7 +37,7 @@ export default function DiscoverPage() {
           <i className="fas fa-bell"></i>
           הודע לי כשיהיה זמין
         </button>
-      }}
+      }
     >
       {/* This content won't be rendered because comingSoon is active */}
     </PageLayout>

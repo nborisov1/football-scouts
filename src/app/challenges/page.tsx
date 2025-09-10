@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import ComingSoon from '@/components/ComingSoon'
-import PlayerChallengesDashboard from '@/components/player/PlayerChallengesDashboard'
+import LevelDashboard from '@/components/player/LevelDashboard'
 import { challengeService, ChallengeFilters } from '@/lib/challengeService'
 import { 
   Challenge,
@@ -85,8 +85,29 @@ export default function ChallengesPage() {
     )
   }
 
-  // Show player-specific dashboard for players
+  // Show player-specific dashboard for players - use the NEW Level Progression System!
   if (user?.type === 'player') {
+    // Check if user has completed onboarding
+    if (!user.onboardingCompleted) {
+      return (
+        <ProtectedRoute>
+          <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="text-center">
+              <i className="fas fa-user-plus text-6xl text-primary-600 mb-4"></i>
+              <h2 className="text-2xl font-bold text-text-primary mb-4">השלם את ההרשמה</h2>
+              <p className="text-text-muted mb-4">עליך להשלים את תהליך ההרשמה כדי לגשת לאתגרים</p>
+              <button
+                onClick={() => window.location.href = '/profile'}
+                className="btn-page-primary"
+              >
+                השלם הרשמה
+              </button>
+            </div>
+          </div>
+        </ProtectedRoute>
+      )
+    }
+
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-background">
@@ -95,15 +116,23 @@ export default function ChallengesPage() {
             <div className="container mx-auto px-4">
               <h1 className="text-4xl font-bold mb-4">האתגרים שלי</h1>
               <p className="text-xl text-primary-100">
-                אתגרים מותאמים אישית עבורך - התקדם, שפר את הכישורים שלך וזכה בנקודות!
+                מערכת התקדמות ברמות - השלם אתגרים והתקדם לרמה הבאה!
               </p>
             </div>
           </section>
 
-          {/* Player Dashboard */}
+          {/* Show Level Dashboard instead of generic challenges */}
           <section className="py-8">
             <div className="container mx-auto px-4">
-              <PlayerChallengesDashboard />
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">מערכת ההתקדמות שלך</h2>
+                <p className="text-gray-600">
+                  זוהי מערכת האתגרים החדשה - השלם אתגרים ברמה הנוכחית שלך כדי להתקדם לרמה הבאה!
+                </p>
+              </div>
+              
+              {/* This is the REAL Level Progression system I built! */}
+              <LevelDashboard />
             </div>
           </section>
         </div>

@@ -1,23 +1,24 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { Challenge } from '@/types/challenge'
-import { ChallengeService } from '@/lib/challengeService'
+import { AssessmentChallenge, AssessmentService } from '@/lib/assessmentService'
+import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
 import { Card } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 
 interface AssessmentVideoUploadProps {
-  challenge: Challenge
-  onUploadComplete: (videoFile: File) => void
+  challenge: AssessmentChallenge
+  onSubmissionComplete: (submissionId: string) => void
   onCancel: () => void
 }
 
 export default function AssessmentVideoUpload({ 
   challenge, 
-  onUploadComplete, 
+  onSubmissionComplete, 
   onCancel 
 }: AssessmentVideoUploadProps) {
+  const { user } = useAuth()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -41,26 +42,58 @@ export default function AssessmentVideoUpload({
     setSelectedFile(file)
   }
 
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video')
+      video.preload = 'metadata'
+      
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src)
+        resolve(video.duration)
+      }
+      
+      video.onerror = () => {
+        resolve(30) // Default duration if can't detect
+      }
+      
+      video.src = URL.createObjectURL(file)
+    })
+  }
+
   const handleUpload = async () => {
-    if (!selectedFile) return
+    if (!selectedFile || !user) return
 
     setUploading(true)
     setUploadProgress(0)
 
     try {
-      // Show initial progress
       setUploadProgress(10)
       
-      // REAL Firebase Storage upload
-      console.log('🔥 Starting REAL Firebase upload for:', selectedFile.name)
-      const videoUrl = await ChallengeService.uploadChallengeVideo(selectedFile, challenge.id)
-      console.log('✅ Firebase upload complete! URL:', videoUrl)
+      // Get video duration
+      const videoDuration = await getVideoDuration(selectedFile)
+      setUploadProgress(30)
+      
+      console.log(`📤 Submitting assessment for challenge ${challenge.id}`)
+      console.log(`🎬 Video: ${selectedFile.name}, Duration: ${videoDuration}s`)
+      
+      // Submit assessment directly (no manual metrics)
+      const submissionId = await AssessmentService.submitAssessmentChallenge(
+        user.uid,
+        challenge.id,
+        selectedFile,
+        videoDuration,
+        `Assessment video for ${challenge.title}`
+      )
       
       setUploadProgress(100)
-      onUploadComplete(selectedFile) // Still pass file for metrics flow
+      showMessage('הסרטון הועלה והתוצאות נשמרו בהצלחה!', 'success')
+      
+      // Complete submission
+      onSubmissionComplete(submissionId)
+      
     } catch (error) {
-      console.error('❌ Firebase upload failed:', error)
-      showMessage('שגיאה בהעלאת הסרטון ל-Firebase. נסה שוב.', 'error')
+      console.error('❌ Assessment submission failed:', error)
+      showMessage('שגיאה בהעלאת הסרטון. נסה שוב.', 'error')
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -81,9 +114,36 @@ export default function AssessmentVideoUpload({
         <h3 className="text-xl font-bold text-gray-900 mb-2">
           העלאת סרטון - {challenge.title}
         </h3>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-4">
           צלם את עצמך מבצע את האתגר והעלה את הסרטון
         </p>
+        
+        {/* Challenge Instructions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-right">
+          <h4 className="font-bold text-blue-900 mb-2">🎯 הוראות ביצוע:</h4>
+          <div className="text-sm text-blue-800 whitespace-pre-line">
+            {challenge.instructions}
+          </div>
+        </div>
+        
+        {/* Auto Analysis Info */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <h4 className="font-bold text-green-900 mb-2">🤖 ניתוח אוטומטי:</h4>
+          <div className="text-sm text-green-800">
+            <p className="mb-2">המערכת תנתח את הסרטון שלך אוטומטית ותעניק ציון על בסיס:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {challenge.videoAnalysis.metrics.map((metric, index) => (
+                <div key={index} className="flex items-center space-x-2 space-x-reverse">
+                  <span className="text-green-600">✓</span>
+                  <span className="text-green-800 capitalize">{metric.replace('_', ' ')}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-green-700 mt-2">
+              ⏱️ זמן מקסימלי: {challenge.timeLimit} שניות
+            </div>
+          </div>
+        </div>
       </div>
 
       {!selectedFile ? (
@@ -104,7 +164,7 @@ export default function AssessmentVideoUpload({
               בחר קובץ
             </Button>
             <p className="text-xs text-gray-400 mt-3">
-              MP4, MOV, AVI עד 100MB
+              MP4, MOV, AVI עד 100MB | מקסימום {challenge.timeLimit} שניות
             </p>
           </div>
 
@@ -145,7 +205,7 @@ export default function AssessmentVideoUpload({
           {uploading && (
             <div className="mb-6">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>מעלה סרטון...</span>
+                <span>מעלה ומנתח סרטון...</span>
                 <span>{uploadProgress}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -157,17 +217,12 @@ export default function AssessmentVideoUpload({
             </div>
           )}
 
-          {/* Instructions */}
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <h5 className="font-medium text-blue-900 mb-2">הוראות לצילום:</h5>
-            <ul className="text-sm text-blue-800 space-y-1">
-              {challenge.instructions.split('\n').slice(0, 3).map((instruction, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>{instruction}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Ready to Submit */}
+          <div className="bg-yellow-50 rounded-lg p-4 mb-6">
+            <h5 className="font-medium text-yellow-900 mb-2">✅ מוכן להעלאה!</h5>
+            <p className="text-sm text-yellow-800">
+              המערכת תעלה את הסרטון, תנתח אותו אוטומטית ותעניק לך ציון בהתאם לביצועים.
+            </p>
           </div>
         </div>
       )}
@@ -192,7 +247,7 @@ export default function AssessmentVideoUpload({
             disabled={uploading}
             className="flex-1"
           >
-            {uploading ? 'מעלה...' : 'העלה סרטון'}
+            {uploading ? 'מעלה ומנתח...' : 'העלה וסיים אתגר'}
           </Button>
         )}
       </div>

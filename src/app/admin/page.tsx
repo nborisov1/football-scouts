@@ -11,6 +11,7 @@ import { showMessage } from '@/components/MessageContainer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 
 import { USER_TYPES } from '@/lib/firebase'
+import { AdminService } from '@/lib/adminService'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
@@ -21,6 +22,24 @@ export default function AdminDashboard() {
     pendingVideos: 0,
     newUsersToday: 0
   })
+  const [markingVideos, setMarkingVideos] = useState(false)
+
+  const handleMarkAssessmentVideos = async () => {
+    try {
+      setMarkingVideos(true)
+      showMessage('מתחיל לסמן סרטונים כאתגרי הערכה...', 'info')
+      
+      const markedVideos = await AdminService.markAssessmentVideos()
+      
+      showMessage(`✅ הצלחה! ${markedVideos?.length || 5} סרטונים סומנו כאתגרי הערכה`, 'success')
+    } catch (error) {
+      console.error('Error marking assessment videos:', error)
+      showMessage('❌ שגיאה בסימון סרטונים כאתגרי הערכה', 'error')
+    } finally {
+      setMarkingVideos(false)
+    }
+  }
+
 
   // Redirect if not admin
   if (!user || user.type !== USER_TYPES.ADMIN) {
@@ -227,6 +246,44 @@ export default function AdminDashboard() {
                 עבור לטיפול
               </button>
             </div>
+          </div>
+        </div>
+
+
+        {/* Assessment Setup */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h3 className="text-lg font-bold mb-4">🎯 הגדרות מבחני רמה</h3>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800 mb-3">
+              <strong>הגדרת אתגרים למבחני רמה:</strong><br/>
+              יש לסמן 5 אתגרים כ"מבחני רמה" כדי שהמערכת תשתמש בהם לקביעת רמת השחקנים החדשים.
+            </p>
+          </div>
+          
+          <button
+            onClick={handleMarkAssessmentVideos}
+            disabled={markingVideos}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              markingVideos
+                ? 'bg-gray-400 cursor-not-allowed text-white' 
+                : 'bg-primary-600 hover:bg-primary-700 text-white'
+            }`}
+          >
+            {markingVideos ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                מסמן אתגרים...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-flag mr-2"></i>
+                סמן 5 אתגרים כמבחני רמה
+              </>
+            )}
+          </button>
+          
+          <div className="mt-3 text-xs text-gray-600">
+            פעולה זו תבחר 5 אתגרים אקראיים ותסמן אותם כמבחני רמה עם הוראות מיוחדות
           </div>
         </div>
       </div>

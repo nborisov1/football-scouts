@@ -25,3 +25,5 @@ export type { BadgeProps } from './Badge'
 
 export { Loading, LoadingSkeleton } from './Loading'
 export type { LoadingProps } from './Loading'
+
+export { VideoPlayer } from './VideoPlayer'

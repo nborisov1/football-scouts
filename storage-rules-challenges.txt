@@ -1,0 +1,39 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // ADMIN UPLOADS - Challenge videos (instructions, demos) 
+    // Only admins can upload original challenge content
+    match /challenges/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.type == 'admin';
+    }
+    
+    // Thumbnails for challenges - admin upload only
+    match /thumbnails/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.type == 'admin';
+    }
+    
+    // USER SUBMISSIONS - Player submissions after completing challenges
+    // Users can only upload to their own folder
+    match /user-submissions/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Assessment submissions - users upload their assessment videos
+    match /assessments/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default rule - authenticated users can read, admins can write
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.type == 'admin';
+    }
+  }
+}

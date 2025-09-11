@@ -72,7 +72,7 @@ export default function PlayerRegistration({
       await register(formData)
       
       onClose()
-      router.push('/challenges') // Redirect to challenges where they can start training
+      router.push('/assessment') // Redirect to level assessment first
       
     } catch (error: any) {
       console.error('Registration error:', error)
@@ -237,7 +237,7 @@ export default function PlayerRegistration({
           {/* Info Message */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              💡 <strong>טיפ:</strong> לאחר ההרשמה תגיע לעמוד האתגרים שם תוכל להתחיל להתאמן
+              💡 <strong>צעד הבא:</strong> לאחר ההרשמה תבצע מבחן רמה כדי לקבוע את נקודת ההתחלה שלך
             </p>
           </div>
 

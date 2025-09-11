@@ -1,10 +1,49 @@
 /**
- * Exercise and Training Constants for Football Scouting Platform
- * Centralized constants for exercises, positions, skills, ages, and training metadata
- * 
- * Note: All constant values are in English for better maintainability and international compatibility.
- * Hebrew translations are provided in separate label objects for UI display.
+ * Challenges Constants - Football Scouting Platform
+ * All constants for challenges, positions, skills, ages, Firebase collections, and training metadata
  */
+
+// =============================================================================
+// FIREBASE COLLECTIONS & STORAGE
+// =============================================================================
+
+export const COLLECTIONS = {
+  USERS: 'users',
+  TRAINING: 'training',
+  VIDEOS: 'videos', // Admin uploaded challenge videos (instructions, demos)
+  CHALLENGES: 'challenges', // User submissions: challenges/{userId} subcollections
+  LEADERBOARDS: 'leaderboards',
+  SCOUT_REPORTS: 'scout_reports',
+  ANALYTICS: 'analytics',
+  USER_PROGRESS: 'user_progress',
+  ASSESSMENTS: 'assessments'
+}
+
+export const STORAGE_PATHS = {
+  // Admin uploads (original challenge videos, instructions, demos)
+  VIDEOS: 'videos',
+  THUMBNAILS: 'thumbnails',
+  
+  // User uploads (submissions after completing challenges)
+  CHALLENGES: 'challenges', // challenges/{userId}/
+  ASSESSMENTS: 'assessments'
+}
+
+// =============================================================================
+// USER TYPES
+// =============================================================================
+
+export const USER_TYPES = {
+  PLAYER: 'player',
+  SCOUT: 'scout',
+  ADMIN: 'admin'
+}
+
+export const AUTH_STATES = {
+  LOADING: 'loading',
+  AUTHENTICATED: 'authenticated',
+  UNAUTHENTICATED: 'unauthenticated'
+}
 
 // =============================================================================
 // SKILL LEVELS & DIFFICULTY
@@ -13,22 +52,23 @@
 export const SKILL_LEVELS = {
   BEGINNER: 'beginner',
   INTERMEDIATE: 'intermediate',
-  ADVANCED: 'advanced'
-} as const
+  ADVANCED: 'advanced',
+  PROFESSIONAL: 'professional'
+}
 
-export type SkillLevel = typeof SKILL_LEVELS[keyof typeof SKILL_LEVELS]
-
-export const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
+export const SKILL_LEVEL_LABELS = {
   [SKILL_LEVELS.BEGINNER]: 'מתחיל',
   [SKILL_LEVELS.INTERMEDIATE]: 'בינוני',
-  [SKILL_LEVELS.ADVANCED]: 'מתקדם'
+  [SKILL_LEVELS.ADVANCED]: 'מתקדם',
+  [SKILL_LEVELS.PROFESSIONAL]: 'מקצועי'
 }
 
 // Difficulty thresholds for progression (in points)
-export const DIFFICULTY_THRESHOLDS: Record<SkillLevel, number> = {
+export const DIFFICULTY_THRESHOLDS = {
   [SKILL_LEVELS.BEGINNER]: 10,
   [SKILL_LEVELS.INTERMEDIATE]: 30,
-  [SKILL_LEVELS.ADVANCED]: 60
+  [SKILL_LEVELS.ADVANCED]: 60,
+  [SKILL_LEVELS.PROFESSIONAL]: 100
 }
 
 // Difficulty levels (1-10 scale)
@@ -36,7 +76,7 @@ export const DIFFICULTY_SCALE = {
   MIN: 1,
   MAX: 10,
   DEFAULT: 5
-} as const
+}
 
 // =============================================================================
 // AGE GROUPS
@@ -51,11 +91,9 @@ export const AGE_GROUPS = {
   U18: 'u18',
   U21: 'u21',
   ADULT: 'adult'
-} as const
+}
 
-export type AgeGroup = typeof AGE_GROUPS[keyof typeof AGE_GROUPS]
-
-export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
+export const AGE_GROUP_LABELS = {
   [AGE_GROUPS.U8]: 'עד גיל 8',
   [AGE_GROUPS.U10]: 'עד גיל 10',
   [AGE_GROUPS.U12]: 'עד גיל 12',
@@ -67,7 +105,7 @@ export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
 }
 
 // Age group progression order
-export const AGE_GROUP_ORDER: AgeGroup[] = [
+export const AGE_GROUP_ORDER = [
   AGE_GROUPS.U8,
   AGE_GROUPS.U10,
   AGE_GROUPS.U12,
@@ -101,11 +139,9 @@ export const POSITIONS = {
   WINGER: 'winger',
   STRIKER: 'striker',
   CENTER_FORWARD: 'center-forward'
-} as const
+}
 
-export type Position = typeof POSITIONS[keyof typeof POSITIONS]
-
-export const POSITION_LABELS: Record<Position, string> = {
+export const POSITION_LABELS = {
   [POSITIONS.ALL]: 'כל העמדות',
   [POSITIONS.GOALKEEPER]: 'שוער',
   [POSITIONS.DEFENDER]: 'מגן',
@@ -121,16 +157,16 @@ export const POSITION_LABELS: Record<Position, string> = {
 
 // Position groups for UI organization
 export const POSITION_GROUPS = {
-  DEFENSIVE: [POSITIONS.GOALKEEPER, POSITIONS.DEFENDER, POSITIONS.CENTER_BACK, POSITIONS.FULLBACK] as const,
-  MIDFIELD: [POSITIONS.MIDFIELDER, POSITIONS.DEFENSIVE_MIDFIELDER, POSITIONS.ATTACKING_MIDFIELDER] as const,
-  ATTACKING: [POSITIONS.WINGER, POSITIONS.STRIKER, POSITIONS.CENTER_FORWARD] as const
-} as const
+  DEFENSIVE: [POSITIONS.GOALKEEPER, POSITIONS.DEFENDER, POSITIONS.CENTER_BACK, POSITIONS.FULLBACK],
+  MIDFIELD: [POSITIONS.MIDFIELDER, POSITIONS.DEFENSIVE_MIDFIELDER, POSITIONS.ATTACKING_MIDFIELDER],
+  ATTACKING: [POSITIONS.WINGER, POSITIONS.STRIKER, POSITIONS.CENTER_FORWARD]
+}
 
 // =============================================================================
-// EXERCISE CATEGORIES
+// CHALLENGE CATEGORIES
 // =============================================================================
 
-export const EXERCISE_CATEGORIES = {
+export const CHALLENGE_CATEGORIES = {
   FITNESS_TRAINING: 'fitness-training',
   FOOTBALL_TRAINING: 'football-training',
   PLAYER_SUBMISSION: 'player-submission',
@@ -139,32 +175,30 @@ export const EXERCISE_CATEGORIES = {
   SKILL_DEMONSTRATION: 'skill-demonstration',
   MATCH_ANALYSIS: 'match-analysis',
   TECHNIQUE_BREAKDOWN: 'technique-breakdown'
-} as const
+}
 
-export type ExerciseCategory = typeof EXERCISE_CATEGORIES[keyof typeof EXERCISE_CATEGORIES]
-
-export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
-  [EXERCISE_CATEGORIES.FITNESS_TRAINING]: 'אימון כושר',
-  [EXERCISE_CATEGORIES.FOOTBALL_TRAINING]: 'אימון כדורגל',
-  [EXERCISE_CATEGORIES.PLAYER_SUBMISSION]: 'העלאת שחקן',
-  [EXERCISE_CATEGORIES.TUTORIAL]: 'מדריך',
-  [EXERCISE_CATEGORIES.CHALLENGE_RESPONSE]: 'תגובה לאתגר',
-  [EXERCISE_CATEGORIES.SKILL_DEMONSTRATION]: 'הדגמת מיומנות',
-  [EXERCISE_CATEGORIES.MATCH_ANALYSIS]: 'ניתוח משחק',
-  [EXERCISE_CATEGORIES.TECHNIQUE_BREAKDOWN]: 'פירוק טכניקה'
+export const CHALLENGE_CATEGORY_LABELS = {
+  [CHALLENGE_CATEGORIES.FITNESS_TRAINING]: 'אימון כושר',
+  [CHALLENGE_CATEGORIES.FOOTBALL_TRAINING]: 'אימון כדורגל',
+  [CHALLENGE_CATEGORIES.PLAYER_SUBMISSION]: 'העלאת שחקן',
+  [CHALLENGE_CATEGORIES.TUTORIAL]: 'מדריך',
+  [CHALLENGE_CATEGORIES.CHALLENGE_RESPONSE]: 'תגובה לאתגר',
+  [CHALLENGE_CATEGORIES.SKILL_DEMONSTRATION]: 'הדגמת מיומנות',
+  [CHALLENGE_CATEGORIES.MATCH_ANALYSIS]: 'ניתוח משחק',
+  [CHALLENGE_CATEGORIES.TECHNIQUE_BREAKDOWN]: 'פירוק טכניקה'
 }
 
 // Primary categories for filtering
-export const PRIMARY_CATEGORIES: ExerciseCategory[] = [
-  EXERCISE_CATEGORIES.FITNESS_TRAINING,
-  EXERCISE_CATEGORIES.FOOTBALL_TRAINING
+export const PRIMARY_CATEGORIES = [
+  CHALLENGE_CATEGORIES.FITNESS_TRAINING,
+  CHALLENGE_CATEGORIES.FOOTBALL_TRAINING
 ]
 
 // =============================================================================
-// EXERCISE TYPES
+// CHALLENGE TYPES
 // =============================================================================
 
-export const EXERCISE_TYPES = {
+export const CHALLENGE_TYPES = {
   // Technical skills
   DRIBBLING: 'dribbling',
   PASSING: 'passing',
@@ -184,50 +218,48 @@ export const EXERCISE_TYPES = {
   FITNESS: 'fitness',
   AGILITY: 'agility',
   MENTAL_TRAINING: 'mental-training'
-} as const
-
-export type ExerciseType = typeof EXERCISE_TYPES[keyof typeof EXERCISE_TYPES]
-
-export const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
-  [EXERCISE_TYPES.DRIBBLING]: 'כדרור',
-  [EXERCISE_TYPES.PASSING]: 'מסירות',
-  [EXERCISE_TYPES.SHOOTING]: 'בעיטות',
-  [EXERCISE_TYPES.BALL_CONTROL]: 'שליטה בכדור',
-  [EXERCISE_TYPES.CROSSING]: 'חיתוכים',
-  [EXERCISE_TYPES.HEADING]: 'בעיטות ראש',
-  [EXERCISE_TYPES.FREE_KICKS]: 'בעיטות חופשיות',
-  [EXERCISE_TYPES.DEFENDING]: 'הגנה',
-  [EXERCISE_TYPES.GOALKEEPING]: 'שוערות',
-  [EXERCISE_TYPES.TACTICS]: 'טקטיקה',
-  [EXERCISE_TYPES.GAME_INTELLIGENCE]: 'אינטליגנציה משחקית',
-  [EXERCISE_TYPES.FITNESS]: 'כושר גופני',
-  [EXERCISE_TYPES.AGILITY]: 'זריזות',
-  [EXERCISE_TYPES.MENTAL_TRAINING]: 'אימון מנטלי'
 }
 
-// Exercise type groups for UI organization
-export const EXERCISE_TYPE_GROUPS = {
+export const CHALLENGE_TYPE_LABELS = {
+  [CHALLENGE_TYPES.DRIBBLING]: 'כדרור',
+  [CHALLENGE_TYPES.PASSING]: 'מסירות',
+  [CHALLENGE_TYPES.SHOOTING]: 'בעיטות',
+  [CHALLENGE_TYPES.BALL_CONTROL]: 'שליטה בכדור',
+  [CHALLENGE_TYPES.CROSSING]: 'חיתוכים',
+  [CHALLENGE_TYPES.HEADING]: 'בעיטות ראש',
+  [CHALLENGE_TYPES.FREE_KICKS]: 'בעיטות חופשיות',
+  [CHALLENGE_TYPES.DEFENDING]: 'הגנה',
+  [CHALLENGE_TYPES.GOALKEEPING]: 'שוערות',
+  [CHALLENGE_TYPES.TACTICS]: 'טקטיקה',
+  [CHALLENGE_TYPES.GAME_INTELLIGENCE]: 'אינטליגנציה משחקית',
+  [CHALLENGE_TYPES.FITNESS]: 'כושר גופני',
+  [CHALLENGE_TYPES.AGILITY]: 'זריזות',
+  [CHALLENGE_TYPES.MENTAL_TRAINING]: 'אימון מנטלי'
+}
+
+// Challenge type groups for UI organization
+export const CHALLENGE_TYPE_GROUPS = {
   TECHNICAL: [
-    EXERCISE_TYPES.DRIBBLING,
-    EXERCISE_TYPES.PASSING,
-    EXERCISE_TYPES.SHOOTING,
-    EXERCISE_TYPES.BALL_CONTROL,
-    EXERCISE_TYPES.CROSSING,
-    EXERCISE_TYPES.HEADING,
-    EXERCISE_TYPES.FREE_KICKS
+    CHALLENGE_TYPES.DRIBBLING,
+    CHALLENGE_TYPES.PASSING,
+    CHALLENGE_TYPES.SHOOTING,
+    CHALLENGE_TYPES.BALL_CONTROL,
+    CHALLENGE_TYPES.CROSSING,
+    CHALLENGE_TYPES.HEADING,
+    CHALLENGE_TYPES.FREE_KICKS
   ],
   TACTICAL: [
-    EXERCISE_TYPES.DEFENDING,
-    EXERCISE_TYPES.GOALKEEPING,
-    EXERCISE_TYPES.TACTICS,
-    EXERCISE_TYPES.GAME_INTELLIGENCE
+    CHALLENGE_TYPES.DEFENDING,
+    CHALLENGE_TYPES.GOALKEEPING,
+    CHALLENGE_TYPES.TACTICS,
+    CHALLENGE_TYPES.GAME_INTELLIGENCE
   ],
   PHYSICAL: [
-    EXERCISE_TYPES.FITNESS,
-    EXERCISE_TYPES.AGILITY,
-    EXERCISE_TYPES.MENTAL_TRAINING
+    CHALLENGE_TYPES.FITNESS,
+    CHALLENGE_TYPES.AGILITY,
+    CHALLENGE_TYPES.MENTAL_TRAINING
   ]
-} as const
+}
 
 // =============================================================================
 // TRAINING TYPES
@@ -241,11 +273,9 @@ export const TRAINING_TYPES = {
   TACTICAL_TRAINING: 'tactical-training',
   FITNESS_CONDITIONING: 'fitness-conditioning',
   MENTAL_PREPARATION: 'mental-preparation'
-} as const
+}
 
-export type TrainingType = typeof TRAINING_TYPES[keyof typeof TRAINING_TYPES]
-
-export const TRAINING_TYPE_LABELS: Record<TrainingType, string> = {
+export const TRAINING_TYPE_LABELS = {
   [TRAINING_TYPES.GENERAL_TRAINING]: 'אימון כללי',
   [TRAINING_TYPES.POWER_TRAINING]: 'אימון כוח',
   [TRAINING_TYPES.POSITION_SPECIFIC]: 'אימון ספציפי לעמדה',
@@ -263,11 +293,9 @@ export const TARGET_AUDIENCES = {
   YOUTH: 'youth',
   AMATEUR: 'amateur',
   PROFESSIONAL: 'professional'
-} as const
+}
 
-export type TargetAudience = typeof TARGET_AUDIENCES[keyof typeof TARGET_AUDIENCES]
-
-export const TARGET_AUDIENCE_LABELS: Record<TargetAudience, string> = {
+export const TARGET_AUDIENCE_LABELS = {
   [TARGET_AUDIENCES.YOUTH]: 'נוער',
   [TARGET_AUDIENCES.AMATEUR]: 'חובבים',
   [TARGET_AUDIENCES.PROFESSIONAL]: 'מקצועיים'
@@ -298,11 +326,9 @@ export const EQUIPMENT_TYPES = [
   'speed-sensors',
   'height-barriers',
   'nets'
-] as const
+]
 
-export type EquipmentType = typeof EQUIPMENT_TYPES[number]
-
-export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
+export const EQUIPMENT_TYPE_LABELS = {
   'football': 'כדורי כדורגל',
   'cones': 'קונוסים',
   'agility-ladders': 'סולמות זריזות',
@@ -326,10 +352,10 @@ export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
 }
 
 // =============================================================================
-// EXERCISE GOALS & OBJECTIVES
+// CHALLENGE GOALS & OBJECTIVES
 // =============================================================================
 
-export const EXERCISE_GOALS = [
+export const CHALLENGE_GOALS = [
   'improve-technique',
   'develop-strength',
   'increase-agility',
@@ -346,11 +372,9 @@ export const EXERCISE_GOALS = [
   'develop-creativity',
   'improve-communication',
   'develop-leadership'
-] as const
+]
 
-export type ExerciseGoal = typeof EXERCISE_GOALS[number]
-
-export const EXERCISE_GOAL_LABELS: Record<ExerciseGoal, string> = {
+export const CHALLENGE_GOAL_LABELS = {
   'improve-technique': 'שיפור טכניקה',
   'develop-strength': 'פיתוח כוח',
   'increase-agility': 'הגברת זריזות',
@@ -378,14 +402,14 @@ export const DURATION_SETTINGS = {
   VIDEO_MIN: 30,
   VIDEO_MAX: 600, // 10 minutes
   
-  // Expected exercise completion (minutes)
-  EXERCISE_MIN: 5,
-  EXERCISE_MAX: 90,
+  // Expected challenge completion (minutes)
+  CHALLENGE_MIN: 5,
+  CHALLENGE_MAX: 90,
   
   // Default values
   DEFAULT_VIDEO_DURATION: 120, // 2 minutes
-  DEFAULT_EXERCISE_DURATION: 30 // 30 minutes
-} as const
+  DEFAULT_CHALLENGE_DURATION: 30 // 30 minutes
+}
 
 // =============================================================================
 // SCORING & PROGRESSION
@@ -400,12 +424,13 @@ export const SCORING_SETTINGS = {
   BEGINNER_POINTS: 10,
   INTERMEDIATE_POINTS: 25,
   ADVANCED_POINTS: 50,
+  PROFESSIONAL_POINTS: 100,
   
   // Progression multipliers
   CONSISTENCY_MULTIPLIER: 1.2,
   IMPROVEMENT_MULTIPLIER: 1.5,
   CHALLENGE_MULTIPLIER: 2.0
-} as const
+}
 
 // =============================================================================
 // VIDEO SETTINGS
@@ -419,27 +444,25 @@ export const VIDEO_SETTINGS = {
   ALLOWED_FORMATS: ['mp4', 'mov', 'avi', 'webm'],
   
   // Video resolutions
-  RESOLUTIONS: ['480p', '720p', '1080p', '4K'] as const,
+  RESOLUTIONS: ['480p', '720p', '1080p', '4K'],
   
   // Default settings
-  DEFAULT_RESOLUTION: '1080p' as const,
+  DEFAULT_RESOLUTION: '1080p',
   COMPRESSION_QUALITY: 0.8
-} as const
-
-// Status types removed - all admin uploads are automatically active
+}
 
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
 /**
- * Get appropriate training type based on exercise category
+ * Get appropriate training type based on challenge category
  */
-export const getTrainingTypeForCategory = (category: ExerciseCategory): TrainingType => {
+export const getTrainingTypeForCategory = (category) => {
   switch (category) {
-    case EXERCISE_CATEGORIES.FITNESS_TRAINING:
+    case CHALLENGE_CATEGORIES.FITNESS_TRAINING:
       return TRAINING_TYPES.FITNESS_CONDITIONING
-    case EXERCISE_CATEGORIES.FOOTBALL_TRAINING:
+    case CHALLENGE_CATEGORIES.FOOTBALL_TRAINING:
       return TRAINING_TYPES.SKILL_DEVELOPMENT
     default:
       return TRAINING_TYPES.GENERAL_TRAINING
@@ -449,7 +472,7 @@ export const getTrainingTypeForCategory = (category: ExerciseCategory): Training
 /**
  * Get target audience based on age group
  */
-export const getTargetAudienceForAge = (ageGroup: AgeGroup): TargetAudience => {
+export const getTargetAudienceForAge = (ageGroup) => {
   if (ageGroup === AGE_GROUPS.ADULT) {
     return TARGET_AUDIENCES.AMATEUR
   }
@@ -459,7 +482,7 @@ export const getTargetAudienceForAge = (ageGroup: AgeGroup): TargetAudience => {
 /**
  * Get default points for skill level
  */
-export const getDefaultPointsForSkill = (skillLevel: SkillLevel): number => {
+export const getDefaultPointsForSkill = (skillLevel) => {
   switch (skillLevel) {
     case SKILL_LEVELS.BEGINNER:
       return SCORING_SETTINGS.BEGINNER_POINTS
@@ -467,56 +490,55 @@ export const getDefaultPointsForSkill = (skillLevel: SkillLevel): number => {
       return SCORING_SETTINGS.INTERMEDIATE_POINTS
     case SKILL_LEVELS.ADVANCED:
       return SCORING_SETTINGS.ADVANCED_POINTS
+    case SKILL_LEVELS.PROFESSIONAL:
+      return SCORING_SETTINGS.PROFESSIONAL_POINTS
     default:
       return SCORING_SETTINGS.BEGINNER_POINTS
   }
 }
 
 /**
- * Check if position is suitable for exercise type
+ * Check if position is suitable for challenge type
  */
-export const isPositionSuitableForExercise = (
-  position: Position, 
-  exerciseType: ExerciseType
-): boolean => {
+export const isPositionSuitableForChallenge = (position, challengeType) => {
   // All positions can do fitness and agility
-  if (exerciseType === EXERCISE_TYPES.FITNESS || exerciseType === EXERCISE_TYPES.AGILITY) {
+  if (challengeType === CHALLENGE_TYPES.FITNESS || challengeType === CHALLENGE_TYPES.AGILITY) {
     return true
   }
   
-  // Goalkeeper-specific exercises
-  if (exerciseType === EXERCISE_TYPES.GOALKEEPING) {
+  // Goalkeeper-specific challenges
+  if (challengeType === CHALLENGE_TYPES.GOALKEEPING) {
     return position === POSITIONS.GOALKEEPER
   }
   
-  // Defensive exercises
-  if (exerciseType === EXERCISE_TYPES.DEFENDING) {
-    return (POSITION_GROUPS.DEFENSIVE as readonly Position[]).includes(position) || 
-           (POSITION_GROUPS.MIDFIELD as readonly Position[]).includes(position)
+  // Defensive challenges
+  if (challengeType === CHALLENGE_TYPES.DEFENDING) {
+    return POSITION_GROUPS.DEFENSIVE.includes(position) || 
+           POSITION_GROUPS.MIDFIELD.includes(position)
   }
   
-  // Technical exercises - suitable for all outfield positions
+  // Technical challenges - suitable for all outfield positions
   return position !== POSITIONS.GOALKEEPER
 }
 
 /**
- * Get equipment needed for exercise type
+ * Get equipment needed for challenge type
  */
-export const getRequiredEquipment = (exerciseType: ExerciseType): EquipmentType[] => {
-  const baseEquipment: EquipmentType[] = ['football']
+export const getRequiredEquipment = (challengeType) => {
+  const baseEquipment = ['football']
   
-  switch (exerciseType) {
-    case EXERCISE_TYPES.AGILITY:
+  switch (challengeType) {
+    case CHALLENGE_TYPES.AGILITY:
       return [...baseEquipment, 'cones', 'agility-ladders', 'markers']
-    case EXERCISE_TYPES.GOALKEEPING:
+    case CHALLENGE_TYPES.GOALKEEPING:
       return [...baseEquipment, 'small-goals', 'cones', 'mats']
-    case EXERCISE_TYPES.FITNESS:
+    case CHALLENGE_TYPES.FITNESS:
       return ['weights', 'resistance-bands', 'mats', 'fitness-equipment']
-    case EXERCISE_TYPES.SHOOTING:
+    case CHALLENGE_TYPES.SHOOTING:
       return [...baseEquipment, 'small-goals', 'cones', 'markers']
-    case EXERCISE_TYPES.DRIBBLING:
+    case CHALLENGE_TYPES.DRIBBLING:
       return [...baseEquipment, 'cones', 'markers', 'hurdles']
-    case EXERCISE_TYPES.PASSING:
+    case CHALLENGE_TYPES.PASSING:
       return [...baseEquipment, 'cones', 'markers']
     default:
       return baseEquipment
@@ -524,20 +546,20 @@ export const getRequiredEquipment = (exerciseType: ExerciseType): EquipmentType[
 }
 
 /**
- * Get suggested goals for exercise type
+ * Get suggested goals for challenge type
  */
-export const getSuggestedGoals = (exerciseType: ExerciseType): ExerciseGoal[] => {
-  const goals: ExerciseGoal[] = []
+export const getSuggestedGoals = (challengeType) => {
+  const goals = []
   
-  if ((EXERCISE_TYPE_GROUPS.TECHNICAL as readonly ExerciseType[]).includes(exerciseType)) {
+  if (CHALLENGE_TYPE_GROUPS.TECHNICAL.includes(challengeType)) {
     goals.push('improve-technique', 'improve-accuracy')
   }
   
-  if ((EXERCISE_TYPE_GROUPS.PHYSICAL as readonly ExerciseType[]).includes(exerciseType)) {
+  if (CHALLENGE_TYPE_GROUPS.PHYSICAL.includes(challengeType)) {
     goals.push('develop-strength', 'increase-agility', 'develop-endurance')
   }
   
-  if ((EXERCISE_TYPE_GROUPS.TACTICAL as readonly ExerciseType[]).includes(exerciseType)) {
+  if (CHALLENGE_TYPE_GROUPS.TACTICAL.includes(challengeType)) {
     goals.push('develop-thinking', 'improve-decisions', 'develop-leadership')
   }
   
@@ -550,7 +572,7 @@ export const getSuggestedGoals = (exerciseType: ExerciseType): ExerciseGoal[] =>
 /**
  * Get age-appropriate skill level
  */
-export const getAgeAppropriateSkillLevel = (ageGroup: AgeGroup): SkillLevel => {
+export const getAgeAppropriateSkillLevel = (ageGroup) => {
   if (ageGroup === AGE_GROUPS.U8 || ageGroup === AGE_GROUPS.U10) {
     return SKILL_LEVELS.BEGINNER
   }
@@ -559,5 +581,3 @@ export const getAgeAppropriateSkillLevel = (ageGroup: AgeGroup): SkillLevel => {
   }
   return SKILL_LEVELS.ADVANCED
 }
-
-// Types are already exported above with their respective constants

@@ -51,6 +51,9 @@ export interface VideoMetadata {
   goals: string[]
   expectedDuration: number // Expected time to complete exercise
   
+  // Level Assessment
+  isLevelAssessment?: boolean // Mark this video as a level assessment exercise
+  
   // Analytics
   views: number
   likes: number

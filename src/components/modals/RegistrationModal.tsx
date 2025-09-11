@@ -139,9 +139,9 @@ export default function RegistrationModal({
       setUserType(null)
       onClose()
       
-      // Redirect players to challenges page after successful registration
+      // Redirect players to level assessment after successful registration
       if (formData.type === 'player') {
-        router.push('/challenges')
+        router.push('/assessment')
       }
     } catch (error: any) {
       console.error('Registration error:', error)

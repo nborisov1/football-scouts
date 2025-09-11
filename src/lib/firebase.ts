@@ -40,6 +40,30 @@ if (typeof window !== 'undefined' && auth) {
 
 export { auth, db, storage }
 
-// Re-export constants from centralized location
-export { USER_TYPES, COLLECTIONS, AUTH_STATES } from '@/constants/firebase'
-export type { UserType, CollectionName, AuthState } from '@/constants/firebase'
+// Simple constants for compatibility
+export const USER_TYPES = {
+  PLAYER: 'player',
+  SCOUT: 'scout',
+  ADMIN: 'admin'
+} as const
+
+export const AUTH_STATES = {
+  LOADING: 'loading',
+  AUTHENTICATED: 'authenticated',
+  UNAUTHENTICATED: 'unauthenticated'
+} as const
+
+export const COLLECTIONS = {
+  USERS: 'users',
+  VIDEOS: 'videos',
+  ASSESSMENTS: 'assessments',
+  CHALLENGES: 'challenges',
+  LEADERBOARDS: 'leaderboards',
+  SCOUT_REPORTS: 'scout_reports',
+  ANALYTICS: 'analytics',
+  USER_PROGRESS: 'user_progress'
+}
+
+export type UserType = typeof USER_TYPES[keyof typeof USER_TYPES]
+export type AuthState = typeof AUTH_STATES[keyof typeof AUTH_STATES]
+export type CollectionName = string

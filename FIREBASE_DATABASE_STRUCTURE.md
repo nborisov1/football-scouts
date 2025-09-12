@@ -314,6 +314,24 @@ The structure is designed to support:
 
 ## 🏆 **Level-Based Challenge System**
 
+### **Admin Challenge Creation → Player Challenge Display Flow**
+
+When an admin creates a challenge, all the information becomes available to players in a structured format:
+
+**Admin Input** → **Database Storage** → **Player Display**
+
+```
+Admin Creates:                    Players See:
+- Instructions                   → Step-by-step guide
+- Demo Video                     → "Watch How" button  
+- Time Limit                     → "⏱️ 5 minutes max"
+- Target Score                   → "🎯 TARGET: 12 passes"
+- Passing Threshold              → "✅ MINIMUM: 10 passes"
+- Equipment List                 → "🛠️ EQUIPMENT NEEDED"
+- Space Requirements             → "📐 30x20 meter space"
+- Tips & Notes                   → "💡 TIPS" section
+```
+
 ### **levels/{levelId}** (Level Definitions & Requirements)
 ```javascript
 {
@@ -458,6 +476,119 @@ The structure is designed to support:
   isActive: true,
   createdAt: "2024-01-01T00:00:00Z",
   lastModified: "2024-01-10T15:30:00Z"
+}
+```
+
+### **What Players See: Challenge Display Interface**
+
+When a player opens a challenge, the admin-created data is displayed as:
+
+```javascript
+// Player UI displays this information from the challenge data above:
+
+🎯 CHALLENGE INFO:
+Title: "Progressive Passing Under Pressure"
+Level: 5 | Type: Technical | Category: Passing
+Description: "Execute accurate passes while defenders apply pressure"
+
+📹 DEMONSTRATION:
+[Play Demo Video] - Shows exactly how to perform the challenge
+Source: challenge.demoVideoUrl
+
+📝 INSTRUCTIONS:
+1. Set up 3 target zones at 10, 20, and 30 meters
+2. Start with ball at center circle  
+3. Complete 5 passes to each zone under defensive pressure
+4. Record accuracy and technique
+Source: challenge.instructions[]
+
+⏱️ PERFORMANCE REQUIREMENTS:
+Time Limit: 5 minutes maximum (from challenge.maxDuration)
+Target: 12 accurate passes (from challenge.metrics.target)
+Minimum to Pass: 10 accurate passes (from challenge.metrics.passingScore)
+Excellent Performance: 14+ accurate passes (from challenge.metrics.excellentScore)
+
+🛠️ SETUP REQUIREMENTS:
+Equipment Needed: (from challenge.equipment[])
+• Football
+• Cones/markers
+• Partner or rebounder
+
+Space Required: 30x20 meters (from challenge.spaceRequired)
+Max Attempts: 3 (from challenge.maxAttempts)
+
+📊 SCORING:
+Metric Type: Accuracy count (from challenge.metrics.type)
+Unit: Accurate passes (from challenge.metrics.unit)
+Description: Accurate passes under pressure to target zones
+
+💡 SUCCESS TIPS:
+• Focus on accuracy over speed
+• Use proper technique even under pressure  
+• Aim for center of target zones
+(Generated from challenge analytics or admin notes)
+
+🎮 ACTION BUTTONS:
+[📹 Watch Demo] [🎯 Start Challenge] [📊 View My History]
+```
+
+### **Admin Challenge Creation Interface**
+
+The admin interface collects all the data that becomes the player experience:
+
+```javascript
+// Admin form fields that populate the challenge document:
+{
+  basicInfo: {
+    title: "Progressive Passing Under Pressure",
+    description: "Execute accurate passes while defenders apply pressure",
+    level: 5,
+    type: "technical",
+    category: "passing"
+  },
+  
+  mediaAssets: {
+    demoVideo: File, // Uploaded by admin
+    thumbnail: File, // Auto-generated or uploaded
+    additionalImages: File[] // Optional setup photos
+  },
+  
+  performanceCriteria: {
+    metricType: "accuracy", // count, time, accuracy, technique
+    targetValue: 12,
+    minimumPassingValue: 10,
+    excellentValue: 14,
+    unit: "accurate_passes",
+    description: "Accurate passes under pressure to target zones"
+  },
+  
+  requirements: {
+    timeLimit: 300, // seconds
+    maxAttempts: 3,
+    equipment: ["football", "cones", "markers", "partner_or_rebounder"],
+    spaceRequired: "30x20 meters",
+    suitablePositions: ["midfielder", "defender", "winger"],
+    ageGroups: ["u14", "u16", "u18", "adult"]
+  },
+  
+  instructions: [
+    "Set up 3 target zones at 10, 20, and 30 meters",
+    "Start with ball at center circle",
+    "Complete 5 passes to each zone under defensive pressure", 
+    "Record accuracy and technique"
+  ],
+  
+  tips: [
+    "Focus on accuracy over speed",
+    "Use proper technique even under pressure",
+    "Aim for center of target zones"
+  ],
+  
+  levelIntegration: {
+    prerequisites: ["ch_4_tech_2"],
+    unlocks: ["ch_6_tech_1"],
+    difficultyScore: 6
+  }
 }
 ```
 

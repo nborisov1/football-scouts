@@ -2,26 +2,49 @@
 
 ## 📋 **Table of Contents**
 1. [Overview](#overview)
-2. [Core Collections](#core-collections)
-3. [User Data Structure](#user-data-structure)
-4. [Exercise & Assessment System](#exercise--assessment-system)
-5. [Challenge Management](#challenge-management)
-6. [Admin & Content Management](#admin--content-management)
-7. [Storage Structure](#storage-structure)
-8. [Security Rules](#security-rules)
-9. [Implementation Examples](#implementation-examples)
+2. [Platform Flow](#platform-flow)
+3. [Core Collections](#core-collections)
+4. [User Data Structure](#user-data-structure)
+5. [Assessment System](#assessment-system)
+6. [Level-Based Challenge System](#level-based-challenge-system)
+7. [Scout Discovery Platform](#scout-discovery-platform)
+8. [Scoring & Leaderboards](#scoring--leaderboards)
+9. [Storage Structure](#storage-structure)
+10. [Security Rules](#security-rules)
+11. [Implementation Examples](#implementation-examples)
 
 ---
 
 ## 🎯 **Overview**
 
-This document defines the complete Firebase Firestore database structure for the Football Scouts Platform. The structure is designed to support:
+This database structure supports a **progressive skill development platform** with the following flow:
 
-- **User Management**: Players, scouts, and admins
-- **Assessment System**: Real video-based skill assessments
-- **Challenge Platform**: Progressive training challenges
-- **Progress Tracking**: User advancement and completion status
-- **Content Management**: Admin-uploaded videos and challenges
+**Registration → Assessment Exam → Level Assignment → Level-Based Challenges → Progress Tracking → Level Up → Scout Discovery**
+
+The structure is designed to support:
+
+- **Progressive Learning**: Structured level-based advancement
+- **Assessment Engine**: Initial skill evaluation and ongoing tracking
+- **Challenge Platform**: Level-appropriate training challenges
+- **Scout Discovery**: Comprehensive player video portfolios
+- **Global Competition**: Leaderboards and scoring systems
+- **Content Management**: Admin-controlled challenge creation
+
+---
+
+## 🔄 **Platform Flow**
+
+### **Complete User Journey:**
+```
+1. Registration & Profile Setup
+2. Assessment Exam (5 standardized challenges)
+3. Algorithm assigns initial level (1-10 or 1-50)
+4. Player completes level-appropriate challenges
+5. Performance tracked against thresholds
+6. Achievement of threshold triggers level advancement
+7. Global scoring and leaderboard updates
+8. Scout discovery and recruitment opportunities
+```
 
 ---
 
@@ -29,14 +52,33 @@ This document defines the complete Firebase Firestore database structure for the
 
 ### **Root Collections:**
 ```
-📁 users/                    # User accounts & profiles
-📁 videos/                   # Admin-uploaded training videos
-📁 assessments/              # User assessment submissions
-📁 challenges/               # Admin-created challenges
-📁 videoCollections/         # Organized video groups
-📁 leaderboards/             # Global rankings
-📁 analytics/                # Platform analytics
+📁 users/                    # User accounts, profiles & progress
+   📁 {userId}/
+      📁 assessments/        # Assessment exam submissions
+      📁 submissions/        # Challenge video submissions
+      📁 progress/           # Level progress tracking
+      📁 achievements/       # Unlocked achievements & badges
+
+📁 levels/                   # Level definitions & requirements
+📁 challenges/               # Challenge templates (admin-created)
+📁 assessmentChallenges/     # Standardized assessment challenges
+📁 leaderboards/             # Global & category rankings  
+📁 scoutActivity/            # Scout search & interaction logs
+📁 analytics/                # Platform-wide statistics
 ```
+
+### **Collection Purposes:**
+
+| Collection | Purpose | Key Features |
+|------------|---------|--------------|
+| `users/` | User management & profile data | Authentication, progress tracking, scout access |
+| `users/{userId}/assessments/` | Initial skill evaluation | 5 standardized challenges, auto-scoring |
+| `users/{userId}/submissions/` | Challenge attempts | Video uploads, performance tracking |
+| `users/{userId}/progress/` | Level advancement | Completion rates, threshold tracking |
+| `levels/` | Level definitions | Challenge requirements, advancement criteria |
+| `challenges/` | Challenge templates | Admin-created, level-specific challenges |
+| `leaderboards/` | Global rankings | Overall scores, level rankings, achievements |
+| `scoutActivity/` | Scout interactions | Player views, contacts, recruitment |
 
 ---
 
@@ -59,14 +101,14 @@ This document defines the complete Firebase Firestore database structure for the
     dateOfBirth: "2005-03-15",
     ageGroup: "u18",           // from AGE_GROUPS constant
     position: "midfielder",     // from POSITIONS constant
-    skillLevel: "intermediate", // from SKILL_LEVELS constant
     preferredFoot: "right" | "left" | "both",
     height: 175,               // cm
     weight: 70,                // kg
     location: {
       country: "Israel",
       city: "Tel Aviv"
-    }
+    },
+    bio: "Passionate midfielder with 5 years experience"
   },
   
   // Platform Settings
@@ -74,22 +116,61 @@ This document defines the complete Firebase Firestore database structure for the
     language: "he",
     notifications: true,
     privacy: "public" | "private" | "friends",
-    trainingReminders: true
+    trainingReminders: true,
+    scoutVisibility: true      // Allow scouts to view profile
   },
   
-  // Progress Tracking
+  // Progress Tracking (CORE OF YOUR FLOW)
   progress: {
-    currentLevel: "intermediate",
-    totalPoints: 150,
+    // Assessment Phase
     assessmentCompleted: true,
-    assessmentScore: 85,
-    lastActivity: "2024-01-15T10:30:00Z",
-    joinDate: "2024-01-01T00:00:00Z"
+    assessmentScore: 85,       // Overall assessment score (1-100)
+    initialLevel: 3,           // Assigned after assessment
+    
+    // Current Status
+    currentLevel: 5,           // Current level (1-10 or 1-50)
+    levelProgress: 75,         // Progress towards next level (0-100%)
+    totalScore: 1250,          // Cumulative platform score
+    
+    // Level Requirements
+    currentLevelChallenges: {
+      required: ["ch_5_1", "ch_5_2", "ch_5_3", "ch_5_4"], // Required challenge IDs
+      completed: ["ch_5_1", "ch_5_2"],                     // Completed challenge IDs
+      averageScore: 82,                                    // Average score in current level
+      completionRate: 50                                   // Percentage completed (50%)
+    },
+    
+    // Advancement Tracking
+    levelUpThreshold: 70,      // Required average score to advance (70%)
+    readyForLevelUp: false,    // Meets advancement criteria
+    lastLevelUp: "2024-01-15T10:30:00Z",
+    
+    // Activity
+    lastActivity: "2024-01-20T14:30:00Z",
+    joinDate: "2024-01-01T00:00:00Z",
+    totalChallengesCompleted: 12,
+    streakDays: 5              // Consecutive days active
+  },
+  
+  // Rankings & Recognition
+  rankings: {
+    globalRank: 127,           // Overall platform ranking
+    levelRank: 15,             // Rank within current level
+    positionRank: 8,           // Rank among same position players
+    ageGroupRank: 23           // Rank within age group
+  },
+  
+  // Scout Interest (for scout discovery)
+  scoutMetrics: {
+    profileViews: 45,          // Times viewed by scouts
+    contactAttempts: 3,        // Scout contact attempts
+    lastScoutView: "2024-01-19T16:45:00Z",
+    featuredStatus: false     // Premium visibility
   },
   
   // Metadata
   createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-15T10:30:00Z",
+  updatedAt: "2024-01-20T14:30:00Z",
   isActive: true
 }
 ```
@@ -138,57 +219,428 @@ This document defines the complete Firebase Firestore database structure for the
 
 ---
 
-## 🎯 **Exercise & Assessment System**
+## 📝 **Assessment System**
 
-### **videos/{videoId}**
+### **assessmentChallenges/{challengeId}** (Admin-Created Assessment Templates)
 ```javascript
 {
   // Basic Info
-  title: "Advanced Dribbling Challenge",
-  description: "Master the step-over technique...",
-  videoUrl: "https://storage.googleapis.com/...",
-  thumbnailUrl: "https://storage.googleapis.com/...",
-  
-  // Classification
-  exerciseType: "dribbling",   // from CHALLENGE_TYPES
-  category: "football-training", // from CHALLENGE_CATEGORIES
-  skillLevel: "advanced",      // from SKILL_LEVELS
-  ageGroup: ["u16", "u18", "adult"], // Array of suitable ages
-  position: ["midfielder", "winger"], // Array of suitable positions
-  
-  // Technical Details
-  duration: 120,               // seconds
-  difficulty: 7,               // 1-10 scale
-  equipment: ["football", "cones"], // Required equipment
-  
-  // Metadata
-  uploadedBy: "admin123",
-  createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-05T15:20:00Z",
-  status: "approved" | "pending" | "rejected",
-  viewCount: 1205,
-  
-  // Goals & Objectives
-  goals: ["improve-technique", "increase-agility"],
+  id: "assessment_ball_control",
+  title: "Ball Control Assessment",
+  description: "Demonstrate ball control skills with 20 touches",
   instructions: [
-    "Set up 5 cones in a straight line",
-    "Dribble through using step-over technique",
-    "Complete 3 rounds for time"
+    "Set up in a 5x5 meter square",
+    "Keep the ball within the square using only feet",
+    "Complete 20 consecutive touches",
+    "Record entire attempt"
   ],
   
-  // Success Metrics
+  // Assessment Specific
+  type: "assessment",
+  category: "technical",       // technical, physical, tactical
+  order: 1,                   // Order in assessment sequence (1-5)
+  
+  // Scoring Criteria
   metrics: {
-    type: "count",             // "count" | "time" | "accuracy"
-    unit: "successful_dribbles",
-    targetValue: 10,
-    description: "Number of successful dribbles completed"
-  }
+    type: "count",             // count, time, accuracy, technique
+    target: 20,                // Target number of touches
+    passingScore: 15,          // Minimum for passing
+    unit: "touches",
+    description: "Consecutive ball touches within the square"
+  },
+  
+  // Media
+  demonstrationVideoUrl: "https://storage.../demo.mp4",
+  thumbnailUrl: "https://storage.../thumb.jpg",
+  
+  // Requirements
+  equipment: ["football", "cones", "markers"],
+  spaceRequired: "5x5 meters",
+  duration: 180,              // seconds
+  maxAttempts: 3,
+  
+  // Metadata
+  createdBy: "admin123",
+  isActive: true,
+  createdAt: "2024-01-01T00:00:00Z"
 }
 ```
 
-### **assessments/{assessmentId}**
+### **users/{userId}/assessments/{assessmentId}** (User Assessment Submissions)
 ```javascript
 {
+  // Reference Data
+  challengeId: "assessment_ball_control",
+  assessmentType: "initial",   // initial, retest, verification
+  attempt: 1,                  // Attempt number (1-3)
+  
+  // Submission Data
+  videoUrl: "https://storage.../user123_assessment1.mp4",
+  videoPath: "assessments/user123/assessment_ball_control_1.mp4",
+  videoDuration: 156,
+  submittedAt: "2024-01-15T10:30:00Z",
+  
+  // Performance Results
+  performance: {
+    achievedCount: 18,         // Actual performance
+    targetCount: 20,           // Required performance
+    score: 90,                 // Percentage score (18/20 * 100)
+    passed: true,              // Meets passing criteria
+    technique: {               // Optional technique scoring
+      ballControl: 8,          // 1-10 scale
+      footwork: 7,
+      consistency: 9
+    }
+  },
+  
+  // Auto & Manual Scoring
+  autoScore: 90,               // Algorithm-calculated score
+  manualScore: null,           // Optional scout/admin review
+  finalScore: 90,              // Used for level calculation
+  
+  // Review Data
+  status: "completed",         // submitted, under_review, completed
+  reviewedBy: null,            // Optional reviewer
+  reviewedAt: null,
+  feedback: null,
+  
+  // Analytics
+  uploadDuration: 45,          // Time taken to upload
+  retakes: 0                   // Number of retakes before submission
+}
+```
+
+---
+
+## 🏆 **Level-Based Challenge System**
+
+### **levels/{levelId}** (Level Definitions & Requirements)
+```javascript
+{
+  // Level Identity
+  levelNumber: 5,
+  levelName: "Intermediate Midfielder",
+  description: "Master intermediate skills for midfield play",
+  
+  // Level Requirements
+  requirements: {
+    // Advancement Criteria
+    completionThreshold: 70,    // Must achieve 70%+ average
+    requiredChallenges: 4,      // Must complete all 4 challenges
+    minimumScore: 65,           // Minimum score per challenge
+    bonusThreshold: 85,         // Bonus points threshold
+    
+    // Challenge Categories Required
+    categories: {
+      technical: 2,             // 2 technical challenges required
+      physical: 1,              // 1 physical challenge required  
+      tactical: 1               // 1 tactical challenge required
+    }
+  },
+  
+  // Available Challenges for this Level
+  challenges: [
+    {
+      challengeId: "ch_5_tech_1",
+      type: "technical",
+      category: "passing",
+      title: "Progressive Passing Under Pressure",
+      required: true,
+      difficultyScore: 6
+    },
+    {
+      challengeId: "ch_5_tech_2", 
+      type: "technical",
+      category: "dribbling",
+      title: "Close Control in Traffic",
+      required: true,
+      difficultyScore: 7
+    },
+    {
+      challengeId: "ch_5_phys_1",
+      type: "physical", 
+      category: "agility",
+      title: "Cone Weaving Speed Test",
+      required: true,
+      difficultyScore: 5
+    },
+    {
+      challengeId: "ch_5_tact_1",
+      type: "tactical",
+      category: "positioning", 
+      title: "Space Recognition Drill",
+      required: true,
+      difficultyScore: 8
+    }
+  ],
+  
+  // Progression & Rewards
+  progression: {
+    pointsAwarded: 100,         // Points for completing level
+    nextLevel: 6,               // Next level number
+    unlocks: ["advanced_drills", "scout_visibility_boost"],
+    badge: "intermediate_midfielder",
+    title: "Skilled Midfielder"
+  },
+  
+  // Level Characteristics
+  characteristics: {
+    averageCompletionTime: "2-3 weeks",
+    successRate: 68,            // Percentage of users who complete
+    popularityRank: 3,          // How popular this level is
+    difficultyRating: 6.5       // Overall difficulty (1-10)
+  },
+  
+  // Metadata
+  createdBy: "admin123",
+  isActive: true,
+  createdAt: "2024-01-01T00:00:00Z"
+}
+```
+
+### **challenges/{challengeId}** (Individual Challenge Templates)
+```javascript
+{
+  // Basic Info
+  id: "ch_5_tech_1",
+  title: "Progressive Passing Under Pressure",
+  description: "Execute accurate passes while defenders apply pressure",
+  
+  // Challenge Classification
+  level: 5,                    // Associated level
+  type: "technical",           // technical, physical, tactical
+  category: "passing",         // specific skill category
+  difficulty: 6,               // 1-10 difficulty scale
+  
+  // Instructions & Setup
+  instructions: [
+    "Set up 3 target zones at 10, 20, and 30 meters",
+    "Start with ball at center circle",
+    "Complete 5 passes to each zone under defensive pressure",
+    "Record accuracy and technique"
+  ],
+  demoVideoUrl: "https://storage.../ch_5_tech_1_demo.mp4",
+  
+  // Performance Criteria
+  metrics: {
+    type: "accuracy",          // count, time, accuracy
+    target: 12,                // Target successful passes (out of 15)
+    passingScore: 10,          // Minimum for passing (66%)
+    excellentScore: 14,        // Excellent performance (93%)
+    unit: "accurate_passes",
+    description: "Accurate passes under pressure to target zones"
+  },
+  
+  // Requirements
+  equipment: ["football", "cones", "markers", "partner_or_rebounder"],
+  spaceRequired: "30x20 meters",
+  maxDuration: 300,            // 5 minutes max
+  maxAttempts: 3,
+  
+  // Position & Age Suitability  
+  suitablePositions: ["midfielder", "defender", "winger"],
+  suitableAgeGroups: ["u14", "u16", "u18", "adult"],
+  
+  // Level Integration
+  prerequisites: ["ch_4_tech_2"], // Must complete lower level challenges
+  unlocks: ["ch_6_tech_1"],       // Unlocks higher level challenges
+  
+  // Analytics & Tracking
+  analyticsConfig: {
+    trackAttempts: true,
+    trackImprovement: true,
+    recordTechnique: true,
+    generateFeedback: true
+  },
+  
+  // Metadata
+  createdBy: "admin123",
+  isActive: true,
+  createdAt: "2024-01-01T00:00:00Z",
+  lastModified: "2024-01-10T15:30:00Z"
+}
+```
+
+---
+
+## 🔍 **Scout Discovery Platform**
+
+### **scoutActivity/{activityId}** (Scout Interaction Tracking)
+```javascript
+{
+  // Scout Identity
+  scoutId: "scout456",
+  scoutName: "David Cohen",
+  scoutOrganization: "Maccabi Tel Aviv Academy",
+  
+  // Player Interaction
+  playerId: "user123",
+  playerName: "John Doe",
+  activityType: "profile_view" | "video_view" | "contact_attempt" | "favorite_added",
+  
+  // Activity Details
+  timestamp: "2024-01-20T15:45:00Z",
+  sessionId: "session_789",     // Track scout session
+  videoId: "ch_5_tech_1_sub",   // If viewing specific video
+  duration: 120,                // Time spent viewing (seconds)
+  
+  // Context Data
+  searchCriteria: {
+    position: "midfielder",
+    ageGroup: "u18", 
+    level: 5,
+    location: "Israel"
+  },
+  
+  // Follow-up Actions
+  contactAttempted: false,
+  favoriteAdded: true,
+  notes: "Excellent technique, good for academy program"
+}
+```
+
+### **Scout Search & Filter Capabilities:**
+```javascript
+// Example scout search query structure
+{
+  filters: {
+    // Basic Demographics
+    ageGroups: ["u16", "u18"],
+    positions: ["midfielder", "winger"],
+    locations: ["Israel", "Europe"],
+    
+    // Performance Criteria
+    currentLevel: { min: 4, max: 8 },
+    totalScore: { min: 1000, max: 5000 },
+    assessmentScore: { min: 70, max: 100 },
+    
+    // Activity & Engagement
+    lastActivity: "last_30_days",
+    challengesCompleted: { min: 10 },
+    levelUpRate: "fast" | "medium" | "slow",
+    
+    // Platform Recognition
+    globalRank: { top: 500 },
+    scoutViews: { min: 5 },
+    featured: true
+  },
+  
+  sortBy: "totalScore" | "level" | "lastActivity" | "assessmentScore",
+  sortOrder: "desc" | "asc",
+  limit: 20,
+  offset: 0
+}
+```
+
+---
+
+## 🏆 **Scoring & Leaderboards**
+
+### **leaderboards/{period}** (Global Rankings)
+```javascript
+{
+  // Time Period
+  period: "weekly" | "monthly" | "alltime" | "current_level",
+  startDate: "2024-01-15T00:00:00Z",
+  endDate: "2024-01-22T23:59:59Z",
+  
+  // Overall Rankings
+  globalRankings: [
+    {
+      rank: 1,
+      userId: "user123",
+      displayName: "John Doe",
+      level: 6,
+      totalScore: 2450,
+      recentScore: 150,         // Points gained this period
+      avatar: "https://...",
+      position: "midfielder",
+      ageGroup: "u18",
+      location: "Tel Aviv, Israel",
+      streak: 12                // Days active streak
+    },
+    // ... more entries
+  ],
+  
+  // Category-Specific Rankings
+  categoryRankings: {
+    // By Position
+    byPosition: {
+      midfielder: [ /* ranking array */ ],
+      striker: [ /* ranking array */ ],
+      defender: [ /* ranking array */ ]
+    },
+    
+    // By Level
+    byLevel: {
+      level_5: [ /* ranking array */ ],
+      level_6: [ /* ranking array */ ]
+    },
+    
+    // By Age Group
+    byAgeGroup: {
+      u16: [ /* ranking array */ ],
+      u18: [ /* ranking array */ ]
+    },
+    
+    // By Geography
+    byCountry: {
+      israel: [ /* ranking array */ ],
+      usa: [ /* ranking array */ ]
+    }
+  },
+  
+  // Statistics
+  stats: {
+    totalParticipants: 1247,
+    averageScore: 1150,
+    topScore: 2450,
+    newEntries: 45,             // New users this period
+    levelUps: 78                // Users who leveled up this period
+  },
+  
+  // Metadata
+  lastUpdated: "2024-01-20T23:59:59Z",
+  nextUpdate: "2024-01-21T00:15:00Z",
+  updateFrequency: "hourly"     // How often rankings update
+}
+```
+
+### **users/{userId}/achievements/{achievementId}** (User Achievements)
+```javascript
+{
+  // Achievement Identity
+  achievementId: "level_5_master",
+  title: "Level 5 Master",
+  description: "Complete all Level 5 challenges with 85%+ average",
+  icon: "🏆",
+  category: "progression" | "performance" | "consistency" | "special",
+  
+  // Achievement Data
+  unlockedAt: "2024-01-20T16:30:00Z",
+  difficulty: "rare",          // common, uncommon, rare, legendary
+  pointsAwarded: 100,
+  
+  // Criteria Met
+  requirements: {
+    level: 5,
+    averageScore: 87,
+    challengesCompleted: 4,
+    completionTime: "14 days"
+  },
+  
+  // Recognition
+  badgeUrl: "https://storage.../badges/level_5_master.svg",
+  shareableLink: "https://app.../achievements/level_5_master",
+  publicDisplay: true,
+  
+  // Progress Tracking (for multi-step achievements)
+  progress: {
+    current: 4,                // Current progress
+    total: 4,                  // Total required
+    percentage: 100            // Completion percentage
+  }
+}
   // User & Exercise Reference
   userId: "user123",
   challengeId: "vid456",       // Reference to videos collection

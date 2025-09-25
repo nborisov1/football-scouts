@@ -4,16 +4,20 @@ const nextConfig: NextConfig = {
   experimental: {
     esmExternals: 'loose'
   },
-  // Fix CORS/COEP issues for Firebase Storage
+  // Fix CORS/COEP issues for Firebase Storage and enable SharedArrayBuffer for FFmpeg.wasm
   async headers() {
     return [
       {
-        // Allow cross-origin for Firebase Storage videos
+        // Enable SharedArrayBuffer for video transcoding (FFmpeg.wasm)
         source: '/(.*)',
         headers: [
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'unsafe-none'
+            value: 'require-corp'
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin'
           }
         ]
       }
@@ -28,6 +32,15 @@ const nextConfig: NextConfig = {
         'firebase/firestore': 'firebase/firestore',
         'firebase/storage': 'firebase/storage'
       }]
+    }
+
+    // Configure for FFmpeg.wasm
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      }
     }
 
     return config

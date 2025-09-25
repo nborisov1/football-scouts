@@ -11,11 +11,17 @@ export interface VideoMetadata {
   // Video file information
   fileName: string
   fileSize: number
+  originalFileSize?: number // Size before transcoding
   duration: number // in seconds
   format: string
   resolution: string
   thumbnailUrl?: string
   videoUrl: string
+  
+  // Transcoding information
+  transcoded?: boolean // Whether video was transcoded
+  transcodingQuality?: 'high' | 'medium' | 'low' // Quality used for transcoding
+  compressionRatio?: number // Original size / final size
   
   // Upload information
   uploadedBy: string // user ID

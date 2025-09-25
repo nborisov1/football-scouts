@@ -4,6 +4,8 @@ import React, { useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { videoService } from '@/lib/videoService'
 import { showMessage } from '@/components/MessageContainer'
+import VideoTranscoding from '@/components/VideoTranscoding'
+import { videoTranscodingService, TranscodingOptions } from '@/lib/videoTranscodingService'
 import type { VideoMetadata, VideoCategory, ExerciseType } from '@/types/video'
 
 interface VideoUploadProps {
@@ -13,6 +15,8 @@ interface VideoUploadProps {
   exerciseType?: ExerciseType
   className?: string
   defaultMetadata?: Partial<VideoMetadata>
+  enableTranscoding?: boolean
+  transcodingOptions?: TranscodingOptions
 }
 
 export default function VideoUpload({
@@ -21,16 +25,20 @@ export default function VideoUpload({
   category,
   exerciseType,
   className = '',
-  defaultMetadata
+  defaultMetadata,
+  enableTranscoding = true,
+  transcodingOptions
 }: VideoUploadProps) {
   const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   // State
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [transcodedFile, setTranscodedFile] = useState<Blob | null>(null)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [showForm, setShowForm] = useState(false)
+  const [showTranscoding, setShowTranscoding] = useState(false)
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
@@ -57,7 +65,14 @@ export default function VideoUpload({
     }
 
     setSelectedFile(file)
-    setShowForm(true)
+    
+    // Check if transcoding is enabled and supported
+    if (enableTranscoding && videoTranscodingService.isSupported()) {
+      setShowTranscoding(true)
+    } else {
+      setShowForm(true)
+    }
+    
     setMetadata(prev => ({
       ...prev,
       title: prev.title || file.name.replace(/\.[^/.]+$/, '')
@@ -116,6 +131,32 @@ export default function VideoUpload({
     })
   }
 
+  // Handle transcoding completion
+  const handleTranscodingComplete = (transcodedBlob: Blob) => {
+    setTranscodedFile(transcodedBlob)
+    setShowTranscoding(false)
+    setShowForm(true)
+    showMessage('קידוד הושלם! כעת תוכל למלא פרטי הסרטון', 'success')
+  }
+
+  // Handle transcoding error
+  const handleTranscodingError = (error: Error) => {
+    console.error('Transcoding error:', error)
+    setShowTranscoding(false)
+    setShowForm(true)
+    showMessage('שגיאה בקידוד, מעלה את הקובץ המקורי', 'warning')
+  }
+
+  // Handle transcoding cancel
+  const handleTranscodingCancel = () => {
+    setShowTranscoding(false)
+    setSelectedFile(null)
+    setTranscodedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   // Handle upload
   const handleUpload = async () => {
     if (!selectedFile || !user) return
@@ -130,18 +171,25 @@ export default function VideoUpload({
       setProgress(0)
       onUploadStart?.()
 
-      // Generate thumbnail automatically
+      // Use transcoded file if available, otherwise use original
+      const fileToUpload = transcodedFile ? 
+        new File([transcodedFile], selectedFile.name.replace(/\.[^/.]+$/, '.webm'), { type: 'video/webm' }) : 
+        selectedFile
+
+      // Generate thumbnail automatically (from original file for better quality)
       const thumbnailBlob = await generateThumbnail(selectedFile)
 
       const videoUpload = {
-        file: selectedFile,
+        file: fileToUpload,
         metadata: {
           ...metadata,
           uploadedBy: user.uid,
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
+          fileName: fileToUpload.name,
+          fileSize: fileToUpload.size,
+          originalFileSize: selectedFile.size,
           duration: 0,
-          format: selectedFile.name.split('.').pop()?.toLowerCase() || 'unknown',
+          format: fileToUpload.name.split('.').pop()?.toLowerCase() || 'unknown',
+          transcoded: transcodedFile !== null,
           resolution: '1080p',
           status: 'pending' as const,
           tags: [],
@@ -183,7 +231,9 @@ export default function VideoUpload({
 
       // Reset form
       setSelectedFile(null)
+      setTranscodedFile(null)
       setShowForm(false)
+      setShowTranscoding(false)
       setMetadata({
         title: '',
         description: '',
@@ -231,8 +281,20 @@ export default function VideoUpload({
 
   return (
     <div className={`video-upload bg-white rounded-lg shadow-sm border p-6 ${className}`}>
+      {/* Transcoding Phase */}
+      {showTranscoding && selectedFile && (
+        <VideoTranscoding
+          file={selectedFile}
+          options={transcodingOptions}
+          onTranscodingComplete={handleTranscodingComplete}
+          onTranscodingError={handleTranscodingError}
+          onCancel={handleTranscodingCancel}
+          autoStart={true}
+        />
+      )}
+
       {/* File Selection Area */}
-      {!showForm && (
+      {!showForm && !showTranscoding && (
         <div
           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
           onDrop={handleDrop}
@@ -284,14 +346,36 @@ export default function VideoUpload({
                 <div>
                   <p className="font-medium">{selectedFile.name}</p>
                   <p className="text-sm text-gray-600">
-                    {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+                    {transcodedFile ? (
+                      <>
+                        <span className="text-green-600 font-medium">
+                          <i className="fas fa-check-circle ml-1"></i>
+                          מקודד VP9
+                        </span>
+                        {' • '}
+                        {(transcodedFile.size / (1024 * 1024)).toFixed(1)} MB
+                        {' (מקורי: '}{(selectedFile.size / (1024 * 1024)).toFixed(1)} MB{')'}
+                      </>
+                    ) : (
+                      <>
+                        {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+                        {enableTranscoding && videoTranscodingService.isSupported() && (
+                          <span className="text-orange-600 ml-2">
+                            <i className="fas fa-info-circle ml-1"></i>
+                            קובץ מקורי
+                          </span>
+                        )}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => {
                   setSelectedFile(null)
+                  setTranscodedFile(null)
                   setShowForm(false)
+                  setShowTranscoding(false)
                   if (fileInputRef.current) fileInputRef.current.value = ''
                 }}
                 className="text-red-600 hover:text-red-700"
@@ -357,7 +441,7 @@ export default function VideoUpload({
                 </label>
                 <select
                   value={metadata.skillLevel}
-                  onChange={(e) => setMetadata(prev => ({ ...prev, skillLevel: e.target.value as any }))}
+                  onChange={(e) => setMetadata(prev => ({ ...prev, skillLevel: e.target.value as 'beginner' | 'intermediate' | 'advanced' }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="beginner">מתחיל</option>

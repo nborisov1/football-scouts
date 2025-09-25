@@ -3,6 +3,70 @@
  * Defines the structure for the advanced challenge progression system
  */
 
+// New Personalized Challenge Types
+export interface PersonalizedChallenge {
+  id: string
+  title: string
+  description: string
+  category: string
+  challengeType: string
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  targetAudience: 'youth' | 'amateur' | 'professional'
+  ageGroups: string[]
+  positions: string[]
+  difficulty: number // 1-10 scale
+  duration: number // expected completion time in minutes
+  points: number
+  videoUrl?: string
+  thumbnailUrl?: string
+  instructions: string
+  equipment: string[]
+  goals: string[]
+  metrics: ChallengeMetric[]
+  isLevelSpecific: boolean
+  requiredLevel: number
+  
+  // Personalization fields
+  relevanceScore: number
+  personalizedReason: string
+  estimatedCompletion: number
+  prerequisites: string[]
+}
+
+export interface ChallengeSubmission {
+  id: string
+  userId: string
+  challengeId: string
+  videoUrl: string
+  videoFileName: string
+  metrics: Record<string, number>
+  completionTime: number // actual time taken in minutes
+  notes?: string
+  submittedAt: Date
+  status: 'submitted' | 'under_review' | 'approved' | 'needs_improvement'
+  reviewed: boolean
+  score?: number | null
+  feedback?: string | null
+}
+
+export interface ChallengeProgress {
+  userId: string
+  challengeId: string
+  status: 'available' | 'in_progress' | 'completed' | 'locked'
+  attempts: number
+  bestScore?: number
+  startedAt?: Date
+  completedAt?: Date
+  submissions: string[] // submission IDs
+}
+
+export interface PersonalizedChallengeSet {
+  daily: PersonalizedChallenge[]
+  weekly: PersonalizedChallenge[]
+  monthly: PersonalizedChallenge[]
+  recommended: PersonalizedChallenge[]
+}
+
 export type ChallengeStatus = 'locked' | 'available' | 'in_progress' | 'completed' | 'failed'
 export type ChallengeType = 'skill' | 'fitness' | 'tactical' | 'mental' | 'teamwork'
 export type ChallengeDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert'

@@ -123,9 +123,9 @@ export default function ExercisePage() {
       showMessage('התרגיל הושלם בהצלחה!', 'success')
       setCurrentStep('completed')
       
-      // Redirect back to assessment after 2 seconds with refresh parameter
+      // Redirect back to exercise selection (challenges step) after 2 seconds
       setTimeout(() => {
-        router.push('/assessment?refresh=' + Date.now())
+        router.push('/assessment?step=challenges')
       }, 2000)
       
     } catch (error) {

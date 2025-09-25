@@ -223,10 +223,17 @@ export class AssessmentService {
         manualScore: null, // Use null instead of undefined for Firestore compatibility
         totalScore: autoScore,
         status: 'completed' as const,
-        submittedAt: new Date().toISOString(),
+        submittedAt: serverTimestamp(),
         notes: notes || '',
         attempt: 1 // For now, assuming first attempt
       }
+
+      // Remove any undefined values before submitting to Firestore
+      Object.keys(submissionData).forEach(key => {
+        if ((submissionData as any)[key] === undefined) {
+          delete (submissionData as any)[key];
+        }
+      });
       
       // Store in user's submissions subcollection
       const submissionsRef = collection(db, COLLECTIONS.USERS, userId, USER_SUBCOLLECTIONS.SUBMISSIONS)

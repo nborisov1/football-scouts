@@ -50,6 +50,8 @@ export default function AssessmentPage() {
         user ? AssessmentService.getCompletedExercises(user.uid) : Promise.resolve([])
       ])
       
+      console.log('📊 Loaded assessment exercises:', { count: assessmentExercises.length, exercises: assessmentExercises })
+      
       if (assessmentExercises.length === 0) {
         setError('לא נמצאו תרגילי הערכה. אנא נסה שוב מאוחר יותר.')
         return
@@ -62,6 +64,11 @@ export default function AssessmentPage() {
       }))
       
       setExercises(exercisesWithStatus)
+      console.log('✅ Assessment data loaded successfully:', { 
+        exerciseCount: exercisesWithStatus.length, 
+        currentStep,
+        userCurrentLevel: user?.currentLevel 
+      })
     } catch (error) {
       console.error('❌ Error loading assessment challenges:', error)
       setError('שגיאה בטעינת אתגרי ההערכה')
@@ -85,6 +92,15 @@ export default function AssessmentPage() {
     }
   }, [searchParams, user, loadAssessmentData, router])
 
+  // Handle step parameter for direct navigation to challenges
+  useEffect(() => {
+    const step = searchParams.get('step')
+    if (step === 'challenges') {
+      setCurrentStep('challenges')
+      router.replace('/assessment', { scroll: false })
+    }
+  }, [searchParams, router])
+
   // Check if assessment should be completed
   useEffect(() => {
     const checkAssessmentCompletion = async () => {
@@ -92,6 +108,12 @@ export default function AssessmentPage() {
       
       const completedCount = exercises.filter(ex => ex.isCompleted).length
       const totalExercises = exercises.length
+      
+      console.log('🔍 Assessment completion check:', { 
+        completedCount, 
+        totalExercises, 
+        exercises: exercises.map(ex => ({ id: ex.id, title: ex.title, isCompleted: ex.isCompleted }))
+      })
       
       // If all exercises are completed, complete the assessment
       if (completedCount >= totalExercises && completedCount > 0) {
@@ -124,13 +146,24 @@ export default function AssessmentPage() {
   }, [exercises, user])
 
   useEffect(() => {
+    // Debug user data
+    if (user) {
+      console.log('🔍 Assessment page - User data check:', {
+        currentLevel: user.currentLevel,
+        level: user.level,
+        type: user.type,
+        assessmentCompleted: user.assessmentCompleted
+      })
+    }
+    
     // If user has completed assessment (currentLevel > 0), redirect to challenges
-    if (user && user.currentLevel > 0) {
+    // But only if they're not explicitly trying to retake the assessment
+    if (user && user.currentLevel > 0 && !searchParams.get('retake')) {
       console.log('User has already completed assessment, redirecting to challenges')
       router.push('/challenges')
       return
     }
-  }, [user, router])
+  }, [user, router, searchParams])
 
   const handleIntroductionComplete = () => {
     setCurrentStep('challenges')

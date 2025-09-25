@@ -4,6 +4,21 @@ const nextConfig: NextConfig = {
   experimental: {
     esmExternals: 'loose'
   },
+  // Fix CORS/COEP issues for Firebase Storage
+  async headers() {
+    return [
+      {
+        // Allow cross-origin for Firebase Storage videos
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'unsafe-none'
+          }
+        ]
+      }
+    ]
+  },
   webpack: (config, { isServer }) => {
     // Fix for Firebase on server-side
     if (isServer) {
@@ -14,6 +29,7 @@ const nextConfig: NextConfig = {
         'firebase/storage': 'firebase/storage'
       }]
     }
+
     return config
   }
 };

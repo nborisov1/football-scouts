@@ -214,7 +214,7 @@ export interface UserSubmission {
   
   // Scoring
   autoScore: number                // Algorithm-calculated score
-  manualScore?: number             // Optional scout/admin review
+  manualScore?: number | null      // Optional scout/admin review (null if not reviewed)
   totalScore: number               // Final score used
   
   // Status & Review

@@ -210,19 +210,19 @@ export class AssessmentService {
       // Auto-calculate score from count and challenge requirements  
       const autoScore = this.calculateVideoScore(challengeId, count)
       
-      // Create submission data
-      const submissionData: Omit<UserSubmission, 'submissionId'> = {
+      // Create submission data with all required fields properly set
+      const submissionData = {
         challengeId,
         exerciseId: challengeId, // For backwards compatibility
-        type: 'assessment',
+        type: 'assessment' as const,
         videoUrl,
         videoPath,
         videoDuration: videoDuration || 30,
         count: count,
         autoScore: autoScore,
-        manualScore: undefined,
+        manualScore: null, // Use null instead of undefined for Firestore compatibility
         totalScore: autoScore,
-        status: 'completed',
+        status: 'completed' as const,
         submittedAt: new Date().toISOString(),
         notes: notes || '',
         attempt: 1 // For now, assuming first attempt

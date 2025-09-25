@@ -8,7 +8,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { AssessmentService, AssessmentChallenge } from '@/lib/assessmentService'
+import AssessmentService from '@/lib/assessmentService'
+import type { AssessmentChallenge } from '@/types/level'
 import { showMessage } from '@/components/MessageContainer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { Card } from '@/components/ui/Card'
@@ -205,11 +206,11 @@ export default function ExercisePage() {
               </div>
               
               {/* Demo Video */}
-              {exercise.videoUrl && (
+              {exercise.demonstrationVideoUrl && (
                 <div className="mb-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-3">🎬 סרטון הדגמה</h3>
                   <VideoPlayer 
-                    src={exercise.videoUrl}
+                    src={exercise.demonstrationVideoUrl}
                     title="סרטון הדגמה"
                   />
                 </div>
@@ -243,7 +244,7 @@ export default function ExercisePage() {
                 <div className="flex items-center space-x-2 space-x-reverse text-sm">
                   <span className="text-blue-600">✓</span>
                   <span className="text-gray-800">
-                    <strong>{getMetricInfo(exercise.exerciseType).label}</strong>
+                    <strong>{getMetricInfo(exercise.category).label}</strong>
                   </span>
                 </div>
               </div>
@@ -344,7 +345,7 @@ export default function ExercisePage() {
 
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {getMetricInfo(exercise.exerciseType).label}
+                    {getMetricInfo(exercise.category).label}
                   </label>
                   <Input
                     type="number"
@@ -352,7 +353,7 @@ export default function ExercisePage() {
                     step="1"
                     value={metrics.count || ''}
                     onChange={(e) => handleMetricChange('count', e.target.value)}
-                    placeholder={getMetricInfo(exercise.exerciseType).placeholder}
+                    placeholder={getMetricInfo(exercise.category).placeholder}
                     className="w-full text-lg p-4"
                   />
                   <p className="text-xs text-gray-500 mt-2">

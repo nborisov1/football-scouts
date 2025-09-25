@@ -1,65 +1,183 @@
 /**
  * User type definitions for the Football Scouting Platform
+ * Updated to match the new Firebase database structure
  */
+
+import type { UserProgress, UserAchievement } from './level'
 
 export type UserType = 'player' | 'scout' | 'admin'
 
 export interface UserData {
+  // Basic Firebase Auth Info
   uid: string
   email: string | null
   displayName: string | null
   photoURL: string | null
-  emailVerified: boolean
+  emailVerified?: boolean
+  
+  // User Classification
   type: UserType
+  
+  // Basic Profile Data (current implementation)
   firstName: string
   lastName: string
   age: number
   position: string
   team: string
-  level: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  level: string
   dominantFoot: 'right' | 'left' | 'both'
   organization: string
-  createdAt?: any
-  updatedAt?: any
   
-  // Two-Phase Level System
+  // Level progression fields
   onboardingCompleted: boolean
   assessmentCompleted: boolean
-  currentLevel: number // 1-50
+  currentLevel: number
+  skillCategory: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  levelProgress: number
+  completedLevelChallenges: string[]
+  totalChallengesInLevel: number
+  
+  // New structured data (for future migration)
+  profile?: UserProfile
+  progress?: UserProgress
+  settings?: UserSettings
+  rankings?: UserRankings
+  scoutMetrics?: ScoutMetrics
+  
+  // Timestamps
+  createdAt?: any
+  updatedAt?: any
+}
+
+export interface UserProfile {
+  // Personal Information
+  firstName: string
+  lastName: string
+  age: number
+  dateOfBirth?: string
+  
+  // Football-specific Profile
+  position: string[]              // Can play multiple positions
+  preferredFoot: 'right' | 'left' | 'both'
+  experienceYears: string         // '0-1', '2-5', '6-10', '10+'
   skillCategory: 'beginner' | 'intermediate' | 'advanced' | 'professional'
   
-  // Assessment Results (Phase 1)
-  assessmentScores?: AssessmentScore[]
-  startingLevel?: number
-  levelAssignmentReason?: string
+  // Physical Data
+  height?: number                 // cm
+  weight?: number                 // kg
   
-  // Level Progression (Phase 2)
-  levelProgress: number // 0-100 percentage to next level
-  completedLevelChallenges: string[] // challenge IDs completed for current level
-  totalChallengesInLevel: number // total challenges required for current level
-  
-  // Enhanced Profile Data
-  experienceYears?: string // '0-1', '2-5', '6-10', '10+'
-  height?: number // cm
-  weight?: number // kg
+  // Current Club/Team Information
+  currentTeam?: string
   previousClub?: string
+  organization?: string
   
-  // Progress tracking
-  points?: number
-  weeklyTrainings?: number
-  completedChallenges?: number
-  weeklyProgress?: number
+  // Contact & Location
+  phoneNumber?: string
+  city?: string
+  country?: string
   
-  // Statistics
-  stats?: {
-    trainingHours: number
-    challengesCompleted: number
-    rank: number
-    improvementRate: number
-    levelsGained: number
-    assessmentDate?: Date
+  // Media
+  profilePictureUrl?: string
+  
+  // Preferences
+  languagePreference: 'he' | 'en'
+  notifications: {
+    email: boolean
+    push: boolean
+    sms: boolean
   }
 }
+
+export interface UserSettings {
+  // Privacy Settings
+  profileVisibility: 'public' | 'scouts_only' | 'private'
+  allowScoutContact: boolean
+  shareVideoWithScouts: boolean
+  
+  // Platform Preferences
+  preferredVideoQuality: 'auto' | 'high' | 'medium' | 'low'
+  autoUploadVideos: boolean
+  
+  // Notification Preferences
+  notifications: {
+    newChallenges: boolean
+    levelUp: boolean
+    scoutInterest: boolean
+    weeklyProgress: boolean
+    achievements: boolean
+  }
+  
+  // Coaching Preferences
+  feedbackPreference: 'immediate' | 'weekly' | 'monthly'
+  trainingReminders: boolean
+  
+  // Data & Analytics
+  dataSharing: boolean
+  analyticsOptIn: boolean
+}
+
+export interface UserRankings {
+  // Global Rankings
+  globalRank?: number
+  globalScore: number
+  
+  // Level-specific Rankings
+  levelRank?: number
+  levelScore: number
+  
+  // Category Rankings
+  technicalRank?: number
+  physicalRank?: number
+  tacticalRank?: number
+  
+  // Regional Rankings
+  cityRank?: number
+  countryRank?: number
+  
+  // Weekly/Monthly Rankings
+  weeklyRank?: number
+  monthlyRank?: number
+  
+  // Peak Rankings (best ever achieved)
+  peakGlobalRank?: number
+  peakLevelRank?: number
+  
+  // Last Updated
+  lastUpdated: string
+}
+
+export interface ScoutMetrics {
+  // Scout Activity
+  totalVideosViewed: number
+  totalPlayersViewed: number
+  totalReports: number
+  
+  // Scout Engagement
+  averageViewTime: number         // Average time spent viewing videos
+  favoritePositions: string[]    // Positions most frequently scouted
+  
+  // Scout Success Metrics
+  playersRecommended: number
+  successfulRecommendations: number
+  
+  // Preferences
+  preferredAgeGroups: string[]
+  preferredSkillLevels: string[]
+  searchFilters: {
+    minLevel: number
+    maxLevel: number
+    positions: string[]
+    locations: string[]
+  }
+  
+  // Activity Timeline
+  lastActiveDate: string
+  totalSessionTime: number
+}
+
+// =============================================================================
+// AUTH CONTEXT
+// =============================================================================
 
 export interface AuthContextType {
   user: UserData | null
@@ -79,89 +197,80 @@ export interface RegisterData {
   age: number
   position: string
   team: string
-  level: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  level: string
   dominantFoot: 'right' | 'left' | 'both'
-  organization: string
-  // Extended profile data
+  organization?: string
+  
+  // Optional extended profile data (for future use)
   experienceYears?: string
   height?: number
   weight?: number
+  currentTeam?: string
   previousClub?: string
+  city?: string
+  country?: string
+  phoneNumber?: string
 }
 
 // =============================================================================
-// ASSESSMENT SYSTEM TYPES (Phase 1)
+// LEGACY TYPES (for backwards compatibility)
 // =============================================================================
 
-export interface AssessmentScore {
+export interface LegacyUserData {
+  uid: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+  emailVerified: boolean
+  type: UserType
+  firstName: string
+  lastName: string
+  age: number
+  position: string
+  team: string
+  level: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  dominantFoot: 'right' | 'left' | 'both'
+  organization: string
+  createdAt?: any
+  updatedAt?: any
+  
+  // Legacy progression fields
+  onboardingCompleted: boolean
+  assessmentCompleted: boolean
+  currentLevel: number
+  skillCategory: 'beginner' | 'intermediate' | 'advanced' | 'professional'
+  levelProgress: number
+  completedLevelChallenges: string[]
+  totalChallengesInLevel: number
+}
+
+export interface LegacyAssessmentScore {
   challengeId: string
   challengeName: string
-  performanceScore: number // 1-10 based on metrics
-  videoTechniqueScore: number // 1-10 from video analysis
-  finalScore: number // simple average of performance + technique
+  performanceScore: number
+  videoTechniqueScore: number
+  finalScore: number
   submittedAt: Date
 }
 
-export interface AssessmentChallenge {
-  id: string
-  title: string
-  description: string
-  instructions: string[]
-  demoVideoUrl?: string
-  thumbnailUrl?: string
-  
-  // Assessment specific
-  isAssessmentChallenge: true
-  assessmentOrder: number // 1-5 for the 5 standard challenges
-  
-  // Performance metrics expected
-  metrics: AssessmentMetric[]
-  expectedDuration: number // in minutes
-  maxAttempts: number
-}
-
-export interface AssessmentMetric {
-  id: string
-  name: string
-  unit: string // e.g., 'shots', 'seconds', 'passes'
-  type: 'count' | 'time' | 'percentage'
-  description: string
-  expectedRange: {
-    min: number
-    max: number
-  }
-}
-
-export interface AssessmentSubmission {
+export interface LegacyAssessmentSubmission {
   id: string
   playerId: string
   challengeId: string
   videoUrl: string
-  metrics: Record<string, number> // metricId -> value
+  metrics: Record<string, number>
   performanceScore: number
   videoTechniqueScore: number
   finalScore: number
-  attempt: number // which attempt this is (1-3)
+  attempt: number
   submittedAt: Date
   reviewedAt?: Date
   feedback?: string
 }
 
 // =============================================================================
-// LEVEL PROGRESSION TYPES (Phase 2)
+// ONBOARDING TYPES
 // =============================================================================
-
-export interface LevelProgressionData {
-  currentLevel: number
-  totalChallenges: number
-  completedChallenges: number
-  requiredChallenges: string[] // challenge IDs for current level
-  nextLevelRequirements: {
-    challengesRemaining: number
-    estimatedTimeToComplete: number // in days
-    skillFocusAreas: string[]
-  }
-}
 
 export interface OnboardingStep {
   step: 'registration' | 'profile' | 'assessment-intro' | 'assessment' | 'level-assignment' | 'dashboard'
@@ -172,8 +281,8 @@ export interface OnboardingStep {
 export interface OnboardingState {
   currentStep: OnboardingStep['step']
   completedSteps: OnboardingStep['step'][]
-  assessmentChallenges: any[] // Will be Challenge[] from challenge types
-  assessmentSubmissions: AssessmentSubmission[]
+  assessmentChallenges: any[]
+  assessmentSubmissions: any[]
   assignedLevel?: number
   canProceed: boolean
 }

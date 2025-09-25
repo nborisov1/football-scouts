@@ -8,25 +8,48 @@
 // =============================================================================
 
 export const COLLECTIONS = {
+  // Core User Management
   USERS: 'users',
+  
+  // Level System (NEW)
+  LEVELS: 'levels',                    // Level definitions & requirements
+  CHALLENGES: 'challenges',            // Admin-created challenge templates
+  ASSESSMENT_CHALLENGES: 'assessmentChallenges', // Standardized assessment challenges
+  
+  // Legacy Video Collection (for admin-uploaded demo videos)
+  VIDEOS: 'videos',                    // Admin demo videos for challenges
+  
+  // Competition & Recognition
+  LEADERBOARDS: 'leaderboards',        // Global rankings
+  SCOUT_ACTIVITY: 'scoutActivity',     // Scout interaction tracking
+  ANALYTICS: 'analytics',              // Platform analytics
+  
+  // Legacy Collections (to be migrated)
   TRAINING: 'training',
-  VIDEOS: 'videos', // Admin uploaded challenge videos (instructions, demos)
-  CHALLENGES: 'challenges', // User submissions: challenges/{userId} subcollections
-  LEADERBOARDS: 'leaderboards',
-  SCOUT_REPORTS: 'scout_reports',
-  ANALYTICS: 'analytics',
+  SCOUT_REPORTS: 'scout_reports', 
   USER_PROGRESS: 'user_progress',
-  ASSESSMENTS: 'assessments'
+  ASSESSMENTS: 'assessments'           // Will be moved to user subcollections
+}
+
+// Subcollections under users/{userId}/
+export const USER_SUBCOLLECTIONS = {
+  ASSESSMENTS: 'assessments',          // Assessment exam submissions
+  SUBMISSIONS: 'submissions',          // Challenge video submissions  
+  COMPLETIONS: 'completions',          // Exercise completion tracking
+  PROGRESS: 'progress',               // Level progress tracking
+  ACHIEVEMENTS: 'achievements'         // Unlocked achievements & badges
 }
 
 export const STORAGE_PATHS = {
-  // Admin uploads (original challenge videos, instructions, demos)
-  VIDEOS: 'videos',
+  // Admin uploads (demo videos for challenges)
+  CHALLENGE_DEMOS: 'challenges/demos',      // Demo videos for challenges
+  ASSESSMENT_DEMOS: 'assessments/demos',    // Demo videos for assessments
   THUMBNAILS: 'thumbnails',
   
-  // User uploads (submissions after completing challenges)
-  CHALLENGES: 'challenges', // challenges/{userId}/
-  ASSESSMENTS: 'assessments'
+  // User uploads (organized by user and type)
+  USER_ASSESSMENTS: 'assessments',          // assessments/{userId}/
+  USER_SUBMISSIONS: 'submissions',          // submissions/{userId}/
+  USER_PROFILES: 'profiles'                 // profiles/{userId}/
 }
 
 // =============================================================================
@@ -37,6 +60,20 @@ export const USER_TYPES = {
   PLAYER: 'player',
   SCOUT: 'scout',
   ADMIN: 'admin'
+}
+
+// Compatibility function for user data access during transition
+export const getLegacyUserField = (user, field) => {
+  if (!user) return null
+  
+  // Handle legacy direct access
+  if (user[field] !== undefined) return user[field]
+  
+  // Handle new structure
+  if (user.profile && user.profile[field] !== undefined) return user.profile[field]
+  if (user.progress && user.progress[field] !== undefined) return user.progress[field]
+  
+  return null
 }
 
 export const AUTH_STATES = {

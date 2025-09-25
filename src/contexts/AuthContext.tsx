@@ -11,7 +11,8 @@ import { UserData, AuthContextType, RegisterData, UserType } from '@/types/user'
 import { showMessage } from '@/components/MessageContainer'
 
 // Import Firebase directly - Next.js config will handle SSR
-import { auth, db, USER_TYPES, COLLECTIONS } from '@/lib/firebase'
+import { auth, db, USER_TYPES } from '@/lib/firebase'
+import { COLLECTIONS } from '@/constants/challenges'
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -59,12 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('❌ This means the user was created in Firebase Auth but not saved to Firestore')
         return null
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error loading user data:', error)
       console.error('❌ Error details:', {
-        code: error.code,
-        message: error.message,
-        stack: error.stack
+        code: error?.code,
+        message: error?.message,
+        stack: error?.stack
       })
       return null
     }

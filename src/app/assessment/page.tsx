@@ -8,7 +8,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { AssessmentService, AssessmentChallenge } from '@/lib/assessmentService'
+import AssessmentService from '@/lib/assessmentService'
+import type { AssessmentChallenge } from '@/types/level'
 import { showMessage } from '@/components/MessageContainer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { Card } from '@/components/ui/Card'
@@ -38,7 +39,7 @@ export default function AssessmentPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadAssessmentData = useCallback(async () => {
+  const loadAssessmentData = useCallback(async () => {error
     try {
       setLoading(true)
       setError(null)
@@ -84,8 +85,46 @@ export default function AssessmentPage() {
     }
   }, [searchParams, user, loadAssessmentData, router])
 
+  // Check if assessment should be completed
   useEffect(() => {
-    if (user?.assessmentCompleted) {
+    const checkAssessmentCompletion = async () => {
+      if (!user || exercises.length === 0) return
+      
+      const completedCount = exercises.filter(ex => ex.isCompleted).length
+      const totalExercises = exercises.length
+      
+      // If all exercises are completed, complete the assessment
+      if (completedCount >= totalExercises && completedCount > 0) {
+        try {
+          console.log('🎯 All assessment exercises completed. Completing assessment...')
+          
+          const result = await AssessmentService.completeAssessment(user.uid)
+          
+          if (result.success) {
+            setAssessmentResult({
+              assignedLevel: result.assignedLevel,
+              assessmentResult: { 
+                assignedLevel: result.assignedLevel, 
+                averageScore: result.overallScore 
+              },
+              assessmentScores: [] // Can be populated later
+            })
+            setCurrentStep('level-assignment')
+            
+            showMessage(`🎉 מזל טוב! הערכת הרמה הושלמה. הרמה שלך: ${result.assignedLevel}`, 'success')
+          }
+        } catch (error) {
+          console.error('Error completing assessment:', error)
+          showMessage('שגיאה בסיום ההערכה', 'error')
+        }
+      }
+    }
+    
+    checkAssessmentCompletion()
+  }, [exercises, user])
+
+  useEffect(() => {
+    if (user?.progress?.assessmentCompleted) {
       router.push('/challenges')
       return
     }
@@ -263,7 +302,7 @@ export default function AssessmentPage() {
                         
                         <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
                           <span>⏱️ {exercise.duration}s</span>
-                          <span>🎯 {exercise.exerciseType}</span>
+                          <span>🎯 {exercise.category}</span>
                         </div>
                         
                         <Button

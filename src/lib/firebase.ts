@@ -29,8 +29,11 @@ const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`)
 
 // Debug logging in development
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  console.log('🔥 Firebase initialized with storage bucket:', firebaseConfig.storageBucket)
-  console.log('🔥 Storage instance bucket:', storage._delegate?._host || 'unknown')
+  console.log('🔥 Firebase initialized')
+  console.log('🔥 Auth:', !!auth)
+  console.log('🔥 Firestore:', !!db)
+  console.log('🔥 Storage bucket:', firebaseConfig.storageBucket)
+  console.log('🔥 Storage initialized:', !!storage)
 }
 
 // Set auth language to Hebrew
@@ -53,16 +56,8 @@ export const AUTH_STATES = {
   UNAUTHENTICATED: 'unauthenticated'
 } as const
 
-export const COLLECTIONS = {
-  USERS: 'users',
-  VIDEOS: 'videos',
-  ASSESSMENTS: 'assessments',
-  CHALLENGES: 'challenges',
-  LEADERBOARDS: 'leaderboards',
-  SCOUT_REPORTS: 'scout_reports',
-  ANALYTICS: 'analytics',
-  USER_PROGRESS: 'user_progress'
-}
+// Import from centralized constants
+export { COLLECTIONS, USER_SUBCOLLECTIONS, STORAGE_PATHS } from '@/constants/challenges'
 
 export type UserType = typeof USER_TYPES[keyof typeof USER_TYPES]
 export type AuthState = typeof AUTH_STATES[keyof typeof AUTH_STATES]

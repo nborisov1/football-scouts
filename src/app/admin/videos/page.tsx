@@ -539,6 +539,7 @@ export default function AdminVideos() {
                       controls
                       className="w-full max-h-96 rounded-lg"
                       poster={selectedVideoGroup.baseVideo.thumbnailUrl}
+                      crossOrigin="anonymous"
                     >
                       <source src={selectedVideoGroup.baseVideo.videoUrl} type="video/mp4" />
                       הדפדפן שלך אינו תומך בתגית הווידאו.

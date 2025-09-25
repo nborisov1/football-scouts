@@ -8,12 +8,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Enable SharedArrayBuffer for video transcoding (FFmpeg.wasm)
+        // Enable SharedArrayBuffer for video transcoding while allowing Firebase Storage
         source: '/(.*)',
         headers: [
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp'
+            value: 'credentialless'
           },
           {
             key: 'Cross-Origin-Opener-Policy',

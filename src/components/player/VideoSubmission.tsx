@@ -216,6 +216,7 @@ export default function VideoSubmission({
               src={previewUrl}
               controls
               className="w-full h-64 bg-gray-100 rounded-lg object-cover"
+              crossOrigin="anonymous"
             />
             <button
               onClick={resetSubmission}

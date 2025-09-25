@@ -20,6 +20,7 @@ export function VideoPlayer({ src, title, className = '' }: VideoPlayerProps) {
           className="w-full h-full object-cover"
           controls
           preload="metadata"
+          crossOrigin="anonymous"
         >
           <source src={src} type="video/mp4" />
           <source src={src} type="video/mov" />

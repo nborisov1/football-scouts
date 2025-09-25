@@ -150,6 +150,7 @@ export default function VideoReviewPanel({ submissions, onReviewComplete }: Vide
                   src={selectedSubmission.videoUrl}
                   controls
                   className="w-full h-48 bg-gray-100 rounded-lg object-cover"
+                  crossOrigin="anonymous"
                 />
               </div>
 

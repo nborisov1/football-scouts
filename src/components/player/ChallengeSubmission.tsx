@@ -144,6 +144,7 @@ export default function ChallengeSubmission({
             src={challenge.videoUrl} 
             controls 
             className="w-full max-w-md mx-auto rounded-lg"
+            crossOrigin="anonymous"
           >
             הדפדפן שלך לא תומך בסרטונים
           </video>

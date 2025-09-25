@@ -13,7 +13,7 @@ import LoginModal from './modals/LoginModal'
 import RegistrationModal from './modals/RegistrationModal'
 
 export default function Header() {
-  const { user, loading, logout } = useAuth()
+  const { user, logout } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
   const [registrationType, setRegistrationType] = useState<'player' | 'scout' | null>(null)
@@ -87,12 +87,7 @@ export default function Header() {
 
             {/* Auth Buttons / User Menu */}
             <div className="flex items-center space-x-4 space-x-reverse">
-              {loading ? (
-                // Loading state - just show a subtle spinner without text
-                <div className="flex items-center justify-center w-12 h-12">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-field-600"></div>
-                </div>
-              ) : user ? (
+              {user ? (
                 // Authenticated User Menu
                 <div className="relative">
                   <button

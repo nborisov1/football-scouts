@@ -33,8 +33,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Start with false for instant UI
   const router = useRouter()
+
+  // Initialize user from localStorage on first load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cachedUser = localStorage.getItem('footballScout_currentUser')
+      if (cachedUser) {
+        try {
+          const userData = JSON.parse(cachedUser)
+          setUser(userData)
+        } catch (error) {
+          console.error('Error parsing cached user:', error)
+          localStorage.removeItem('footballScout_currentUser')
+        }
+      }
+    }
+  }, [])
 
   const loadUserData = async (uid: string) => {
     try {
@@ -74,7 +90,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') {
-      setLoading(false)
       return
     }
 
@@ -89,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = await loadUserData(firebaseUser.uid)
           
           if (userData) {
-            setUser({
+            const fullUserData = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               displayName: firebaseUser.displayName || userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
@@ -113,10 +128,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               completedLevelChallenges: userData.completedLevelChallenges || [],
               totalChallengesInLevel: userData.totalChallengesInLevel || 30,
               ...userData
-            })
+            }
+            
+            setUser(fullUserData)
+            // Cache user data for instant loading on refresh
+            localStorage.setItem('footballScout_currentUser', JSON.stringify(fullUserData))
           } else {
             // User document doesn't exist, create basic user data
-            setUser({
+            const basicUserData = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               displayName: firebaseUser.displayName,
@@ -139,17 +158,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               levelProgress: 0,
               completedLevelChallenges: [],
               totalChallengesInLevel: 30
-            })
+            }
+            
+            setUser(basicUserData)
+            localStorage.setItem('footballScout_currentUser', JSON.stringify(basicUserData))
           }
         } else {
           console.log('❌ No Firebase user found')
           setUser(null)
+          localStorage.removeItem('footballScout_currentUser')
         }
       } catch (error) {
         console.error('❌ Error in auth state change:', error)
         setUser(null)
-      } finally {
-        setLoading(false)
+        localStorage.removeItem('footballScout_currentUser')
       }
     })
 
@@ -228,6 +250,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ User data saved to Firestore successfully!')
       console.log('🎉 Registration completed - user data is now in the database!')
       
+      // Cache the user data immediately for instant UI
+      const newUserData = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: fullName,
+        photoURL: firebaseUser.photoURL,
+        emailVerified: firebaseUser.emailVerified,
+        type,
+        firstName,
+        lastName,
+        age: parseInt(age.toString()) || 0,
+        position: position || '',
+        team: team || '',
+        level: level || 'beginner',
+        dominantFoot: dominantFoot || 'right',
+        organization: organization || '',
+        onboardingCompleted: false,
+        assessmentCompleted: false,
+        currentLevel: 1,
+        skillCategory: 'beginner',
+        levelProgress: 0,
+        completedLevelChallenges: [],
+        totalChallengesInLevel: 30,
+        ...userData
+      }
+      
+      setUser(newUserData)
+      localStorage.setItem('footballScout_currentUser', JSON.stringify(newUserData))
+      
       console.log('✅ Registration successful:', firebaseUser.email, 'Full name:', fullName)
       return userCredential
     } catch (error: any) {
@@ -246,6 +297,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOut(auth)
       console.log('✅ Logout successful')
       setUser(null)
+      
+      // Clear cached user data
+      localStorage.removeItem('footballScout_currentUser')
       
       // Show success message and redirect to landing page
       router.push('/')

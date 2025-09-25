@@ -69,17 +69,17 @@ export class AssessmentService {
    */
   static async getLegacyAssessmentExercises(): Promise<AssessmentChallenge[]> {
     try {
-      // Get approved videos from Firebase
+      // Get videos from Firebase (try without status filter first)
+      console.log('🔄 Loading legacy assessment from videos collection...')
       const videosRef = collection(db, COLLECTIONS.VIDEOS)
-      const q = query(
-        videosRef, 
-        where('status', '==', 'approved'),
-        limit(10)
-      )
+      const q = query(videosRef, limit(10))
       const snapshot = await getDocs(q)
       
+      console.log(`📊 Found ${snapshot.size} videos in collection`)
+      
       if (snapshot.empty) {
-        return []
+        console.warn('❌ No videos found for assessment. Creating mock exercises.')
+        return this.getMockAssessmentExercises()
       }
       
       const challenges: AssessmentChallenge[] = []
@@ -422,6 +422,104 @@ export class AssessmentService {
     if (level >= 5) return 'advanced'
     if (level >= 3) return 'intermediate'
     return 'beginner'
+  }
+
+  /**
+   * Mock assessment exercises as final fallback
+   */
+  private static getMockAssessmentExercises(): AssessmentChallenge[] {
+    return [
+      {
+        id: 'mock-ball-control',
+        title: 'שליטה בכדור',
+        description: 'אתגר שליטה בכדור בסיסי',
+        instructions: [
+          'בצע שליטה בכדור עם כף הרגל',
+          'נסה לשמור על הכדור באוויר',
+          'ספור כמה נגיעות הצלחת',
+          'צלם את עצמך מבצע את התרגיל'
+        ],
+        type: 'assessment',
+        category: 'technical',
+        order: 1,
+        metrics: {
+          type: 'count',
+          target: 10,
+          passingScore: 5,
+          excellentScore: 15,
+          unit: 'נגיעות',
+          description: 'מספר הנגיעות ברצף'
+        },
+        demonstrationVideoUrl: '',
+        equipment: ['כדור'],
+        spaceRequired: '3x3 מטרים',
+        duration: 60,
+        maxAttempts: 3,
+        createdBy: 'system',
+        isActive: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-passing',
+        title: 'דיוק מסירות',
+        description: 'אתגר דיוק מסירות למטרה',
+        instructions: [
+          'הצב מטרה במרחק של 5 מטר',
+          'בצע מסירות למטרה',
+          'ספור כמה מסירות פגעו במטרה',
+          'צלם את עצמך מבצע את התרגיל'
+        ],
+        type: 'assessment',
+        category: 'technical',
+        order: 2,
+        metrics: {
+          type: 'count',
+          target: 10,
+          passingScore: 6,
+          excellentScore: 12,
+          unit: 'מסירות מדויקות',
+          description: 'מספר המסירות שפגעו במטרה'
+        },
+        demonstrationVideoUrl: '',
+        equipment: ['כדור', 'מטרה'],
+        spaceRequired: '10x5 מטרים',
+        duration: 90,
+        maxAttempts: 3,
+        createdBy: 'system',
+        isActive: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-shooting',
+        title: 'בעיטות למטרה',
+        description: 'אתגר בעיטות לשער',
+        instructions: [
+          'עמוד במרחק של 10 מטר מהשער',
+          'בצע בעיטות לשער',
+          'ספור כמה בעיטות נכנסו',
+          'צלם את עצמך מבצע את התרגיל'
+        ],
+        type: 'assessment',
+        category: 'technical',
+        order: 3,
+        metrics: {
+          type: 'count',
+          target: 10,
+          passingScore: 4,
+          excellentScore: 8,
+          unit: 'גולים',
+          description: 'מספר הבעיטות שנכנסו לשער'
+        },
+        demonstrationVideoUrl: '',
+        equipment: ['כדור', 'שער'],
+        spaceRequired: '15x10 מטרים',
+        duration: 120,
+        maxAttempts: 3,
+        createdBy: 'system',
+        isActive: true,
+        createdAt: new Date().toISOString()
+      }
+    ]
   }
 }
 

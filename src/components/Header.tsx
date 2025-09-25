@@ -13,7 +13,7 @@ import LoginModal from './modals/LoginModal'
 import RegistrationModal from './modals/RegistrationModal'
 
 export default function Header() {
-  const { user, logout } = useAuth()
+  const { user, loading, logout } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
   const [registrationType, setRegistrationType] = useState<'player' | 'scout' | null>(null)
@@ -87,14 +87,20 @@ export default function Header() {
 
             {/* Auth Buttons / User Menu */}
             <div className="flex items-center space-x-4 space-x-reverse">
-              {user ? (
+              {loading ? (
+                // Loading state
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-field-600"></div>
+                  <span className="text-sm text-stadium-600">בודק הרשאות...</span>
+                </div>
+              ) : user ? (
                 // Authenticated User Menu
                 <div className="relative">
                   <button
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
                     className="flex items-center space-x-3 space-x-reverse bg-white/80 backdrop-blur-sm border border-field-200 rounded-xl px-6 py-3 text-sm font-medium text-stadium-700 hover:bg-field-50 hover:border-field-300 focus:outline-none focus:ring-2 focus:ring-field-500 transition-all duration-300 shadow-stadium"
                   >
-                    <span className="font-display font-semibold">{user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'החשבון שלי'}</span>
+                    <span className="font-display font-semibold">{user.displayName || `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || 'החשבון שלי'}</span>
                     <div className="w-8 h-8 bg-field-gradient rounded-full flex items-center justify-center">
                       <i className="fas fa-user text-white text-sm"></i>
                     </div>
@@ -104,7 +110,7 @@ export default function Header() {
                   {showUserDropdown && (
                     <div className="absolute left-0 mt-3 w-56 bg-white/95 backdrop-blur-lg rounded-xl shadow-stadium border border-field-200/50 py-2 z-50 overflow-hidden">
                       <div className="px-4 py-3 border-b border-field-100">
-                        <p className="text-sm font-medium text-stadium-900">{user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim()}</p>
+                        <p className="text-sm font-medium text-stadium-900">{user.displayName || `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim()}</p>
                         <p className="text-xs text-field-600 capitalize">
                           {user.type === USER_TYPES.PLAYER && '⚽ שחקן'}
                           {user.type === USER_TYPES.SCOUT && '🔍 סקאוט'}

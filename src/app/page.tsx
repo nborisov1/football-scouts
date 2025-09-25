@@ -27,7 +27,7 @@ const mockLeaderboardData = [
 ]
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const [testimonialIndex, setTestimonialIndex] = useState(0)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
@@ -138,6 +138,21 @@ export default function HomePage() {
       </div>
     </section>
   )
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-stadium-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-field-gradient rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+            <i className="fas fa-futbol text-white text-2xl"></i>
+          </div>
+          <h2 className="text-xl font-semibold text-stadium-700 mb-2">בודק הרשאות...</h2>
+          <p className="text-stadium-600">אנא המתן רגע</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

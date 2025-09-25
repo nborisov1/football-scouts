@@ -5,7 +5,7 @@
  * Preserves functionality from pages/profile.html + js/profile.js
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { showMessage } from '@/components/MessageContainer'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -24,6 +24,25 @@ export default function ProfilePage() {
     organization: user?.organization || ''
   })
 
+  // Update form data when user data loads
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        age: user.age || 18,
+        position: user.position || '',
+        dominantFoot: user.dominantFoot || 'right',
+        level: user.level || 'beginner',
+        organization: user.organization || ''
+      })
+    }
+  }, [user])
+
+  // Additional safety check - if user is null, don't render the content
+  if (!user) {
+    return null // ProtectedRoute will handle showing loading or redirect
+  }
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -40,13 +59,12 @@ export default function ProfilePage() {
       const firstName = nameParts[0] || ''
       const lastName = nameParts.slice(1).join(' ') || ''
       
+      const { name, ...dataWithoutName } = formData
       const updateData = {
-        ...formData,
+        ...dataWithoutName,
         firstName,
         lastName
       }
-      // Remove the 'name' field as it doesn't exist in UserData
-      delete (updateData as any).name
       
       await updateProfile(updateData)
       setIsEditing(false)

@@ -38,6 +38,7 @@ export default function AssessmentPage() {
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hasAutoProgressed, setHasAutoProgressed] = useState(false)
 
   const loadAssessmentData = useCallback(async () => {error
     try {
@@ -69,6 +70,21 @@ export default function AssessmentPage() {
         currentStep,
         userCurrentLevel: user?.currentLevel 
       })
+      
+      // Auto-progress to challenges step if user has already started assessment
+      const completedCount = exercisesWithStatus.filter(ex => ex.isCompleted).length
+      console.log('🔍 Auto-progress check:', {
+        completedCount,
+        currentStep,
+        willProgress: completedCount > 0 && currentStep === 'introduction'
+      })
+      
+      // Only auto-progress once per session to prevent loops
+      if (completedCount > 0 && currentStep === 'introduction' && !hasAutoProgressed) {
+        console.log('🚀 User has completed exercises, auto-progressing to challenges step')
+        setHasAutoProgressed(true)
+        setCurrentStep('challenges')
+      }
     } catch (error) {
       console.error('❌ Error loading assessment challenges:', error)
       setError('שגיאה בטעינת אתגרי ההערכה')
@@ -101,49 +117,7 @@ export default function AssessmentPage() {
     }
   }, [searchParams, router])
 
-  // Check if assessment should be completed
-  useEffect(() => {
-    const checkAssessmentCompletion = async () => {
-      if (!user || exercises.length === 0) return
-      
-      const completedCount = exercises.filter(ex => ex.isCompleted).length
-      const totalExercises = exercises.length
-      
-      console.log('🔍 Assessment completion check:', { 
-        completedCount, 
-        totalExercises, 
-        exercises: exercises.map(ex => ({ id: ex.id, title: ex.title, isCompleted: ex.isCompleted }))
-      })
-      
-      // If all exercises are completed, complete the assessment
-      if (completedCount >= totalExercises && completedCount > 0) {
-        try {
-          console.log('🎯 All assessment exercises completed. Completing assessment...')
-          
-          const result = await AssessmentService.completeAssessment(user.uid)
-          
-          if (result.success) {
-            setAssessmentResult({
-              assignedLevel: result.assignedLevel,
-              assessmentResult: { 
-                assignedLevel: result.assignedLevel, 
-                averageScore: result.overallScore 
-              },
-              assessmentScores: [] // Can be populated later
-            })
-            setCurrentStep('level-assignment')
-            
-            showMessage(`🎉 מזל טוב! הערכת הרמה הושלמה. הרמה שלך: ${result.assignedLevel}`, 'success')
-          }
-        } catch (error) {
-          console.error('Error completing assessment:', error)
-          showMessage('שגיאה בסיום ההערכה', 'error')
-        }
-      }
-    }
-    
-    checkAssessmentCompletion()
-  }, [exercises, user])
+  // Remove automatic completion - let user complete manually when they finish all exercises
 
   useEffect(() => {
     // Debug user data

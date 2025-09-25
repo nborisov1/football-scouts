@@ -88,10 +88,9 @@ export default function Header() {
             {/* Auth Buttons / User Menu */}
             <div className="flex items-center space-x-4 space-x-reverse">
               {loading ? (
-                // Loading state
-                <div className="flex items-center space-x-3 space-x-reverse">
+                // Loading state - just show a subtle spinner without text
+                <div className="flex items-center justify-center w-12 h-12">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-field-600"></div>
-                  <span className="text-sm text-stadium-600">בודק הרשאות...</span>
                 </div>
               ) : user ? (
                 // Authenticated User Menu

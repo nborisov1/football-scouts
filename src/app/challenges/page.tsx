@@ -18,9 +18,9 @@ import type { PersonalizedChallenge, ChallengeSubmission, PersonalizedChallengeS
 export default function ChallengesPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [challengeSet, setChallengeSet] = useState<PersonalizedChallengeSet | null>(null)
+  const [allChallenges, setAllChallenges] = useState<PersonalizedChallenge[]>([])
   const [selectedChallenge, setSelectedChallenge] = useState<PersonalizedChallenge | null>(null)
-  const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly' | 'recommended'>('daily')
+  const [filterCompleted, setFilterCompleted] = useState<'all' | 'completed' | 'not_completed'>('all')
 
   useEffect(() => {
     if (user && user.currentLevel > 0) {
@@ -35,9 +35,20 @@ export default function ChallengesPage() {
     
     try {
       setLoading(true)
-      const challenges = await PersonalizedChallengeService.getPersonalizedChallenges(user)
-      setChallengeSet(challenges)
-      console.log('📊 Loaded personalized challenges:', challenges)
+      const challengeSet = await PersonalizedChallengeService.getPersonalizedChallenges(user)
+      // Combine all challenges from different categories
+      const allChallenges = [
+        ...challengeSet.daily,
+        ...challengeSet.weekly,
+        ...challengeSet.monthly,
+        ...challengeSet.recommended
+      ]
+      // Remove duplicates based on ID
+      const uniqueChallenges = allChallenges.filter((challenge, index, self) => 
+        index === self.findIndex(c => c.id === challenge.id)
+      )
+      setAllChallenges(uniqueChallenges)
+      console.log('📊 Loaded personalized challenges:', uniqueChallenges.length)
     } catch (error) {
       console.error('❌ Error loading challenges:', error)
       showMessage('שגיאה בטעינת האתגרים', 'error')
@@ -51,6 +62,21 @@ export default function ChallengesPage() {
     setSelectedChallenge(null)
     // Reload challenges to update progress
     loadPersonalizedChallenges()
+  }
+
+  const getFilteredChallenges = () => {
+    if (!user) return []
+    
+    const completedChallengeIds = user.completedLevelChallenges || []
+    
+    switch (filterCompleted) {
+      case 'completed':
+        return allChallenges.filter(challenge => completedChallengeIds.includes(challenge.id))
+      case 'not_completed':
+        return allChallenges.filter(challenge => !completedChallengeIds.includes(challenge.id))
+      default:
+        return allChallenges
+    }
   }
 
   // Show player-specific page for players
@@ -161,34 +187,31 @@ export default function ChallengesPage() {
             </div>
           </section>
 
-          {/* Challenge Navigation */}
+          {/* Challenge Filters */}
           <section className="py-6 bg-white border-b">
             <div className="container mx-auto px-4">
-              <div className="flex space-x-4 space-x-reverse">
-                {[
-                  { key: 'daily', label: 'יומי', icon: 'fas fa-calendar-day' },
-                  { key: 'weekly', label: 'שבועי', icon: 'fas fa-calendar-week' },
-                  { key: 'monthly', label: 'חודשי', icon: 'fas fa-calendar-alt' },
-                  { key: 'recommended', label: 'מומלצים', icon: 'fas fa-star' }
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key as 'daily' | 'weekly' | 'monthly' | 'recommended')}
-                    className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                      activeTab === tab.key
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <i className={`${tab.icon} ml-2`}></i>
-                    {tab.label}
-                    {challengeSet && (
-                      <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2">
-                        {challengeSet[tab.key as keyof PersonalizedChallengeSet].length}
-                      </span>
-                    )}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">כל האתגרים</h2>
+                <div className="flex space-x-4 space-x-reverse">
+                  {[
+                    { key: 'all', label: 'הכל', icon: 'fas fa-list' },
+                    { key: 'not_completed', label: 'לא הושלמו', icon: 'fas fa-clock' },
+                    { key: 'completed', label: 'הושלמו', icon: 'fas fa-check-circle' }
+                  ].map((filter) => (
+                    <button
+                      key={filter.key}
+                      onClick={() => setFilterCompleted(filter.key as any)}
+                      className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                        filterCompleted === filter.key
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <i className={`${filter.icon} ml-2`}></i>
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
@@ -196,14 +219,23 @@ export default function ChallengesPage() {
           {/* Challenge Grid */}
           <section className="py-8">
             <div className="container mx-auto px-4">
-              {challengeSet ? (
+              {allChallenges.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {challengeSet[activeTab].map((challenge: PersonalizedChallenge) => (
-                    <div
-                      key={challenge.id}
-                      className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => setSelectedChallenge(challenge)}
-                    >
+                  {getFilteredChallenges().map((challenge: PersonalizedChallenge) => {
+                    const isCompleted = user?.completedLevelChallenges?.includes(challenge.id) || false
+                    return (
+                      <div
+                        key={challenge.id}
+                        className={`bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow cursor-pointer relative ${
+                          isCompleted ? 'border-green-200 bg-green-50' : ''
+                        }`}
+                        onClick={() => setSelectedChallenge(challenge)}
+                      >
+                        {isCompleted && (
+                          <div className="absolute top-3 left-3">
+                            <i className="fas fa-check-circle text-green-500 text-lg"></i>
+                          </div>
+                        )}
                       {challenge.thumbnailUrl && (
                         <img
                           src={challenge.thumbnailUrl}
@@ -243,11 +275,12 @@ export default function ChallengesPage() {
                         </div>
                       )}
                       
-                      <Button className="w-full" size="sm">
-                        התחל אתגר
-                      </Button>
-                    </div>
-                  ))}
+                        <Button className="w-full" size="sm">
+                          {isCompleted ? 'בצע שוב' : 'התחל אתגר'}
+                        </Button>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">

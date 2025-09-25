@@ -96,44 +96,49 @@ export class PersonalizedChallengeService {
    */
   private static async getAvailableChallenges(criteria: ChallengeRecommendationCriteria): Promise<PersonalizedChallenge[]> {
     try {
+      console.log('🔍 Querying challenges collection...')
       const challengesRef = collection(db, COLLECTIONS.CHALLENGES)
       const q = query(
         challengesRef,
         where('isActive', '==', true),
-        where('skillLevel', 'in', this.getApplicableSkillLevels(criteria.skillCategory)),
-        limit(50)
+        where('status', '==', 'approved'),
+        limit(100) // Get more challenges for better variety
       )
       
       const snapshot = await getDocs(q)
       const challenges: PersonalizedChallenge[] = []
       
+      console.log(`📊 Found ${snapshot.size} active challenges in collection`)
+      
       snapshot.forEach(doc => {
         const data = doc.data()
+        
+        // Convert challenge data to PersonalizedChallenge format
         const challenge: PersonalizedChallenge = {
           id: doc.id,
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          challengeType: data.challengeType,
-          skillLevel: data.skillLevel,
-          targetAudience: data.targetAudience,
-          ageGroups: data.ageGroups || [],
-          positions: data.positions || ['all'],
-          difficulty: data.difficulty || 5,
+          title: data.title || 'אתגר ללא שם',
+          description: data.description || data.instructions || 'אין תיאור זמין',
+          category: data.category || 'training-exercise',
+          challengeType: data.exerciseType || 'general',
+          skillLevel: data.skillLevel || 'beginner',
+          targetAudience: data.targetAudience || 'amateur',
+          ageGroups: data.ageGroup ? [data.ageGroup] : ['adult'], // Convert single ageGroup to array
+          positions: data.positionSpecific && data.positionSpecific.length > 0 ? data.positionSpecific : ['all'],
+          difficulty: data.difficultyLevel || 5,
           duration: data.expectedDuration || 30,
-          points: data.points || 25,
+          points: data.points || Math.max(10, Math.min(100, (data.difficultyLevel || 5) * 10)),
           videoUrl: data.videoUrl,
           thumbnailUrl: data.thumbnailUrl,
           instructions: data.instructions || '',
-          equipment: data.equipment || [],
+          equipment: data.requiredEquipment || [],
           goals: data.goals || [],
-          metrics: data.metrics || [],
+          metrics: data.metrics || this.generateMetricsForChallenge(data.exerciseType || 'general'),
           isLevelSpecific: data.isLevelSpecific || false,
           requiredLevel: data.requiredLevel || 1,
           // Personalization fields
           relevanceScore: 0,
           personalizedReason: '',
-          estimatedCompletion: this.estimateCompletionTime(data.difficulty, criteria.skillCategory),
+          estimatedCompletion: this.estimateCompletionTime(data.difficultyLevel || 5, criteria.skillCategory),
           prerequisites: data.prerequisites || []
         }
         
@@ -141,11 +146,17 @@ export class PersonalizedChallengeService {
         challenge.relevanceScore = this.calculateRelevanceScore(challenge, criteria)
         challenge.personalizedReason = this.generatePersonalizedReason(challenge, criteria)
         
+        console.log(`✅ Processed challenge: ${challenge.title} (score: ${challenge.relevanceScore})`)
         challenges.push(challenge)
       })
       
+      console.log(`🎯 Total challenges processed: ${challenges.length}`)
+      
       // Sort by relevance score
-      return challenges.sort((a, b) => b.relevanceScore - a.relevanceScore)
+      const sortedChallenges = challenges.sort((a, b) => b.relevanceScore - a.relevanceScore)
+      console.log(`🏆 Top challenge: ${sortedChallenges[0]?.title} (score: ${sortedChallenges[0]?.relevanceScore})`)
+      
+      return sortedChallenges
       
     } catch (error) {
       console.error('❌ Error fetching challenges:', error)
@@ -437,5 +448,83 @@ export class PersonalizedChallengeService {
                            skillLevel === SKILL_LEVELS.ADVANCED ? 1.0 : 0.8
     
     return Math.round(baseTime * difficultyMultiplier * skillMultiplier)
+  }
+
+  /**
+   * Generate basic metrics for challenges based on exercise type
+   */
+  private static generateMetricsForChallenge(exerciseType: string): any[] {
+    const baseMetrics = [
+      {
+        id: 'completion_time',
+        name: 'זמן ביצוע',
+        unit: 'דקות',
+        type: 'time',
+        required: true,
+        description: 'כמה זמן לקח לך לבצע את התרגיל'
+      },
+      {
+        id: 'difficulty_rating',
+        name: 'דירוג קושי',
+        unit: '1-10',
+        type: 'numeric',
+        required: true,
+        description: 'איך דירגת את רמת הקושי של התרגיל'
+      }
+    ]
+
+    // Add exercise-specific metrics
+    switch (exerciseType) {
+      case 'shooting':
+        baseMetrics.push({
+          id: 'shots_taken',
+          name: 'מספר בעיטות',
+          unit: 'בעיטות',
+          type: 'count',
+          required: false,
+          description: 'כמה בעיטות ביצעת בסך הכל'
+        })
+        baseMetrics.push({
+          id: 'shots_on_target',
+          name: 'בעיטות למטרה',
+          unit: 'בעיטות',
+          type: 'count',
+          required: false,
+          description: 'כמה בעיטות פגעו במטרה'
+        })
+        break
+      case 'dribbling':
+        baseMetrics.push({
+          id: 'touches_count',
+          name: 'מספר נגיעות',
+          unit: 'נגיעות',
+          type: 'count',
+          required: false,
+          description: 'כמה נגיעות בכדור ביצעת'
+        })
+        break
+      case 'passing':
+        baseMetrics.push({
+          id: 'passes_completed',
+          name: 'מסירות מוצלחות',
+          unit: 'מסירות',
+          type: 'count',
+          required: false,
+          description: 'כמה מסירות הצלחת להשלים'
+        })
+        break
+      case 'fitness':
+        baseMetrics.push({
+          id: 'repetitions',
+          name: 'מספר חזרות',
+          unit: 'חזרות',
+          type: 'count',
+          required: false,
+          description: 'כמה חזרות ביצעת'
+        })
+        break
+    }
+
+    return baseMetrics
   }
 }

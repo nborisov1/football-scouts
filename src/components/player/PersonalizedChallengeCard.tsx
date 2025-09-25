@@ -204,37 +204,83 @@ export default function PersonalizedChallengeCard({
 
   const renderDemo = () => (
     <div className="space-y-6">
+      {/* Header */}
       <div className="text-center">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i className="fas fa-play text-blue-600 text-2xl"></i>
+        </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">צפה בהדגמה</h2>
         <p className="text-gray-600 mb-6">
           לפני שתתחיל, צפה בסרטון ההדגמה כדי להבין איך לבצע את האתגר נכון
         </p>
       </div>
 
+      {/* Video Player - Match Assessment Style */}
       {challenge.videoUrl && (
-        <div className="bg-black rounded-lg overflow-hidden">
-          <video
-            src={challenge.videoUrl}
-            controls
-            className="w-full h-64 object-cover"
-            crossOrigin="anonymous"
-          >
-            לא ניתן להציג את הסרטון
-          </video>
+        <div className="max-w-2xl mx-auto">
+          <div className="relative bg-black rounded-lg overflow-hidden shadow-lg" style={{ aspectRatio: '16/9' }}>
+            <video
+              src={challenge.videoUrl}
+              controls
+              className="w-full h-full object-contain"
+              crossOrigin="anonymous"
+              poster={challenge.thumbnailUrl}
+            >
+              <source src={challenge.videoUrl} type="video/mp4" />
+              <source src={challenge.videoUrl} type="video/mov" />
+              <source src={challenge.videoUrl} type="video/webm" />
+              <p className="text-white p-4 text-center">
+                לא ניתן להציג את הסרטון
+              </p>
+            </video>
+          </div>
+          
+          {/* Video Info */}
+          <div className="bg-gray-50 border border-gray-200 rounded-b-lg p-4 -mt-1">
+            <h3 className="font-medium text-gray-900 mb-2">{challenge.title}</h3>
+            <div className="flex items-center text-sm text-gray-600">
+              <div className="flex items-center ml-4">
+                <i className="fas fa-clock ml-1"></i>
+                <span>זמן משוער: {challenge.estimatedCompletion} דקות</span>
+              </div>
+              <div className="flex items-center ml-4">
+                <i className="fas fa-star ml-1"></i>
+                <span>קושי: {challenge.difficulty}/10</span>
+              </div>
+              <div className="flex items-center">
+                <i className="fas fa-coins ml-1"></i>
+                <span>{challenge.points} נקודות</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* Instructions */}
+      {challenge.instructions && (
+        <div className="max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">
+            <i className="fas fa-info-circle ml-2"></i>
+            הוראות ביצוע
+          </h4>
+          <p className="text-blue-800 text-sm leading-relaxed">{challenge.instructions}</p>
+        </div>
+      )}
+
+      {/* Action Buttons */}
       <div className="flex gap-4 justify-center">
         <Button
           onClick={handleWatchDemo}
           variant="secondary"
         >
+          <i className="fas fa-redo ml-2"></i>
           צפה שוב בהדגמה
         </Button>
         <Button
           onClick={handleSkipDemo}
+          size="lg"
         >
-          <i className="fas fa-forward ml-2"></i>
+          <i className="fas fa-arrow-left ml-2"></i>
           המשך לצילום
         </Button>
       </div>

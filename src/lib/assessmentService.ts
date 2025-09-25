@@ -30,26 +30,32 @@ export class AssessmentService {
    */
   static async getAssessmentExercises(): Promise<AssessmentChallenge[]> {
     try {
+      // First try to get from assessment challenges collection (simplified query)
       const assessmentChallengesRef = collection(db, COLLECTIONS.ASSESSMENT_CHALLENGES)
-      const q = query(
-        assessmentChallengesRef,
-        where('isActive', '==', true),
-        orderBy('order', 'asc'),
-        limit(5)
-      )
+      const q = query(assessmentChallengesRef, limit(10)) // Simple query without composite index
       const snapshot = await getDocs(q)
       
-      if (snapshot.empty) {
-        console.warn('⚠️ No assessment challenges found, falling back to legacy method')
-        return this.getLegacyAssessmentExercises()
+      if (!snapshot.empty) {
+        const challenges: AssessmentChallenge[] = []
+        snapshot.forEach(doc => {
+          const data = doc.data()
+          // Filter active challenges in code instead of query
+          if (data.isActive !== false) { // Include if isActive is true or undefined
+            challenges.push({ id: doc.id, ...data } as AssessmentChallenge)
+          }
+        })
+        
+        // Sort by order in code
+        challenges.sort((a, b) => (a.order || 0) - (b.order || 0))
+        
+        if (challenges.length > 0) {
+          return challenges.slice(0, 5) // Take first 5
+        }
       }
       
-      const challenges: AssessmentChallenge[] = []
-      snapshot.forEach(doc => {
-        challenges.push({ id: doc.id, ...doc.data() } as AssessmentChallenge)
-      })
-      
-      return challenges
+      // Fall back to legacy method if no assessment challenges found
+      console.warn('⚠️ No assessment challenges found, falling back to legacy method')
+      return this.getLegacyAssessmentExercises()
       
     } catch (error) {
       console.error('❌ Error loading assessment challenges:', error)

@@ -33,7 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null)
-  const [loading, setLoading] = useState(false) // Start with false for instant UI
+  const [loading, setLoading] = useState(true) // Start with true to prevent premature redirects
   const router = useRouter()
 
   // Initialize user from localStorage on first load
@@ -44,10 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const userData = JSON.parse(cachedUser)
           setUser(userData)
+          setLoading(false) // Set loading to false once cached user is loaded
         } catch (error) {
           console.error('Error parsing cached user:', error)
           localStorage.removeItem('footballScout_currentUser')
+          setLoading(false) // Set loading to false even if cache parsing fails
         }
+      } else {
+        setLoading(false) // Set loading to false if no cached user
       }
     }
   }, [])
@@ -121,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               organization: userData.organization || '',
               // New level progression fields with defaults
               onboardingCompleted: userData.onboardingCompleted || false,
+              assessmentCompleted: userData.assessmentCompleted || false,
               currentLevel: userData.currentLevel || 0, // 0 = assessment not completed, 1+ = assessment completed
               skillCategory: userData.skillCategory || 'beginner',
               levelProgress: userData.levelProgress || 0,
@@ -147,12 +152,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               position: '',
               team: '',
               level: 'beginner',
-              dominantFoot: 'right',
+              dominantFoot: 'right' as const,
               organization: '',
               // New level progression fields
               onboardingCompleted: false,
+              assessmentCompleted: false,
               currentLevel: 0, // 0 = assessment not completed, 1+ = assessment completed
-              skillCategory: 'beginner',
+              skillCategory: 'beginner' as const,
               levelProgress: 0,
               completedLevelChallenges: [],
               totalChallengesInLevel: 30
@@ -166,10 +172,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null)
           localStorage.removeItem('footballScout_currentUser')
         }
+        
+        // Set loading to false after authentication check is complete
+        setLoading(false)
       } catch (error) {
         console.error('❌ Error in auth state change:', error)
         setUser(null)
         localStorage.removeItem('footballScout_currentUser')
+        setLoading(false) // Set loading to false even on error
       }
     })
 
@@ -262,15 +272,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         position: position || '',
         team: team || '',
         level: level || 'beginner',
-        dominantFoot: dominantFoot || 'right',
+        dominantFoot: (dominantFoot || 'right') as 'right' | 'left' | 'both',
         organization: organization || '',
         onboardingCompleted: false,
+        assessmentCompleted: false,
         currentLevel: 0, // 0 = assessment not completed, 1+ = assessment completed
-        skillCategory: 'beginner',
+        skillCategory: 'beginner' as const,
         levelProgress: 0,
         completedLevelChallenges: [],
         totalChallengesInLevel: 30,
-        ...userData
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt
       }
       
       setUser(newUserData)

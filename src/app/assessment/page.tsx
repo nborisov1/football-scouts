@@ -124,8 +124,8 @@ export default function AssessmentPage() {
   }, [exercises, user])
 
   useEffect(() => {
-    // If user has completed assessment (level > 1) or has assessmentCompleted flag, redirect to challenges
-    if (user && (user.currentLevel > 1 || user.assessmentCompleted || user.progress?.assessmentCompleted)) {
+    // If user has completed assessment (currentLevel > 0), redirect to challenges
+    if (user && user.currentLevel > 0) {
       console.log('User has already completed assessment, redirecting to challenges')
       router.push('/challenges')
       return

@@ -121,8 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               organization: userData.organization || '',
               // New level progression fields with defaults
               onboardingCompleted: userData.onboardingCompleted || false,
-              assessmentCompleted: userData.assessmentCompleted || false,
-              currentLevel: userData.currentLevel || 1,
+              currentLevel: userData.currentLevel || 0, // 0 = assessment not completed, 1+ = assessment completed
               skillCategory: userData.skillCategory || 'beginner',
               levelProgress: userData.levelProgress || 0,
               completedLevelChallenges: userData.completedLevelChallenges || [],
@@ -152,8 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               organization: '',
               // New level progression fields
               onboardingCompleted: false,
-              assessmentCompleted: false,
-              currentLevel: 1,
+              currentLevel: 0, // 0 = assessment not completed, 1+ = assessment completed
               skillCategory: 'beginner',
               levelProgress: 0,
               completedLevelChallenges: [],
@@ -267,8 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         dominantFoot: dominantFoot || 'right',
         organization: organization || '',
         onboardingCompleted: false,
-        assessmentCompleted: false,
-        currentLevel: 1,
+        currentLevel: 0, // 0 = assessment not completed, 1+ = assessment completed
         skillCategory: 'beginner',
         levelProgress: 0,
         completedLevelChallenges: [],

@@ -24,7 +24,8 @@ export default function ChallengesPage() {
   // Show player-specific page for players
   if (user?.type === 'player') {
     // Check if user has completed level assessment first
-    if (!user.assessmentCompleted) {
+    // User is considered to have completed assessment if currentLevel > 0
+    if (user.currentLevel === 0) {
       return (
         <ProtectedRoute>
           <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -63,11 +64,11 @@ export default function ChallengesPage() {
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50">
           {/* Header Section */}
-          <section className="bg-blue-600 text-white py-12">
+          <section className="bg-primary-600 text-white py-12">
             <div className="container mx-auto px-4">
               <h1 className="text-4xl font-bold mb-4">האתגרים שלי</h1>
-              <p className="text-xl text-blue-100">
-                ברכות! סיימת את מבחן הרמה. האתגרים הבאים יהיו זמינים בקרוב!
+              <p className="text-xl text-primary-100">
+                אתגרים מותאמים לרמה שלך יהיו זמינים בקרוב. המערכת תכלול אתגרים מתקדמים והתקדמות לרמות גבוהות יותר.
               </p>
             </div>
           </section>
@@ -83,9 +84,9 @@ export default function ChallengesPage() {
                   אתגרים מותאמים לרמה שלך יהיו זמינים בקרוב. 
                   המערכת תכלול אתגרים מתקדמים והתקדמות לרמות גבוהות יותר.
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>בינתיים:</strong> תוכל לחזור למבחן הרמה לשיפור הציון שלך
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                  <p className="text-sm text-primary-800">
+                    <strong>בקרוב:</strong> אתגרים מותאמים אישית, מערכת ניקוד מתקדמת ותחרויות עם שחקנים אחרים
                   </p>
                 </div>
               </div>

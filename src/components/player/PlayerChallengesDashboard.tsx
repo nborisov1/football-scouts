@@ -41,7 +41,9 @@ export default function PlayerChallengesDashboard({ onSubmissionComplete }: Play
 
   // Get player's age group and position from user data
   const getPlayerAgeGroup = (): AgeGroup => {
-    if (!user?.age) return 'u12' // Default fallback
+    if (!user?.age) {
+      throw new Error('User age is required for challenge selection')
+    }
     
     const age = user.age
     if (age < 8) return 'u8'

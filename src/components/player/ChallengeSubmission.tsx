@@ -37,8 +37,8 @@ export default function ChallengeSubmission({
       // TODO: Implement actual video upload to Firebase Storage
       // For now, simulate upload
       await new Promise(resolve => setTimeout(resolve, 2000))
-      const mockUrl = `https://example.com/videos/${file.name}`
-      setVideoUrl(mockUrl)
+      // Video will be uploaded to Firebase Storage when submitted
+      setVideoUrl('')
       setCurrentStep('metrics')
       showMessage('הסרטון הועלה בהצלחה!', 'success')
     } catch (error) {

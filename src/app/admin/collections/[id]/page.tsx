@@ -26,7 +26,7 @@ export default function CollectionDetailRoute() {
         }
       } catch (error) {
         console.error('Error loading videos:', error)
-        setVideos([]) // Set empty array as fallback
+        throw error // Don't use fallbacks, let error bubble up
       } finally {
         setLoading(false)
       }

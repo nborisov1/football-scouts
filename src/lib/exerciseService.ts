@@ -47,18 +47,16 @@ export interface ExerciseSubmission {
 export class ExerciseService {
   
   /**
-   * Get 5 random exercises for assessment - using real video data
+   * Get exercises from Firebase videos collection
    */
   static async getAssessmentExercises(): Promise<FirebaseExercise[]> {
     try {
-      // Get all approved videos
       const videosRef = collection(db, COLLECTIONS.VIDEOS)
       const q = query(videosRef, where('status', '==', 'approved'), limit(20))
       const snapshot = await getDocs(q)
       
       if (snapshot.empty) {
-        console.log('⚠️ No approved videos found, using default exercises')
-        return this.getDefaultExercises()
+        throw new Error('No approved videos found in Firebase. Please ensure videos are properly uploaded and approved.')
       }
       
       const allVideos: FirebaseExercise[] = []
@@ -66,34 +64,42 @@ export class ExerciseService {
       snapshot.forEach((doc) => {
         const data = doc.data()
         
-        // Map your video data to exercise format
+        // Validate required fields
+        if (!data.title || !data.description || !data.exerciseType) {
+          console.warn(`Skipping incomplete video: ${doc.id}`)
+          return
+        }
+        
         allVideos.push({
           id: doc.id,
-          title: data.title || 'Football Exercise',
-          description: data.description || 'Football training exercise',
-          instructions: data.instructions || this.getDefaultInstructions(data.exerciseType || 'ball-control'),
-          challengeType: data.exerciseType || 'general',
+          title: data.title,
+          description: data.description,
+          instructions: data.instructions || this.getDefaultInstructions(data.exerciseType),
+          challengeType: data.exerciseType,
           skillLevel: data.skillLevel || 'beginner',
           ageGroup: data.ageGroup || 'adult',
           duration: data.duration || data.expectedDuration || 60,
           equipment: data.requiredEquipment || [],
           videoUrl: data.videoUrl,
           thumbnailUrl: data.thumbnailUrl,
-          metrics: this.getMetricsForExerciseType(data.exerciseType || 'general')
+          metrics: this.getMetricsForExerciseType(data.exerciseType)
         })
       })
+      
+      if (allVideos.length === 0) {
+        throw new Error('No valid exercises found. Please check video data quality.')
+      }
       
       // Shuffle and pick 5 random exercises
       const shuffled = allVideos.sort(() => 0.5 - Math.random())
       const selectedExercises = shuffled.slice(0, 5)
       
-      console.log(`✅ Loaded ${selectedExercises.length} assessment exercises from real video data`)
-      
+      console.log(`✅ Loaded ${selectedExercises.length} assessment exercises from Firebase`)
       return selectedExercises
       
     } catch (error) {
       console.error('❌ Error loading assessment exercises:', error)
-      return this.getDefaultExercises()
+      throw error
     }
   }
   
@@ -213,38 +219,6 @@ export class ExerciseService {
     return metrics[challengeType] || []
   }
   
-  /**
-   * Create default exercise as fallback
-   */
-  private static createDefaultExercise(challengeType: string): FirebaseExercise {
-    return {
-      id: `default-${challengeType}`,
-      title: `${CHALLENGE_TYPE_LABELS[challengeType]} - אתגר בסיסי`,
-      description: `בדיקת יכולות ${CHALLENGE_TYPE_LABELS[challengeType].toLowerCase()}`,
-      instructions: this.getDefaultInstructions(challengeType),
-      challengeType,
-      skillLevel: 'beginner',
-      ageGroup: 'adult',
-      duration: 60,
-      equipment: [],
-      metrics: this.getMetricsForChallengeType(challengeType)
-    }
-  }
-  
-  /**
-   * Get fallback default exercises
-   */
-  private static getDefaultExercises(): FirebaseExercise[] {
-    const types = [
-      CHALLENGE_TYPES.BALL_CONTROL,
-      CHALLENGE_TYPES.PASSING,
-      CHALLENGE_TYPES.SHOOTING,
-      CHALLENGE_TYPES.DRIBBLING,
-      CHALLENGE_TYPES.FITNESS
-    ]
-    
-    return types.map(type => this.createDefaultExercise(type))
-  }
   
   /**
    * Get metrics for each exercise type based on your video data

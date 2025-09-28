@@ -16,15 +16,6 @@ import { useRankings } from '@/hooks/useRankings'
 
 import { USER_TYPES } from '@/lib/firebase'
 
-// Mock data for demonstration - single ranking leaderboard
-const mockLeaderboardData = [
-  { name: 'אורי מלכה', score: 95, position: 'חלוץ', age: 18 },
-  { name: 'יובל שמעון', score: 92, position: 'קשר', age: 17 },
-  { name: 'איתי לוי', score: 90, position: 'מגן', age: 19 },
-  { name: 'יוסי כהן', score: 88, position: 'קשר', age: 18 },
-  { name: 'דני לוי', score: 85, position: 'חלוץ', age: 17 },
-  { name: 'אבי גולן', score: 82, position: 'מגן', age: 16 },
-]
 
 export default function HomePage() {
   const { user } = useAuth()

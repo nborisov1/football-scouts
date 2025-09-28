@@ -26,117 +26,42 @@ import type { AssessmentChallenge, UserSubmission } from '@/types/level'
 export class AssessmentService {
   
   /**
-   * Get standardized assessment challenges (5 challenges for skill evaluation)
+   * Get standardized assessment challenges from Firebase
    */
   static async getAssessmentExercises(): Promise<AssessmentChallenge[]> {
     try {
-      // First try to get from assessment challenges collection (simplified query)
       const assessmentChallengesRef = collection(db, COLLECTIONS.ASSESSMENT_CHALLENGES)
-      const q = query(assessmentChallengesRef, limit(10)) // Simple query without composite index
+      // Use simple query without composite index requirement
+      const q = query(assessmentChallengesRef, limit(20))
       const snapshot = await getDocs(q)
       
-      if (!snapshot.empty) {
-        const challenges: AssessmentChallenge[] = []
-        snapshot.forEach(doc => {
-          const data = doc.data()
-          // Filter active challenges in code instead of query
-          if (data.isActive !== false) { // Include if isActive is true or undefined
-            challenges.push({ id: doc.id, ...data } as AssessmentChallenge)
-          }
-        })
-        
-        // Sort by order in code
-        challenges.sort((a, b) => (a.order || 0) - (b.order || 0))
-        
-        if (challenges.length > 0) {
-          return challenges.slice(0, 5) // Take first 5
+      const challenges: AssessmentChallenge[] = []
+      snapshot.forEach(doc => {
+        const data = doc.data()
+        // Filter active challenges in code instead of query
+        if (data.isActive !== false) { // Include if isActive is true or undefined
+          challenges.push({ id: doc.id, ...data } as AssessmentChallenge)
         }
-      }
+      })
       
-      // Fall back to legacy method if no assessment challenges found
-      console.warn('⚠️ No assessment challenges found, falling back to legacy method')
-      return this.getLegacyAssessmentExercises()
+      // Sort by order in code instead of query
+      challenges.sort((a, b) => (a.order || 0) - (b.order || 0))
+      
+      console.log(`✅ Loaded ${challenges.length} assessment challenges from Firebase`)
+      return challenges.slice(0, 10) // Take first 10
       
     } catch (error) {
       console.error('❌ Error loading assessment challenges:', error)
-      // Fall back to legacy method
-      return this.getLegacyAssessmentExercises()
+      throw new Error('Failed to load assessment challenges. Please ensure Firebase is properly configured.')
     }
   }
 
-  /**
-   * Legacy method: Get assessment from videos collection (backwards compatibility)
-   */
-  static async getLegacyAssessmentExercises(): Promise<AssessmentChallenge[]> {
-    try {
-      // Get videos from Firebase (try without status filter first)
-      console.log('🔄 Loading legacy assessment from videos collection...')
-      const videosRef = collection(db, COLLECTIONS.VIDEOS)
-      const q = query(videosRef, limit(10))
-      const snapshot = await getDocs(q)
-      
-      console.log(`📊 Found ${snapshot.size} videos in collection`)
-      
-      if (snapshot.empty) {
-        console.warn('❌ No videos found for assessment. Creating mock exercises.')
-        return this.getMockAssessmentExercises()
-      }
-      
-      const challenges: AssessmentChallenge[] = []
-      let order = 1
-      
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        
-        // Convert Firebase video to assessment challenge format
-        challenges.push({
-          id: doc.id,
-          title: data.title || 'אתגר כדורגל',
-          description: data.description || 'אתגר אימון כדורגל',
-          instructions: data.instructions ? [data.instructions] : [
-            'צפה בסרטון המדגים את התרגיל',
-            `הכן את הציוד הנדרש: ${(data.requiredEquipment || []).join(', ')}`,
-            'בצע את התרגיל לפי ההוראות',
-            'צלם את עצמך מבצע את התרגיל',
-            'העלה את הסרטון ורשום את התוצאות'
-          ],
-          type: 'assessment',
-          category: this.mapExerciseTypeToCategory(data.exerciseType || 'general'),
-          order: order++,
-          metrics: {
-            type: 'count',
-            target: 10,
-            passingScore: 7,
-            excellentScore: 15,
-            unit: this.getUnitForExerciseType(data.exerciseType || 'general'),
-            description: this.getDescriptionForExerciseType(data.exerciseType || 'general')
-          },
-          demonstrationVideoUrl: data.videoUrl || data.url || '',
-          thumbnailUrl: data.thumbnailUrl,
-          equipment: data.requiredEquipment || data.equipment || [],
-          spaceRequired: '5x5 meters',
-          duration: data.duration || data.expectedDuration || 60,
-          maxAttempts: 3,
-          createdBy: data.uploadedBy || 'system',
-          isActive: true,
-          createdAt: data.createdAt || new Date().toISOString()
-        } as AssessmentChallenge)
-      })
-      
-      return challenges.slice(0, 5)
-      
-    } catch (error) {
-      console.error('❌ Error loading legacy assessment challenges:', error)
-      return []
-    }
-  }
 
   /**
    * Get single assessment challenge by ID
    */
   static async getAssessmentExerciseById(exerciseId: string): Promise<AssessmentChallenge | null> {
     try {
-      // Try new assessment challenges collection first
       const assessmentRef = doc(db, COLLECTIONS.ASSESSMENT_CHALLENGES, exerciseId)
       const assessmentDoc = await getDoc(assessmentRef)
       
@@ -144,41 +69,8 @@ export class AssessmentService {
         return { id: assessmentDoc.id, ...assessmentDoc.data() } as AssessmentChallenge
       }
       
-      // Fall back to videos collection for backwards compatibility
-      const videoRef = doc(db, COLLECTIONS.VIDEOS, exerciseId)
-      const videoDoc = await getDoc(videoRef)
-      
-      if (!videoDoc.exists()) {
-        return null
-      }
-      
-      const data = videoDoc.data()
-      
-      return {
-        id: videoDoc.id,
-        title: data.title || 'אתגר כדורגל',
-        description: data.description || 'אתגר אימון כדורגל',
-        instructions: data.instructions ? [data.instructions] : ['בצע את התרגיל כפי שמוצג בסרטון'],
-        type: 'assessment',
-        category: this.mapExerciseTypeToCategory(data.exerciseType || 'general'),
-        order: 1,
-        metrics: {
-          type: 'count',
-          target: 10,
-          passingScore: 7,
-          excellentScore: 15,
-          unit: this.getUnitForExerciseType(data.exerciseType || 'general'),
-          description: this.getDescriptionForExerciseType(data.exerciseType || 'general')
-        },
-        demonstrationVideoUrl: data.videoUrl,
-        equipment: data.requiredEquipment || [],
-        spaceRequired: '5x5 meters',
-        duration: data.duration || data.expectedDuration || 60,
-        maxAttempts: 3,
-        createdBy: data.uploadedBy || 'system',
-        isActive: true,
-        createdAt: data.createdAt || new Date().toISOString()
-      } as AssessmentChallenge
+      console.warn(`❌ Assessment challenge not found: ${exerciseId}`)
+      return null
       
     } catch (error) {
       console.error('Error loading exercise:', error)
@@ -429,104 +321,6 @@ export class AssessmentService {
     if (level >= 5) return 'advanced'
     if (level >= 3) return 'intermediate'
     return 'beginner'
-  }
-
-  /**
-   * Mock assessment exercises as final fallback
-   */
-  private static getMockAssessmentExercises(): AssessmentChallenge[] {
-    return [
-      {
-        id: 'mock-ball-control',
-        title: 'שליטה בכדור',
-        description: 'אתגר שליטה בכדור בסיסי',
-        instructions: [
-          'בצע שליטה בכדור עם כף הרגל',
-          'נסה לשמור על הכדור באוויר',
-          'ספור כמה נגיעות הצלחת',
-          'צלם את עצמך מבצע את התרגיל'
-        ],
-        type: 'assessment',
-        category: 'technical',
-        order: 1,
-        metrics: {
-          type: 'count',
-          target: 10,
-          passingScore: 5,
-          excellentScore: 15,
-          unit: 'נגיעות',
-          description: 'מספר הנגיעות ברצף'
-        },
-        demonstrationVideoUrl: '',
-        equipment: ['כדור'],
-        spaceRequired: '3x3 מטרים',
-        duration: 60,
-        maxAttempts: 3,
-        createdBy: 'system',
-        isActive: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-passing',
-        title: 'דיוק מסירות',
-        description: 'אתגר דיוק מסירות למטרה',
-        instructions: [
-          'הצב מטרה במרחק של 5 מטר',
-          'בצע מסירות למטרה',
-          'ספור כמה מסירות פגעו במטרה',
-          'צלם את עצמך מבצע את התרגיל'
-        ],
-        type: 'assessment',
-        category: 'technical',
-        order: 2,
-        metrics: {
-          type: 'count',
-          target: 10,
-          passingScore: 6,
-          excellentScore: 12,
-          unit: 'מסירות מדויקות',
-          description: 'מספר המסירות שפגעו במטרה'
-        },
-        demonstrationVideoUrl: '',
-        equipment: ['כדור', 'מטרה'],
-        spaceRequired: '10x5 מטרים',
-        duration: 90,
-        maxAttempts: 3,
-        createdBy: 'system',
-        isActive: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-shooting',
-        title: 'בעיטות למטרה',
-        description: 'אתגר בעיטות לשער',
-        instructions: [
-          'עמוד במרחק של 10 מטר מהשער',
-          'בצע בעיטות לשער',
-          'ספור כמה בעיטות נכנסו',
-          'צלם את עצמך מבצע את התרגיל'
-        ],
-        type: 'assessment',
-        category: 'technical',
-        order: 3,
-        metrics: {
-          type: 'count',
-          target: 10,
-          passingScore: 4,
-          excellentScore: 8,
-          unit: 'גולים',
-          description: 'מספר הבעיטות שנכנסו לשער'
-        },
-        demonstrationVideoUrl: '',
-        equipment: ['כדור', 'שער'],
-        spaceRequired: '15x10 מטרים',
-        duration: 120,
-        maxAttempts: 3,
-        createdBy: 'system',
-        isActive: true,
-        createdAt: new Date().toISOString()
-      }
-    ]
   }
 }
 
